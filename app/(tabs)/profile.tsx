@@ -11,8 +11,9 @@ import { APP_NAME, HOMETOWN_LINE, PRIVACY_LINE, REPOSITORY_URL, TAGLINE } from '
 import { Radii, Spacing, Typography } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { useSettings } from '@/hooks/useSettings';
+import { clearRecentSearches } from '@/lib/food/recentSearches';
 import { clearLog, logStore } from '@/lib/log/logStore';
-import { updateSettings } from '@/lib/settings/settingsStore';
+import { DEFAULT_SETTINGS, settingsStore, updateSettings } from '@/lib/settings/settingsStore';
 import type { HeightUnit, ThemePreference, WeightUnit } from '@/types';
 import { confirmAsync, showOptionSheet } from '@/utils/actionSheet';
 import { formatNumber } from '@/utils/format';
@@ -50,6 +51,15 @@ export default function ProfileScreen() {
     }
     const confirmed = await confirmAsync({ title: 'Clear your log?', message: `This removes all ${count} ${count === 1 ? 'entry' : 'entries'} from this device. It can’t be undone.`, confirmLabel: 'Clear' });
     if (confirmed) clearLog();
+  };
+
+  /** Everything the app has stored on this device: the log, recent searches, name and goals. Lands back on the welcome screen. */
+  const confirmErase = async () => {
+    const confirmed = await confirmAsync({ title: 'Erase all data?', message: 'This deletes your food log, recent searches, name and goals from this device and starts the app over. It can’t be undone.', confirmLabel: 'Erase everything' });
+    if (!confirmed) return;
+    clearLog();
+    clearRecentSearches();
+    settingsStore.set({ ...DEFAULT_SETTINGS, welcomed: false });
   };
 
   return (
@@ -116,7 +126,8 @@ export default function ProfileScreen() {
         <ListSection title="Privacy" footer={`${PRIVACY_LINE} Meal photos are sent to the scanner for analysis and are not kept.`}>
           <ListRow icon="shield" iconBackground={colors.success} title="No account, no tracking" showChevron={false} />
           <ListRow icon="privacy" iconBackground={colors.accent} title="Privacy policy" onPress={() => router.push('/privacy')} />
-          <ListRow icon="trash" iconBackground={colors.danger} title="Clear my log" onPress={() => void confirmClear()} destructive isLast />
+          <ListRow icon="trash" iconBackground={colors.danger} title="Clear my log" onPress={() => void confirmClear()} destructive />
+          <ListRow icon="trash" iconBackground={colors.danger} title="Erase all data" onPress={() => void confirmErase()} destructive isLast />
         </ListSection>
 
         <ListSection title="About" footer={`${APP_NAME} ${version} · ${TAGLINE}`}>

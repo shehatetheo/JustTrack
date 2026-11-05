@@ -29,6 +29,7 @@ export const PRIVACY_SECTIONS: readonly LegalSection[] = [
     heading: 'Food search',
     paragraphs: [
       'Searching everyday foods uses a database bundled inside the app (USDA FoodData Central), which never leaves your device. Searching packaged foods and scanning barcodes sends the words you typed, or the barcode, to Open Food Facts to look up the product. Restaurant menus are bundled inside the app.',
+      'Restaurant nutrition figures are compiled from each chain’s publicly published nutrition information. Restaurant names and logos appear only to identify whose published menu is shown; they are trademarks of their owners, and the app is not affiliated with, sponsored by, or endorsed by any restaurant.',
     ],
   },
   {
@@ -68,6 +69,6 @@ export const SUPPORT_SECTIONS: readonly LegalSection[] = [
   },
   {
     heading: 'My data',
-    paragraphs: [`Everything you log lives on your device. To start over, use "Clear my log" in Profile. See the privacy policy at ${PRIVACY_URL} for details.`],
+    paragraphs: [`Everything you log lives on your device. To delete just the log, use "Clear my log" in Profile. To delete everything the app has stored (log, recent searches, name and goals) and start over, use "Erase all data" in Profile. See the privacy policy at ${PRIVACY_URL} for details.`],
   },
 ];
