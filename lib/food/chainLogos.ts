@@ -77,8 +77,15 @@ export const FEATURED_CHAINS: readonly string[] = [
   "Auntie Anne's",
 ];
 
+/**
+ * Whether chains show their trademarked logos or a monogram tile. Off for
+ * the App Store build until permission to use the logos is in hand; flip
+ * to true to bring the logos back everywhere at once.
+ */
+export const SHOW_CHAIN_LOGOS = false;
+
 export function chainLogo(chain: string | null | undefined): ImageSourcePropType | null {
-  return chain ? (LOGOS[chain] ?? null) : null;
+  return SHOW_CHAIN_LOGOS && chain ? (LOGOS[chain] ?? null) : null;
 }
 
 /** Short display names for tight spaces: "Chipotle" rather than "Chipotle Mexican Grill". */

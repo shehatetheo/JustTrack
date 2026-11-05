@@ -21,7 +21,6 @@ import { useCurrentTime } from '@/hooks/useCurrentTime';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useFoodSearch } from '@/hooks/useFoodSearch';
 import { builderForChain } from '@/lib/food/builders';
-import { chainLogo } from '@/lib/food/chainLogos';
 import { clearRecentSearches, recentSearchesStore, rememberSearch, SUGGESTED_SEARCHES } from '@/lib/food/recentSearches';
 import { matchRowToFood } from '@/lib/scan/reviewStore';
 import type { FoodDetail } from '@/types';
@@ -139,7 +138,7 @@ export default function FoodSearchScreen() {
         renderSectionHeader={({ section }) => (
           <Animated.View entering={FadeIn.duration(220)} style={[styles.sectionHeader, { backgroundColor: colors.background }]}>
             <View style={styles.sectionTitleRow}>
-              {section.key === 'restaurants' && search.chainNamed && chainLogo(search.chainNamed) ? <ChainLogo chain={search.chainNamed} size={22} radius={6} /> : null}
+              {section.key === 'restaurants' && search.chainNamed ? <ChainLogo chain={search.chainNamed} size={22} radius={6} /> : null}
               <ThemedText variant="footnote" color="secondary" style={styles.sectionTitle}>
                 {section.title.toUpperCase()}
               </ThemedText>
