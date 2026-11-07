@@ -1,6 +1,6 @@
 import { parseMealAnalysis } from '@/lib/scan/analysis';
 import { ScanError } from '@/lib/scan/errors';
-import { analyzeWithGemini, directApiKey } from '@/lib/scan/geminiDirect';
+import { analyzeWithGemini, describeWithGemini, directApiKey } from '@/lib/scan/geminiDirect';
 import type { MealAnalysis } from '@/types';
 
 export { ScanError };
@@ -18,13 +18,13 @@ const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
 
 const UNREADABLE = 'The photo scanner sent back something we couldn’t read. Please try again.';
 
-async function analyzeViaServer(image: { base64: string; mediaType: string }, signal?: AbortSignal): Promise<unknown> {
+async function postToServer(path: string, payload: unknown, signal?: AbortSignal): Promise<unknown> {
   let response: Response;
   try {
-    response = await fetch(`${API_BASE_URL}/api/analyze-meal`, {
+    response = await fetch(`${API_BASE_URL}${path}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: image.base64, mediaType: image.mediaType }),
+      body: JSON.stringify(payload),
       signal,
     });
   } catch {
@@ -43,7 +43,21 @@ async function analyzeViaServer(image: { base64: string; mediaType: string }, si
 
 export async function analyzeMealPhoto(image: { base64: string; mediaType: string }, signal?: AbortSignal): Promise<MealAnalysis> {
   const apiKey = directApiKey();
-  const raw = apiKey ? await analyzeWithGemini(image, apiKey, signal) : await analyzeViaServer(image, signal);
+  const raw = apiKey ? await analyzeWithGemini(image, apiKey, signal) : await postToServer('/api/analyze-meal', { image: image.base64, mediaType: image.mediaType }, signal);
+  const analysis = parseMealAnalysis(raw);
+  if (!analysis) throw new ScanError('bad_response', UNREADABLE);
+  return analysis;
+}
+
+/** The most a description can be; longer than any meal anyone types. */
+export const MAX_DESCRIPTION_LENGTH = 500;
+
+/** "2 eggs and toast" → the foods in it, sized and with nutrition, the same shape a photo scan gives. */
+export async function analyzeMealDescription(text: string, signal?: AbortSignal): Promise<MealAnalysis> {
+  const trimmed = text.trim().slice(0, MAX_DESCRIPTION_LENGTH);
+  if (!trimmed) throw new ScanError('bad_request', 'Tell us what you ate first.');
+  const apiKey = directApiKey();
+  const raw = apiKey ? await describeWithGemini(trimmed, apiKey, signal) : await postToServer('/api/describe-meal', { text: trimmed }, signal);
   const analysis = parseMealAnalysis(raw);
   if (!analysis) throw new ScanError('bad_response', UNREADABLE);
   return analysis;

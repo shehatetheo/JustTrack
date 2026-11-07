@@ -1,12 +1,13 @@
 import { calculateNutrition } from '@/lib/nutrition/calculateNutrition';
 import { metricServing } from '@/lib/nutrition/portion';
-import { matchChainItem } from '@/lib/food/chainDatabase';
+import { matchChainItem, searchChainFoods } from '@/lib/food/chainDatabase';
+import { searchUsdaFoods } from '@/lib/food/usdaDatabase';
 import type { EstimatedFood, FoodDetail, MealAnalysis, NutritionValues } from '@/types';
 
 /**
- * The photo scan in progress: the picture, what the model found, and the
- * user's edits before anything is logged. Lives in memory only — a photo
- * is analyzed and then forgotten.
+ * The scan in progress: the picture or the typed description, what the
+ * model found, and the user's edits before anything is logged. Lives in
+ * memory only — a photo is analyzed and then forgotten.
  */
 
 export interface ReviewRow {
@@ -21,10 +22,16 @@ export interface ReviewRow {
   matchedFood: { name: string; brand: string | null; source: FoodDetail['source']; externalId: string } | null;
   /** The chain the scanner recognized, whether or not a menu item matched. */
   chain: string | null;
+  /** The model's own numbers, kept so the user can switch back after trying a database match. */
+  estimate: { grams: number; nutrition: NutritionValues; name: string; portionDescription: string };
+  /** Database foods that look like this item, offered as alternatives to the estimate. */
+  suggestions: FoodDetail[];
 }
 
 export interface ReviewState {
   photoUri: string | null;
+  /** What the user typed, when the meal was described rather than photographed. */
+  description: string | null;
   /** A small copy of the photo that's saved with the entries, so meal cards show the plate. */
   thumbnailUri: string | null;
   status: 'idle' | 'analyzing' | 'ready' | 'error';
@@ -34,7 +41,7 @@ export interface ReviewState {
   rows: ReviewRow[];
 }
 
-const EMPTY: ReviewState = { photoUri: null, thumbnailUri: null, status: 'idle', error: null, errorCode: null, note: null, rows: [] };
+const EMPTY: ReviewState = { photoUri: null, description: null, thumbnailUri: null, status: 'idle', error: null, errorCode: null, note: null, rows: [] };
 
 let state: ReviewState = EMPTY;
 const listeners = new Set<() => void>();
@@ -65,7 +72,26 @@ export function rowFromEstimate(food: EstimatedFood): ReviewRow {
     basis: { grams, nutrition: { calories: food.calories, protein: food.protein, carbs: food.carbs, fat: food.fat } },
     matchedFood: null,
     chain: food.chain,
+    estimate: { grams, nutrition: { calories: food.calories, protein: food.protein, carbs: food.carbs, fat: food.fat }, name: food.name, portionDescription: food.portionDescription },
+    suggestions: [],
   };
+}
+
+/** Up to three database foods that could be this item: the chain's menu when one is named, else everyday foods. */
+export function suggestionsFor(row: ReviewRow, limit = 3): FoodDetail[] {
+  const query = row.name.replace(/[(),]/g, ' ');
+  const fromChain = row.chain ? searchChainFoods(`${row.chain} ${query}`, limit) : [];
+  const fromUsda = fromChain.length >= limit ? [] : searchUsdaFoods(query, limit - fromChain.length);
+  const seen = new Set<string>();
+  return [...fromChain, ...fromUsda].filter((food) => (seen.has(food.id) ? false : (seen.add(food.id), true)));
+}
+
+/** Back to the model's own estimate after trying a database match. */
+export function revertToEstimate(id: string): void {
+  publish({
+    ...state,
+    rows: state.rows.map((row) => (row.id === id ? { ...row, name: row.estimate.name, portionDescription: row.estimate.portionDescription, grams: row.estimate.grams, basis: { grams: row.estimate.grams, nutrition: row.estimate.nutrition }, matchedFood: null } : row)),
+  });
 }
 
 /** A recognized chain item snaps to its menu nutrition, so the row isn't an estimate anymore. */
@@ -97,12 +123,20 @@ export function startAnalysis(photoUri: string): void {
   publish({ ...EMPTY, photoUri, status: 'analyzing' });
 }
 
+export function startDescription(description: string): void {
+  publish({ ...EMPTY, description, status: 'analyzing' });
+}
+
 export function setReviewThumbnail(thumbnailUri: string | null): void {
   publish({ ...state, thumbnailUri });
 }
 
 export function finishAnalysis(analysis: MealAnalysis): void {
-  publish({ ...state, status: 'ready', note: analysis.note, rows: analysis.foods.map((food) => withMenuMatch(rowFromEstimate(food))) });
+  const rows = analysis.foods.map((food) => {
+    const row = withMenuMatch(rowFromEstimate(food));
+    return { ...row, suggestions: suggestionsFor(row) };
+  });
+  publish({ ...state, status: 'ready', note: analysis.note, rows });
 }
 
 export function failAnalysis(error: string, errorCode: string | null): void {

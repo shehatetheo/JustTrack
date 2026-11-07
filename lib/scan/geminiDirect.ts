@@ -1,5 +1,5 @@
 import { ScanError } from '@/lib/scan/errors';
-import { DEFAULT_GEMINI_MODEL, RESPONSE_SCHEMA, SCAN_QUESTION, SYSTEM_PROMPT } from '@/lib/scan/geminiPrompt';
+import { DEFAULT_GEMINI_MODEL, DESCRIBE_SYSTEM_PROMPT, describeQuestion, RESPONSE_SCHEMA, SCAN_QUESTION, SYSTEM_PROMPT } from '@/lib/scan/geminiPrompt';
 
 /**
  * The on-device scanner: the app calls Gemini itself when a build was made
@@ -41,8 +41,23 @@ export function outputText(body: InteractionResponse): string {
     .join('');
 }
 
-/** Asks Gemini directly and returns its parsed JSON reply, or throws a ScanError. */
-export async function analyzeWithGemini(image: { base64: string; mediaType: string }, apiKey: string, signal?: AbortSignal): Promise<unknown> {
+type InputPart = { type: 'image'; data: string; mime_type: string } | { type: 'text'; text: string };
+
+/** Asks Gemini directly about a photo and returns its parsed JSON reply, or throws a ScanError. */
+export function analyzeWithGemini(image: { base64: string; mediaType: string }, apiKey: string, signal?: AbortSignal): Promise<unknown> {
+  return interact(SYSTEM_PROMPT, [{ type: 'image', data: image.base64, mime_type: image.mediaType }, { type: 'text', text: SCAN_QUESTION }], apiKey, signal);
+}
+
+/** Asks Gemini directly about a typed description of a meal. */
+export function describeWithGemini(text: string, apiKey: string, signal?: AbortSignal): Promise<unknown> {
+  return interact(DESCRIBE_SYSTEM_PROMPT, [{ type: 'text', text: describeQuestion(text) }], apiKey, signal);
+}
+
+/** Gemini occasionally answers 503 "high demand" for a second; one short retry rides that out. */
+const RETRY_STATUSES = new Set([503, 429]);
+const RETRY_DELAY_MS = 1200;
+
+async function interact(systemPrompt: string, input: InputPart[], apiKey: string, signal?: AbortSignal, attempt = 0): Promise<unknown> {
   let response: Response;
   try {
     response = await fetch(ENDPOINT, {
@@ -50,11 +65,8 @@ export async function analyzeWithGemini(image: { base64: string; mediaType: stri
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
       body: JSON.stringify({
         model: directModel(),
-        system_instruction: SYSTEM_PROMPT,
-        input: [
-          { type: 'image', data: image.base64, mime_type: image.mediaType },
-          { type: 'text', text: SCAN_QUESTION },
-        ],
+        system_instruction: systemPrompt,
+        input,
         response_format: { type: 'text', mime_type: 'application/json', schema: RESPONSE_SCHEMA },
         store: false,
       }),
@@ -66,6 +78,10 @@ export async function analyzeWithGemini(image: { base64: string; mediaType: stri
   }
 
   const body = (await response.json().catch(() => null)) as InteractionResponse | null;
+  if (!response.ok && RETRY_STATUSES.has(response.status) && attempt === 0 && !signal?.aborted) {
+    await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+    return interact(systemPrompt, input, apiKey, signal, 1);
+  }
   if (!response.ok) {
     const message = body?.error?.message ?? '';
     if (response.status === 401 || response.status === 403) {

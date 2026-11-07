@@ -14,6 +14,19 @@ List each distinct food you can actually see, largest portion first. For each, e
 
 Fast food: if a cup, wrapper, bag, box, or signature item shows which chain it's from, set "chain" to that chain and name the item the way its menu does (e.g. "Spicy Deluxe Sandwich", "Chicken Burrito Bowl", "Medium French Fries", "Grande Caramel Macchiato"), including size when visible. Chains to use exactly: McDonald's, Starbucks, Chick-fil-A, Taco Bell, Dunkin', Wendy's, Chipotle Mexican Grill, Burger King, Domino's, Subway, Panda Express, Panera Bread, Popeyes, Raising Cane's, Sonic Drive-In, Pizza Hut, Dairy Queen, Wingstop, KFC, Jersey Mike's, Arby's, Little Caesars, Papa John's, Jamba, Insomnia Cookies, Freshens, Hangry Joe's, Wawa, 7 Brew, 7-Eleven, Applebee's, Auntie Anne's. Don't guess a chain from the food alone.`;
 
+/** The text path: the user types what they ate instead of photographing it. */
+export const DESCRIBE_SYSTEM_PROMPT = `You turn a short description of what someone ate into a list of foods for a calorie-tracking app used by college students.
+
+The user writes casually ("2 eggs and toast w butter, iced latte", "chipotle chicken bowl w guac", "half a large pepperoni pizza"). Split it into distinct foods, in the order written. For each, work out the portion: use any quantity the user gave (count, cups, ounces, "large", "half"); when none is given, assume the typical single serving a student would eat and say so in portionDescription (e.g. "1 medium banana", "about 1 cup", "1 slice"). Give the estimated weight in grams and the nutrition for that portion using standard nutrition data for that food as commonly prepared. Keep names short and specific ("Scrambled eggs", "Whole wheat toast with butter").
+
+Fast food: if a restaurant chain is named or clearly implied, set "chain" to that chain (exactly as listed below) and name the item the way its menu does. Otherwise leave chain as an empty string.
+
+Chains to use exactly: McDonald's, Starbucks, Chick-fil-A, Taco Bell, Dunkin', Wendy's, Chipotle Mexican Grill, Burger King, Domino's, Subway, Panda Express, Panera Bread, Popeyes, Raising Cane's, Sonic Drive-In, Pizza Hut, Dairy Queen, Wingstop, KFC, Jersey Mike's, Arby's, Little Caesars, Papa John's, Jamba, Insomnia Cookies, Freshens, Hangry Joe's, Wawa, 7 Brew, 7-Eleven, Applebee's, Auntie Anne's.
+
+Put any assumption that changes the numbers in "note" in one short sentence (e.g. "Assumed a 16 oz latte with whole milk"). Ignore anything that is not food or drink. If nothing edible is described, return an empty list.`;
+
+export const describeQuestion = (text: string) => `Here is what I ate: ${text}`;
+
 /** Standard JSON Schema for the model's reply (no `$schema` marker: Gemini rejects it). */
 export const RESPONSE_SCHEMA = {
   type: 'object',

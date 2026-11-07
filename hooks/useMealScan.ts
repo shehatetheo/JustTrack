@@ -4,12 +4,12 @@ import { useCallback, useRef, useState } from 'react';
 import { Alert, Platform } from 'react-native';
 
 import { prepareImage, type PhotoInput } from '@/lib/scan/prepareImage';
-import { failAnalysis, finishAnalysis, setReviewThumbnail, startAnalysis } from '@/lib/scan/reviewStore';
-import { analyzeMealPhoto, ScanError } from '@/services/mealScanService';
+import { failAnalysis, finishAnalysis, setReviewThumbnail, startAnalysis, startDescription } from '@/lib/scan/reviewStore';
+import { analyzeMealDescription, analyzeMealPhoto, ScanError } from '@/services/mealScanService';
 
 /**
- * Take or choose a photo, hand it to the analyzer, and open the review
- * screen while it works. Camera and photo access are only requested here,
+ * Take or choose a photo, or type a description, hand it to the analyzer,
+ * and open the review screen while it works. Camera and photo access are only requested here,
  * at the moment the user asks to scan.
  */
 export function useMealScan() {
@@ -43,6 +43,24 @@ export function useMealScan() {
     [router]
   );
 
+  /** Analyze a typed description of the meal; opens the review screen while it works. */
+  const describe = useCallback(
+    async (text: string) => {
+      if (inFlight.current) return;
+      setInFlight(true);
+      startDescription(text.trim());
+      router.replace('/scan/review');
+      try {
+        finishAnalysis(await analyzeMealDescription(text));
+      } catch (error) {
+        failAnalysis(error instanceof Error ? error.message : 'Something went wrong.', error instanceof ScanError ? error.code : null);
+      } finally {
+        setInFlight(false);
+      }
+    },
+    [router]
+  );
+
   const scan = async (from: 'camera' | 'library') => {
     if (inFlight.current) return;
     if (from === 'camera' && Platform.OS !== 'web') {
@@ -59,5 +77,5 @@ export function useMealScan() {
     await analyze({ uri: asset.uri, base64: asset.base64, mimeType: asset.mimeType });
   };
 
-  return { scan, analyze, busy };
+  return { scan, analyze, describe, busy };
 }

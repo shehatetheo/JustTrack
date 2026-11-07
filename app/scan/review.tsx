@@ -17,8 +17,8 @@ import { useCurrentTime } from '@/hooks/useCurrentTime';
 import { createEntry, entryFromEstimate } from '@/lib/log/entries';
 import { addEntries } from '@/lib/log/logStore';
 import { sumNutrition } from '@/lib/nutrition/calculateNutrition';
-import { removeRow, resetReview, reviewStore, rowNutrition, setRowGrams, type ReviewRow } from '@/lib/scan/reviewStore';
-import type { MealType } from '@/types';
+import { matchRowToFood, removeRow, resetReview, revertToEstimate, reviewStore, rowNutrition, setRowGrams, type ReviewRow } from '@/lib/scan/reviewStore';
+import type { FoodDetail, MealType } from '@/types';
 import { formatCalories, formatNumber } from '@/utils/format';
 import { defaultMealType } from '@/utils/mealTime';
 
@@ -68,6 +68,43 @@ function GramsStepper({ row }: { row: ReviewRow }) {
   );
 }
 
+const SOURCE_LABEL: Record<FoodDetail['source'], string> = { usda: 'USDA', openfoodfacts: 'Open Food Facts', chain: 'menu' };
+
+/** Where a row's numbers come from: the model's estimate, or one of the database foods that look like it. */
+function SourceOptions({ row }: { row: ReviewRow }) {
+  const { colors } = useAppTheme();
+  const choose = (action: () => void) => {
+    Haptics.selectionAsync();
+    action();
+  };
+  const chip = (key: string, selected: boolean, title: string, detail: string, onPress: () => void) => (
+    <Pressable
+      key={key}
+      onPress={() => choose(onPress)}
+      accessibilityRole="radio"
+      accessibilityState={{ checked: selected }}
+      accessibilityLabel={`${title}, ${detail}`}
+      style={({ pressed }) => [styles.option, { backgroundColor: selected ? colors.fab : colors.surface, opacity: pressed ? 0.8 : 1 }]}
+    >
+      <ThemedText variant="caption1" numberOfLines={1} style={{ color: selected ? colors.fabIcon : colors.text, fontWeight: '600' }}>
+        {title}
+      </ThemedText>
+      <ThemedText variant="caption2" numberOfLines={1} style={{ color: selected ? colors.fabIcon : colors.textSecondary, opacity: selected ? 0.8 : 1 }}>
+        {detail}
+      </ThemedText>
+    </Pressable>
+  );
+  if (row.suggestions.length === 0) return null;
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.options} accessibilityRole="radiogroup" style={styles.optionsScroller}>
+      {chip('estimate', row.matchedFood === null, 'AI estimate', `${formatCalories(row.estimate.nutrition.calories)} · ${row.estimate.portionDescription}`, () => revertToEstimate(row.id))}
+      {row.suggestions.map((food) =>
+        chip(food.id, row.matchedFood?.externalId === food.externalId, food.name, food.source === 'chain' ? `${food.brand} menu` : `${SOURCE_LABEL[food.source]}${food.brand ? ` · ${food.brand}` : ''}`, () => matchRowToFood(row.id, food))
+      )}
+    </ScrollView>
+  );
+}
+
 /** What the scanner found, as editable rows, before anything is logged. */
 export default function ReviewScreen() {
   const router = useRouter();
@@ -101,12 +138,19 @@ export default function ReviewScreen() {
   };
 
   const pickMatch = (row: ReviewRow) => router.push({ pathname: '/food/search', params: { pick: row.id, q: row.name } });
+  const described = state.description !== null;
+  const editDescription = () => {
+    const text = state.description ?? '';
+    resetReview();
+    router.replace({ pathname: '/scan/describe', params: { text } });
+  };
 
   return (
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <FoodHero
-        title={state.status === 'ready' && rows.length > 0 ? 'Your plate' : state.status === 'error' ? 'Couldn’t scan' : 'Looking at your plate…'}
-        subtitle={state.status === 'ready' ? `${rows.length} ${rows.length === 1 ? 'food' : 'foods'} found` : null}
+        title={state.status === 'ready' && rows.length > 0 ? (described ? 'What you ate' : 'Your plate') : state.status === 'error' ? (described ? 'Couldn’t work it out' : 'Couldn’t scan') : described ? 'Working out what you ate…' : 'Looking at your plate…'}
+        subtitle={described ? state.description : state.status === 'ready' ? `${rows.length} ${rows.length === 1 ? 'food' : 'foods'} found` : null}
+        tintHints={rows.map((row) => row.name)}
         amount={state.status === 'ready' && rows.length > 0 ? formatNumber(totals.calories) : null}
         amountCaption={state.status === 'ready' && rows.length > 0 ? 'kcal, estimated' : null}
         imageUri={state.photoUri}
@@ -119,7 +163,7 @@ export default function ReviewScreen() {
           <View style={styles.center}>
             <ActivityIndicator color={colors.accent} />
             <ThemedText variant="subhead" color="secondary">
-              Naming the food and sizing the portions. This takes a few seconds.
+              {described ? 'Splitting it into foods and sizing each one. This takes a few seconds.' : 'Naming the food and sizing the portions. This takes a few seconds.'}
             </ThemedText>
           </View>
         ) : null}
@@ -127,7 +171,7 @@ export default function ReviewScreen() {
         {state.status === 'error' ? (
           <View style={styles.center}>
             <Banner tone={state.errorCode === 'not_configured' ? 'warning' : 'error'} message={state.error ?? 'Something went wrong.'} />
-            <Button label="Try another photo" onPress={close} />
+            {described ? <Button label="Edit description" onPress={editDescription} /> : <Button label="Try another photo" onPress={close} />}
             <Button label="Search by name instead" variant="secondary" onPress={() => { resetReview(); router.replace('/food/search'); }} />
           </View>
         ) : null}
@@ -139,9 +183,9 @@ export default function ReviewScreen() {
               <View style={styles.center}>
                 <ThemedText variant="headline">No food found</ThemedText>
                 <ThemedText variant="subhead" color="secondary" style={styles.centerText}>
-                  Try a closer shot with the whole plate in view.
+                  {described ? 'Name the foods plainly, like “2 eggs and toast”.' : 'Try a closer shot with the whole plate in view.'}
                 </ThemedText>
-                <Button label="Try another photo" onPress={close} />
+                {described ? <Button label="Edit description" onPress={editDescription} /> : <Button label="Try another photo" onPress={close} />}
               </View>
             ) : (
               <>
@@ -166,6 +210,7 @@ export default function ReviewScreen() {
                             <AppIcon name="closeCircle" size={22} color={colors.textTertiary} />
                           </Pressable>
                         </View>
+                        <SourceOptions row={row} />
                         <View style={styles.rowControls}>
                           <GramsStepper row={row} />
                           <ThemedText variant="headline" style={styles.tabular}>
@@ -175,7 +220,7 @@ export default function ReviewScreen() {
                         <Pressable onPress={() => pickMatch(row)} accessibilityRole="button" hitSlop={6} style={styles.matchLink}>
                           <AppIcon name="search" size={13} color={colors.accent} />
                           <ThemedText variant="footnote" style={{ color: colors.accent, fontWeight: '600' }}>
-                            {row.matchedFood ? 'Change match' : 'Not quite right? Find it in the database'}
+                            {row.matchedFood ? 'Change match' : row.suggestions.length > 0 ? 'Search the database' : 'Not quite right? Find it in the database'}
                           </ThemedText>
                         </Pressable>
                       </View>
@@ -191,7 +236,7 @@ export default function ReviewScreen() {
                 </View>
                 <Button label={`Add ${rows.length === 1 ? 'it' : `${rows.length} items`} to ${MEAL_TYPE_META[mealType].label}`} icon="plus" onPress={logAll} />
                 <ThemedText variant="caption1" color="tertiary" style={styles.centerText}>
-                  Estimated nutrition. A photo can’t weigh your food — adjust anything that looks off.
+                  {described ? 'Estimated from your description. Pick a database match for exact label numbers, and adjust anything that looks off.' : 'Estimated nutrition. A photo can’t weigh your food — adjust anything that looks off.'}
                 </ThemedText>
               </>
             )}
@@ -203,6 +248,9 @@ export default function ReviewScreen() {
 }
 
 const styles = StyleSheet.create({
+  optionsScroller: { flexGrow: 0, flexShrink: 0, marginHorizontal: -Spacing.xs },
+  options: { flexDirection: 'row', gap: Spacing.sm, paddingHorizontal: Spacing.xs },
+  option: { maxWidth: 190, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: Radii.lg, gap: 1 },
   content: { paddingBottom: Spacing['5xl'] },
   body: { paddingHorizontal: Spacing.lg, gap: Spacing.lg, marginTop: -Spacing.sm },
   center: { alignItems: 'center', gap: Spacing.lg, paddingVertical: Spacing['3xl'] },

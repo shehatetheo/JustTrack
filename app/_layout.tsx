@@ -62,6 +62,7 @@ function RootNavigator() {
           <Stack.Screen name="entry/[id]" options={{ presentation: 'modal' }} />
           <Stack.Screen name="scan/review" options={{ presentation: 'modal', gestureEnabled: false }} />
           <Stack.Screen name="scan/barcode" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="scan/describe" options={{ presentation: 'modal' }} />
           <Stack.Screen
             name="settings/goal"
             options={{ presentation: 'modal', headerShown: true, title: 'Daily Goal', headerShadowVisible: false, headerTintColor: colors.text, headerStyle: { backgroundColor: colors.background } }}

@@ -1,6 +1,6 @@
 import { ScanError } from '@/lib/scan/errors';
-import { analyzeWithGemini, directApiKey, directModel, outputText } from '@/lib/scan/geminiDirect';
-import { RESPONSE_SCHEMA, SYSTEM_PROMPT } from '@/lib/scan/geminiPrompt';
+import { analyzeWithGemini, describeWithGemini, directApiKey, directModel, outputText } from '@/lib/scan/geminiDirect';
+import { DESCRIBE_SYSTEM_PROMPT, describeQuestion, RESPONSE_SCHEMA, SYSTEM_PROMPT } from '@/lib/scan/geminiPrompt';
 
 const image = { base64: 'AAAA', mediaType: 'image/jpeg' };
 
@@ -73,9 +73,19 @@ describe('analyzeWithGemini', () => {
     expect(body.input[0]).toEqual({ type: 'image', data: 'AAAA', mime_type: 'image/jpeg' });
   });
 
+  it('retries once when Gemini is briefly overloaded', async () => {
+    jest.useFakeTimers();
+    const analysis = { foods: [], note: '' };
+    fetchMock.mockResolvedValueOnce(reply(503, { error: { message: 'high demand' } })).mockResolvedValueOnce(reply(200, { steps: [{ type: 'model_output', content: [{ type: 'text', text: JSON.stringify(analysis) }] }] }));
+    const pending = analyzeWithGemini(image, 'k');
+    await jest.advanceTimersByTimeAsync(1500);
+    await expect(pending).resolves.toEqual(analysis);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    jest.useRealTimers();
+  });
+
   it.each([
     [403, {}, 'not_configured'],
-    [429, {}, 'rate_limited'],
     [400, { error: { message: 'Request blocked for safety reasons' } }, 'declined'],
     [500, {}, 'upstream_error'],
   ])('maps HTTP %s to %s', async (status, body, code) => {
@@ -83,11 +93,30 @@ describe('analyzeWithGemini', () => {
     await expect(analyzeWithGemini(image, 'k')).rejects.toMatchObject({ code });
   });
 
+  it('maps a repeated 429 to rate_limited after the retry', async () => {
+    jest.useFakeTimers();
+    fetchMock.mockResolvedValue(reply(429, {}));
+    const pending = analyzeWithGemini(image, 'k').catch((caught: unknown) => caught);
+    await jest.advanceTimersByTimeAsync(1500);
+    await expect(pending).resolves.toMatchObject({ code: 'rate_limited' });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    jest.useRealTimers();
+  });
+
   it('reports a network failure', async () => {
     fetchMock.mockRejectedValue(new TypeError('Network request failed'));
     const error = await analyzeWithGemini(image, 'k').catch((caught: unknown) => caught);
     expect(error).toBeInstanceOf(ScanError);
     expect((error as ScanError).code).toBe('network');
+  });
+
+  it('describes a typed meal with the describe prompt and only text input', async () => {
+    const analysis = { foods: [], note: '' };
+    fetchMock.mockResolvedValue(reply(200, { steps: [{ type: 'model_output', content: [{ type: 'text', text: JSON.stringify(analysis) }] }] }));
+    await expect(describeWithGemini('2 eggs and toast', 'k')).resolves.toEqual(analysis);
+    const body = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
+    expect(body.system_instruction).toBe(DESCRIBE_SYSTEM_PROMPT);
+    expect(body.input).toEqual([{ type: 'text', text: describeQuestion('2 eggs and toast') }]);
   });
 
   it('rejects an unreadable reply', async () => {

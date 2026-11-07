@@ -185,6 +185,25 @@ export default function FoodSearchScreen() {
             </View>
           ) : (
             <View style={styles.landing}>
+              {!pickRowId ? (
+                <Pressable
+                  onPress={() => router.push('/scan/describe')}
+                  accessibilityRole="button"
+                  accessibilityLabel="Describe what you ate"
+                  style={({ pressed }) => [styles.describe, { backgroundColor: colors.surfaceTint, opacity: pressed ? 0.85 : 1 }]}
+                >
+                  <View style={[styles.describeIcon, { backgroundColor: colors.accentMuted }]}>
+                    <AppIcon name="sparkles" size={18} color={colors.accent} />
+                  </View>
+                  <View style={styles.describeText}>
+                    <ThemedText variant="headline">Describe what you ate</ThemedText>
+                    <ThemedText variant="footnote" color="secondary" numberOfLines={2}>
+                      “2 eggs and toast, iced latte” — AI sizes it, you pick the numbers.
+                    </ThemedText>
+                  </View>
+                  <AppIcon name="chevronRight" size={14} color={colors.textTertiary} weight="semibold" />
+                </Pressable>
+              ) : null}
               <TermChips title={recents.length > 0 ? 'Recent' : 'Try'} terms={recents.length > 0 ? recents : SUGGESTED_SEARCHES} onPick={setQuery} onClear={recents.length > 0 ? clearRecentSearches : undefined} />
               <ThemedText variant="footnote" color="secondary" style={styles.browseTitle}>
                 RESTAURANTS
@@ -230,6 +249,9 @@ const styles = StyleSheet.create({
   sectionTitle: { letterSpacing: 0.5, flex: 1 },
   browse: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   landing: { paddingTop: Spacing.sm },
+  describe: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: Spacing.md, borderRadius: Radii.xl, marginBottom: Spacing.lg },
+  describeIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  describeText: { flex: 1, gap: 2 },
   browseTitle: { letterSpacing: 0.5, paddingHorizontal: Spacing.lg, paddingTop: Spacing.xl },
   builder: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: Spacing.lg, borderRadius: Radii.xl },
   builderText: { flex: 1, gap: 2 },

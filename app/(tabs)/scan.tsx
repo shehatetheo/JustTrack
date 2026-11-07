@@ -92,7 +92,7 @@ export default function ScanScreen() {
       <LiveCamera active={focused && !busy} onCapture={onCapture} onUnavailable={onUnavailable} bindCapture={bindCapture} />
       <LinearGradient colors={['rgba(10,6,24,0.55)', 'rgba(10,6,24,0)']} style={[styles.topShade, { height: insets.top + 72 }]} pointerEvents="none" />
       <View style={[styles.topBar, { paddingTop: insets.top + Spacing.sm }]}>
-        <View style={styles.roundButton} />
+        <RoundButton icon="pencil" label="Describe what you ate" onPress={() => router.push('/scan/describe')} />
         <ThemedText variant="headline" style={styles.onCamera} accessibilityRole="header">
           Scanner
         </ThemedText>
@@ -166,6 +166,23 @@ function ScanFallback({ reason, scan, busy }: { reason: 'denied' | 'no_camera' |
           <Action icon="photo" label="Choose photo" onPress={() => void scan('library')} disabled={busy} />
         </View>
       </LinearGradient>
+
+      <Pressable
+        onPress={() => router.push('/scan/describe')}
+        accessibilityRole="button"
+        style={({ pressed }) => [styles.card, shadows.sm, { backgroundColor: colors.surfaceTint, borderColor: colors.border, opacity: pressed ? 0.85 : 1 }]}
+      >
+        <View style={[styles.iconTile, { backgroundColor: colors.surface }]}>
+          <AppIcon name="pencil" size={22} color={colors.text} />
+        </View>
+        <View style={styles.cardText}>
+          <ThemedText variant="headline">Describe what you ate</ThemedText>
+          <ThemedText variant="footnote" color="secondary">
+            Type it in a sentence; AI sizes it and finds database matches.
+          </ThemedText>
+        </View>
+        <AppIcon name="chevronRight" size={14} color={colors.textTertiary} weight="semibold" />
+      </Pressable>
 
       <Pressable
         onPress={() => router.push('/scan/barcode')}
