@@ -73,15 +73,13 @@ describe('analyzeWithGemini', () => {
     expect(body.input[0]).toEqual({ type: 'image', data: 'AAAA', mime_type: 'image/jpeg' });
   });
 
-  it('retries once when Gemini is briefly overloaded', async () => {
-    jest.useFakeTimers();
+  it('hands off to the next model when Gemini is overloaded', async () => {
     const analysis = { foods: [], note: '' };
     fetchMock.mockResolvedValueOnce(reply(503, { error: { message: 'high demand' } })).mockResolvedValueOnce(reply(200, { steps: [{ type: 'model_output', content: [{ type: 'text', text: JSON.stringify(analysis) }] }] }));
-    const pending = analyzeWithGemini(image, 'k');
-    await jest.advanceTimersByTimeAsync(1500);
-    await expect(pending).resolves.toEqual(analysis);
+    await expect(analyzeWithGemini(image, 'k')).resolves.toEqual(analysis);
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    jest.useRealTimers();
+    expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body)).model).toBe('gemini-3.5-flash-lite');
+    expect(JSON.parse(String(fetchMock.mock.calls[1][1]?.body)).model).toBe('gemini-3.1-flash-lite');
   });
 
   it.each([
@@ -93,21 +91,16 @@ describe('analyzeWithGemini', () => {
     await expect(analyzeWithGemini(image, 'k')).rejects.toMatchObject({ code });
   });
 
-  it('maps a repeated 429 to rate_limited after the retry', async () => {
-    jest.useFakeTimers();
+  it('reports busy once every model in the chain is rate limited', async () => {
     fetchMock.mockResolvedValue(reply(429, {}));
-    const pending = analyzeWithGemini(image, 'k').catch((caught: unknown) => caught);
-    await jest.advanceTimersByTimeAsync(1500);
-    await expect(pending).resolves.toMatchObject({ code: 'rate_limited' });
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-    jest.useRealTimers();
+    await expect(analyzeWithGemini(image, 'k')).rejects.toMatchObject({ code: 'rate_limited' });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
-  it('reports a network failure', async () => {
-    fetchMock.mockRejectedValue(new TypeError('Network request failed'));
-    const error = await analyzeWithGemini(image, 'k').catch((caught: unknown) => caught);
-    expect(error).toBeInstanceOf(ScanError);
-    expect((error as ScanError).code).toBe('network');
+  it('does not hand off on an error that is not about load', async () => {
+    fetchMock.mockResolvedValue(reply(500, {}));
+    await expect(analyzeWithGemini(image, 'k')).rejects.toMatchObject({ code: 'upstream_error' });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it('describes a typed meal with the describe prompt and only text input', async () => {

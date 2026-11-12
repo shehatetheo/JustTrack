@@ -1,8 +1,9 @@
 import { ApiError, GoogleGenAI } from '@google/genai';
 import { z } from 'zod';
 
-import { DEFAULT_GEMINI_MODEL, DESCRIBE_SYSTEM_PROMPT, describeQuestion, RESPONSE_SCHEMA } from '../lib/scan/geminiPrompt';
+import { DESCRIBE_SYSTEM_PROMPT, describeQuestion, RESPONSE_SCHEMA } from '../lib/scan/geminiPrompt';
 import { readApiKey } from './_shared/apiKey';
+import { interactWithFallback } from './_shared/gemini';
 
 /**
  * POST /api/describe-meal — the server side of "Describe what you ate".
@@ -14,7 +15,6 @@ import { readApiKey } from './_shared/apiKey';
  * made with EXPO_PUBLIC_GEMINI_API_KEY ask Gemini directly instead.
  */
 
-const MODEL = process.env.GEMINI_MODEL?.trim() || DEFAULT_GEMINI_MODEL;
 const MAX_TEXT = 500;
 
 const EstimatedFoodSchema = z.object({
@@ -75,8 +75,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const client = new GoogleGenAI({ apiKey });
   try {
-    const interaction = await client.interactions.create({
-      model: MODEL,
+    const interaction = await interactWithFallback(client, {
       system_instruction: DESCRIBE_SYSTEM_PROMPT,
       input: [{ type: 'text', text: describeQuestion(text) }],
       response_format: { type: 'text', mime_type: 'application/json', schema: RESPONSE_SCHEMA },
@@ -92,7 +91,7 @@ export async function POST(request: Request): Promise<Response> {
   } catch (error) {
     if (error instanceof ApiError) {
       if (error.status === 401 || error.status === 403) return failure(503, 'not_configured', 'The server’s AI key was rejected. Check GEMINI_API_KEY.');
-      if (error.status === 429) return failure(429, 'rate_limited', 'The AI is busy right now. Try again in a minute.');
+      if (error.status === 429 || error.status === 503) return failure(429, 'rate_limited', 'The AI is busy right now. Try again in a minute.');
       if (error.status === 400 && /safety|blocked|prohibited/i.test(error.message)) return failure(422, 'declined', 'We couldn’t work with that description. Try naming the foods plainly.');
       console.error('describe-meal: API error', error.status, error.message);
       return failure(502, 'upstream_error', 'Something went wrong talking to the AI. Please try again.');

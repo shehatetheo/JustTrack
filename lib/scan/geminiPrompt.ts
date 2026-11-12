@@ -6,6 +6,13 @@
 
 export const DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash-lite';
 
+/**
+ * Tried in order when the model before it is overloaded (503), rate limited
+ * (429) or withdrawn (404). Flash-lite models answer in a second or two; the
+ * full Flash is slower but rarely busy.
+ */
+export const FALLBACK_GEMINI_MODELS = ['gemini-3.1-flash-lite', 'gemini-3.5-flash'] as const;
+
 export const SCAN_QUESTION = 'What food is in this photo, and roughly how much of each?';
 
 export const SYSTEM_PROMPT = `You identify food in a photo for a calorie-tracking app used by college students.

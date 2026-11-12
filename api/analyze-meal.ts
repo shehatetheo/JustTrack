@@ -1,8 +1,9 @@
 import { ApiError, GoogleGenAI } from '@google/genai';
 import { z } from 'zod';
 
-import { DEFAULT_GEMINI_MODEL, RESPONSE_SCHEMA, SCAN_QUESTION, SYSTEM_PROMPT } from '../lib/scan/geminiPrompt';
+import { RESPONSE_SCHEMA, SCAN_QUESTION, SYSTEM_PROMPT } from '../lib/scan/geminiPrompt';
 import { readApiKey } from './_shared/apiKey';
+import { interactWithFallback } from './_shared/gemini';
 
 /**
  * POST /api/analyze-meal — the server side of the photo scanner.
@@ -15,7 +16,6 @@ import { readApiKey } from './_shared/apiKey';
  * not kept anywhere.
  */
 
-const MODEL = process.env.GEMINI_MODEL?.trim() || DEFAULT_GEMINI_MODEL;
 /** Base64 is 4/3 of the bytes: this is about a 2 MB image. The app sends ~300 KB. */
 const MAX_IMAGE_CHARS = 2_800_000;
 const MEDIA_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
@@ -84,8 +84,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const client = new GoogleGenAI({ apiKey });
   try {
-    const interaction = await client.interactions.create({
-      model: MODEL,
+    const interaction = await interactWithFallback(client, {
       system_instruction: SYSTEM_PROMPT,
       input: [
         { type: 'image', data: image, mime_type: mediaType },
@@ -106,7 +105,7 @@ export async function POST(request: Request): Promise<Response> {
       if (error.status === 401 || error.status === 403) {
         return failure(503, 'not_configured', 'The server’s AI key was rejected. Check GEMINI_API_KEY.');
       }
-      if (error.status === 429) {
+      if (error.status === 429 || error.status === 503) {
         return failure(429, 'rate_limited', 'The photo scanner is busy right now. Try again in a minute.');
       }
       if (error.status === 400 && /safety|blocked|prohibited/i.test(error.message)) {
