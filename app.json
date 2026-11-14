@@ -56,7 +56,8 @@
           "photosPermission": "JustTrack uses your photo library when you pick a meal photo to estimate its nutrition.",
           "cameraPermission": "JustTrack uses the camera to photograph meals and scan barcodes."
         }
-      ]
+      ],
+      "./plugins/withoutPushEntitlement"
     ],
     "experiments": {
       "typedRoutes": true,
