@@ -7,7 +7,7 @@ export const PRIVACY_URL = `${WEBSITE_URL}/privacy`;
 export const SUPPORT_URL = `${WEBSITE_URL}/support`;
 export const ISSUES_URL = `${REPOSITORY_URL}/issues`;
 
-export const LEGAL_DATELINE = 'Updated October 30, 2026';
+export const LEGAL_DATELINE = 'Updated November 14, 2026';
 
 export const PRIVACY_INTRO = `${APP_NAME} is built so that there is nothing to collect. There is no account, no sign-in, no ads, and no analytics. This page explains the few moments when data leaves your phone and why.`;
 
@@ -22,7 +22,14 @@ export const PRIVACY_SECTIONS: readonly LegalSection[] = [
     heading: 'Meal photos',
     paragraphs: [
       'When you scan a meal, the photo is sent to Google’s Gemini API so it can estimate what food is on the plate. The request is made with storage turned off: the photo is used to produce the estimate and is not kept by us. A small thumbnail of the photo is saved on your device next to the logged meal so you can recognise it later. Nothing else about you is sent with the photo.',
-      'Estimates from a photo are approximate. The app labels them "Estimated" so you can adjust them.',
+      'When you describe a meal in words instead, the text you typed is sent to the same service, the same way, to be split into foods and sized. Nothing else about you is sent with it.',
+      'Estimates from a photo or a description are approximate. The app labels them "Estimated" so you can adjust them.',
+    ],
+  },
+  {
+    heading: 'Reminders',
+    paragraphs: [
+      'Reminders to log your food are optional and off until you turn them on. They are scheduled by your phone itself, from a list of messages inside the app. No server sends them, and we never learn whether you have them on, when they arrive, or whether you tap them. You can switch them off in Profile or in your phone’s Settings at any time.',
     ],
   },
   {

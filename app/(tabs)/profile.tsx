@@ -41,6 +41,9 @@ export default function ProfileScreen() {
   const version = Constants.expoConfig?.version ?? '1.0.0';
   const initial = (settings.displayName ?? '').trim().charAt(0).toUpperCase() || 'JT';
 
+  const { reminders } = settings;
+  const reminderSummary = !reminders.enabled ? 'Off' : reminders.mode === 'interval' ? 'Every 1.5 hours' : 'Mealtimes';
+
   const saveName = () => updateSettings({ displayName: name.trim() || null });
 
   const confirmClear = async () => {
@@ -96,6 +99,10 @@ export default function ProfileScreen() {
         <ListSection title="Goals">
           <ListRow icon="target" iconBackground={colors.accent} title="Daily calorie goal" value={`${formatNumber(settings.calorieGoal)} kcal`} onPress={() => router.push('/settings/goal')} />
           <ListRow icon="flame" iconBackground={colors.carbs} title="Macro targets" value={settings.macroGoals ? 'Set' : 'Off'} onPress={() => router.push('/settings/goal')} isLast />
+        </ListSection>
+
+        <ListSection title="Reminders" footer="A nudge to log your food, with a different joke each time.">
+          <ListRow icon="bell" iconBackground={colors.protein} title="Meal reminders" value={reminderSummary} onPress={() => router.push('/settings/reminders')} isLast />
         </ListSection>
 
         <ListSection title="Preferences">

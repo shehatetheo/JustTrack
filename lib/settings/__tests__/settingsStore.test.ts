@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, parseSettings } from '../settingsStore';
+import { DEFAULT_REMINDERS, DEFAULT_SETTINGS, parseSettings } from '../settingsStore';
 
 describe('parseSettings', () => {
   it('falls back to defaults for anything missing or odd', () => {
@@ -15,6 +15,7 @@ describe('parseSettings', () => {
       macroGoals: { protein: 150, carbs: 250, fat: 70 },
       weightUnit: 'kg',
       heightUnit: 'cm',
+      reminders: DEFAULT_REMINDERS,
     });
     expect(parseSettings({ calorieGoal: 500 })?.calorieGoal).toBe(1200);
   });

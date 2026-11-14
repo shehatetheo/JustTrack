@@ -2,6 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import React, { useState, useSyncExternalStore } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { FoodHero } from '@/components/food/FoodHero';
 import { MealTypePicker } from '@/components/food/MealTypePicker';
@@ -189,13 +190,15 @@ export default function ReviewScreen() {
               </View>
             ) : (
               <>
-                <NutritionColumns nutrition={totals} />
+                <Animated.View entering={FadeInDown.duration(320)}>
+                  <NutritionColumns nutrition={totals} />
+                </Animated.View>
 
                 <View style={styles.rows}>
-                  {rows.map((row) => {
+                  {rows.map((row, index) => {
                     const nutrition = rowNutrition(row);
                     return (
-                      <View key={row.id} style={[styles.row, shadows.sm, { backgroundColor: colors.surfaceTint, borderColor: colors.border }]}>
+                      <Animated.View key={row.id} entering={FadeInDown.delay(80 + index * 60).duration(320)} style={[styles.row, shadows.sm, { backgroundColor: colors.surfaceTint, borderColor: colors.border }]}>
                         <View style={styles.rowHeader}>
                           <View style={styles.rowTitle}>
                             <ThemedText variant="headline" numberOfLines={2}>
@@ -223,7 +226,7 @@ export default function ReviewScreen() {
                             {row.matchedFood ? 'Change match' : row.suggestions.length > 0 ? 'Search the database' : 'Not quite right? Find it in the database'}
                           </ThemedText>
                         </Pressable>
-                      </View>
+                      </Animated.View>
                     );
                   })}
                 </View>

@@ -1,12 +1,13 @@
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider as NavigationThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { PhoneFrame } from '@/components/layout/PhoneFrame';
+import { ReminderSync } from '@/components/reminders/ReminderSync';
 import { StoreGate } from '@/components/StoreGate';
 import { ActionSheetHost } from '@/components/ui/ActionSheetHost';
 import { ThemeProvider, useAppTheme } from '@/contexts/ThemeContext';
@@ -26,6 +27,7 @@ export default function RootLayout() {
           <StoreGate>
             <PhoneFrame>
               <RootNavigator />
+              <ReminderSync />
               <ActionSheetHost />
             </PhoneFrame>
           </StoreGate>
@@ -35,14 +37,13 @@ export default function RootLayout() {
   );
 }
 
+/** A sheet that covers the screen edge to edge and rises from the bottom. */
+const TRACKING_MODAL = { presentation: 'fullScreenModal', animation: 'slide_from_bottom' } as const;
+
 function RootNavigator() {
   const { isDark, colors } = useAppTheme();
   const { welcomed } = useSettings();
   const lightStatusBar = useWantsLightStatusBar();
-
-  useEffect(() => {
-    SplashScreen.hideAsync();
-  }, []);
 
   const navigationTheme = useMemo(() => {
     const base = isDark ? DarkTheme : DefaultTheme;
@@ -58,14 +59,19 @@ function RootNavigator() {
       <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right', animationDuration: 260, contentStyle: { backgroundColor: colors.background } }}>
         <Stack.Protected guard={welcomed}>
           <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="food" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="entry/[id]" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="scan/review" options={{ presentation: 'modal', gestureEnabled: false }} />
-          <Stack.Screen name="scan/barcode" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="scan/describe" options={{ presentation: 'modal' }} />
+          {/* Logging food takes the whole screen, so Home never shows behind it. */}
+          <Stack.Screen name="food" options={TRACKING_MODAL} />
+          <Stack.Screen name="entry/[id]" options={TRACKING_MODAL} />
+          <Stack.Screen name="scan/review" options={{ ...TRACKING_MODAL, gestureEnabled: false }} />
+          <Stack.Screen name="scan/barcode" options={TRACKING_MODAL} />
+          <Stack.Screen name="scan/describe" options={TRACKING_MODAL} />
           <Stack.Screen
             name="settings/goal"
             options={{ presentation: 'modal', headerShown: true, title: 'Daily Goal', headerShadowVisible: false, headerTintColor: colors.text, headerStyle: { backgroundColor: colors.background } }}
+          />
+          <Stack.Screen
+            name="settings/reminders"
+            options={{ presentation: 'modal', headerShown: true, title: 'Reminders', headerShadowVisible: false, headerTintColor: colors.text, headerStyle: { backgroundColor: colors.background } }}
           />
         </Stack.Protected>
         <Stack.Protected guard={!welcomed}>

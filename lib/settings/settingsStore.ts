@@ -1,7 +1,18 @@
 import { MAX_CALORIE_TARGET } from '@/constants/onboarding';
 import { MIN_CALORIE_TARGET } from '@/lib/nutrition/calorieTarget';
 import { createPersistedStore } from '@/lib/storage/persistedStore';
-import type { MacroGoals, Settings } from '@/types';
+import type { MacroGoals, ReminderSettings, Settings } from '@/types';
+
+/** Earliest and latest hour the first reminder of the day can be set to. */
+export const REMINDER_START_HOURS = [6, 7, 8, 9, 10] as const;
+
+export const DEFAULT_REMINDERS: ReminderSettings = {
+  enabled: false,
+  asked: false,
+  mode: 'interval',
+  startHour: 8,
+  meals: { breakfast: true, lunch: true, dinner: true },
+};
 
 export const DEFAULT_SETTINGS: Settings = {
   welcomed: false,
@@ -10,6 +21,7 @@ export const DEFAULT_SETTINGS: Settings = {
   macroGoals: null,
   weightUnit: 'lb',
   heightUnit: 'ft_in',
+  reminders: DEFAULT_REMINDERS,
 };
 
 function clampGoal(value: unknown): number {
@@ -24,6 +36,21 @@ function parseMacroGoals(raw: unknown): MacroGoals | null {
   return ok(protein) && ok(carbs) && ok(fat) ? { protein: Math.round(protein), carbs: Math.round(carbs), fat: Math.round(fat) } : null;
 }
 
+function parseReminders(raw: unknown): ReminderSettings {
+  if (typeof raw !== 'object' || raw === null) return DEFAULT_REMINDERS;
+  const item = raw as Record<string, unknown>;
+  const meals = (typeof item.meals === 'object' && item.meals !== null ? item.meals : {}) as Record<string, unknown>;
+  const startHour = (REMINDER_START_HOURS as readonly number[]).includes(item.startHour as number) ? (item.startHour as number) : DEFAULT_REMINDERS.startHour;
+  return {
+    enabled: item.enabled === true,
+    asked: item.asked === true,
+    mode: item.mode === 'meals' ? 'meals' : 'interval',
+    startHour,
+    // A meal is on unless it was explicitly switched off.
+    meals: { breakfast: meals.breakfast !== false, lunch: meals.lunch !== false, dinner: meals.dinner !== false },
+  };
+}
+
 export function parseSettings(raw: unknown): Settings | null {
   if (typeof raw !== 'object' || raw === null) return null;
   const item = raw as Record<string, unknown>;
@@ -34,6 +61,7 @@ export function parseSettings(raw: unknown): Settings | null {
     macroGoals: parseMacroGoals(item.macroGoals),
     weightUnit: item.weightUnit === 'kg' ? 'kg' : 'lb',
     heightUnit: item.heightUnit === 'cm' ? 'cm' : 'ft_in',
+    reminders: parseReminders(item.reminders),
   };
 }
 
@@ -41,4 +69,8 @@ export const settingsStore = createPersistedStore<Settings>('justtrack.settings.
 
 export function updateSettings(patch: Partial<Settings>): void {
   settingsStore.set((current) => ({ ...current, ...patch, calorieGoal: clampGoal(patch.calorieGoal ?? current.calorieGoal) }));
+}
+
+export function updateReminders(patch: Partial<ReminderSettings>): void {
+  settingsStore.set((current) => ({ ...current, reminders: { ...current.reminders, ...patch } }));
 }

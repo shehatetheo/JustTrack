@@ -44,6 +44,7 @@ export const AppIcons = {
   sparkles: { sf: 'sparkles', ionicon: 'sparkles-outline' },
   flame: { sf: 'flame.fill', ionicon: 'flame' },
   clock: { sf: 'clock', ionicon: 'time-outline' },
+  bell: { sf: 'bell.badge.fill', ionicon: 'notifications-outline' },
   calendar: { sf: 'calendar', ionicon: 'calendar-outline' },
   bolt: { sf: 'bolt.fill', ionicon: 'flash' },
 

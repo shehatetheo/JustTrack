@@ -5,6 +5,7 @@ import { MacroShareRow } from '@/components/home/MacroShareRow';
 import { GradientHeader } from '@/components/layout/GradientHeader';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { Card } from '@/components/ui/Card';
+import { GrowBar } from '@/components/ui/GrowBar';
 import { ThemedText } from '@/components/ui/ThemedText';
 import { MEAL_TYPE_META } from '@/constants/nutrition';
 import { Radii, Spacing } from '@/constants/theme';
@@ -44,7 +45,7 @@ export default function TodayScreen() {
             of {formatNumber(settings.calorieGoal)} kcal eaten
           </ThemedText>
           <View style={[styles.track, { backgroundColor: 'rgba(255,255,255,0.25)' }]} accessible accessibilityLabel={`${Math.round(progress * 100)} percent of your goal`}>
-            <View style={[styles.fill, { width: `${Math.round(progress * 100)}%`, backgroundColor: colors.onGradient }]} />
+            <GrowBar fraction={progress} style={[styles.fill, { backgroundColor: colors.onGradient }]} />
           </View>
         </View>
         <MacroShareRow totals={totals} goals={settings.macroGoals} onGradient />
@@ -98,7 +99,7 @@ export default function TodayScreen() {
                     </View>
                   </View>
                   <View style={[styles.barTrack, { backgroundColor: colors.accentMuted }]}>
-                    <View style={[styles.barFill, { width: `${Math.round((section.totals.calories / maxMeal) * 100)}%`, backgroundColor: colors.accent }]} />
+                    <GrowBar fraction={section.totals.calories / maxMeal} style={[styles.barFill, { backgroundColor: colors.accent }]} />
                   </View>
                 </View>
               );
@@ -112,7 +113,7 @@ export default function TodayScreen() {
             {week.map((day, index) => (
               <View key={day.toISOString()} style={styles.weekDay}>
                 <View style={[styles.weekTrack, { backgroundColor: colors.accentMuted }]}>
-                  <View style={[styles.weekFill, { height: `${Math.round((weekCalories[index] / maxDay) * 100)}%`, backgroundColor: index === 6 ? colors.accent : colors.gradientMiddle }]} />
+                  <GrowBar axis="y" delay={index * 40} fraction={weekCalories[index] / maxDay} style={[styles.weekFill, { backgroundColor: index === 6 ? colors.accent : colors.gradientMiddle }]} />
                 </View>
                 <ThemedText variant="caption2" color={index === 6 ? 'primary' : 'secondary'}>
                   {day.toLocaleDateString('en-US', { weekday: 'narrow' })}

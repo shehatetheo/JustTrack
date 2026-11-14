@@ -35,13 +35,8 @@ export function ListRow({
   const { colors } = useAppTheme();
   const titleColor = destructive ? colors.danger : colors.text;
 
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={!onPress}
-      accessibilityRole={onPress ? 'button' : undefined}
-      style={({ pressed }) => [styles.row, { backgroundColor: pressed ? colors.backgroundSecondary : colors.surface }]}
-    >
+  const body = (
+    <>
       {icon ? (
         <View style={[styles.iconTile, { backgroundColor: iconBackground ?? colors.accent }]}>
           <AppIcon name={icon} size={16} color={iconColor} weight="semibold" />
@@ -66,6 +61,15 @@ export function ListRow({
           {showChevron && onPress ? <AppIcon name="chevronRight" size={14} color={colors.textTertiary} weight="semibold" /> : null}
         </View>
       </View>
+    </>
+  );
+
+  // A row with nothing to open is plain layout, so a switch inside it stays reachable.
+  if (!onPress) return <View style={[styles.row, { backgroundColor: colors.surface }]}>{body}</View>;
+
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" style={({ pressed }) => [styles.row, { backgroundColor: pressed ? colors.backgroundSecondary : colors.surface }]}>
+      {body}
     </Pressable>
   );
 }

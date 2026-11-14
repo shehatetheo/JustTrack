@@ -118,6 +118,21 @@ export interface MacroGoals {
   fat: number;
 }
 
+/** interval: every 90 minutes through the day · meals: only at the mealtimes that are switched on. */
+export type ReminderMode = 'interval' | 'meals';
+export type ReminderMeal = 'breakfast' | 'lunch' | 'dinner';
+
+/** "Log your food" nudges, scheduled on the device itself; nothing is sent from a server. */
+export interface ReminderSettings {
+  enabled: boolean;
+  /** True once the user has answered the "want reminders?" prompt, so it stops asking on launch. */
+  asked: boolean;
+  mode: ReminderMode;
+  /** Hour of the first nudge of the day in interval mode (24h clock). */
+  startHour: number;
+  meals: Record<ReminderMeal, boolean>;
+}
+
 export interface Settings {
   /** Shown after the first launch's welcome screen has been dismissed. */
   welcomed: boolean;
@@ -127,4 +142,5 @@ export interface Settings {
   macroGoals: MacroGoals | null;
   weightUnit: WeightUnit;
   heightUnit: HeightUnit;
+  reminders: ReminderSettings;
 }
