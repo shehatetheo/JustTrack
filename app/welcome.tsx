@@ -6,6 +6,7 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppIcon } from '@/components/ui/AppIcon';
+import { SpaceBackdrop } from '@/components/space/SpaceBackdrop';
 import { Logo } from '@/components/ui/Logo';
 import { ThemedText } from '@/components/ui/ThemedText';
 import { APP_NAME, HOMETOWN_LINE, PROMISES } from '@/constants/brand';
@@ -16,7 +17,7 @@ import { updateSettings } from '@/lib/settings/settingsStore';
 /** First launch: who this is for, what it promises, and one button. */
 export default function WelcomeScreen() {
   const router = useRouter();
-  const { colors } = useAppTheme();
+  const { colors, isDark } = useAppTheme();
   const insets = useSafeAreaInsets();
 
   const start = (thenGoal: boolean) => {
@@ -26,6 +27,7 @@ export default function WelcomeScreen() {
 
   return (
     <LinearGradient colors={[colors.gradientStart, colors.gradientMiddle, colors.gradientEnd]} locations={[0, 0.5, 1]} style={styles.root}>
+      {isDark ? <SpaceBackdrop meteors={4} calm={2.2} nebula={{ x: 0.5, y: 0.2 }} /> : null}
       <View style={[styles.content, { paddingTop: insets.top + Spacing['4xl'], paddingBottom: insets.bottom + Spacing['2xl'] }]}>
         <View style={styles.hero}>
           <Animated.View entering={FadeInDown.duration(600)}>

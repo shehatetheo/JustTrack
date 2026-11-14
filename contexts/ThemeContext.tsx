@@ -6,6 +6,12 @@ import { Colors, Shadows, type ColorScheme, type ThemeColors } from '@/constants
 import type { ThemePreference } from '@/types';
 
 const STORAGE_KEY = 'justtrack.themePreference';
+const DEFAULT_PREFERENCE: ThemePreference = 'dark';
+
+/** Tells the system which look the app is using. Browsers have no such switch, so this is a no-op there. */
+function applyNativeScheme(scheme: 'light' | 'dark' | 'unspecified'): void {
+  if (typeof Appearance.setColorScheme === 'function') Appearance.setColorScheme(scheme);
+}
 
 interface ThemeContextValue {
   preference: ThemePreference;
@@ -20,7 +26,8 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemScheme = useSystemColorScheme();
-  const [preference, setPreferenceState] = useState<ThemePreference>('system');
+  // Dark is the app's native look; someone who wants light, or to follow the phone, picks it in Profile.
+  const [preference, setPreferenceState] = useState<ThemePreference>(DEFAULT_PREFERENCE);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -28,12 +35,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.getItem(STORAGE_KEY)
       .then((stored) => {
         if (cancelled) return;
-        if (stored === 'light' || stored === 'dark' || stored === 'system') {
-          setPreferenceState(stored);
-          if (stored !== 'system') {
-            Appearance.setColorScheme(stored);
-          }
-        }
+        const chosen: ThemePreference = stored === 'light' || stored === 'dark' || stored === 'system' ? stored : DEFAULT_PREFERENCE;
+        setPreferenceState(chosen);
+        // Native pieces (keyboards, action sheets, the status bar) follow this too.
+        if (chosen !== 'system') applyNativeScheme(chosen);
       })
       .finally(() => {
         if (!cancelled) setHydrated(true);
@@ -45,7 +50,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const setPreference = useCallback((next: ThemePreference) => {
     setPreferenceState(next);
-    Appearance.setColorScheme(next === 'system' ? 'unspecified' : next);
+    applyNativeScheme(next === 'system' ? 'unspecified' : next);
     AsyncStorage.setItem(STORAGE_KEY, next).catch(() => {
       // Non-fatal: preference just won't persist across restarts.
     });

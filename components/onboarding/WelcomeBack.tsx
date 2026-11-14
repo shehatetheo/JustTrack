@@ -5,6 +5,7 @@ import { Pressable, ScrollView, StyleSheet, View, type NativeScrollEvent, type N
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { SpaceBackdrop } from '@/components/space/SpaceBackdrop';
 import { Button } from '@/components/ui/Button';
 import { Glass } from '@/components/ui/Glass';
 import { ThemedText } from '@/components/ui/ThemedText';
@@ -47,7 +48,7 @@ interface WelcomeBackProps {
 /** Three short slides for someone returning after a few days: no guilt, the quickest ways to log, and a push to start again. Skippable from every slide. */
 export function WelcomeBack({ days, onClose }: WelcomeBackProps) {
   const router = useRouter();
-  const { colors } = useAppTheme();
+  const { colors, isDark } = useAppTheme();
   const insets = useSafeAreaInsets();
   const { reminders } = useSettings();
   const entries = useSyncExternalStore(logStore.subscribe, logStore.getSnapshot, logStore.getSnapshot);
@@ -75,6 +76,7 @@ export function WelcomeBack({ days, onClose }: WelcomeBackProps) {
 
   return (
     <Animated.View entering={FadeIn.duration(260)} exiting={FadeOut.duration(200)} style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]} accessibilityViewIsModal>
+      {isDark ? <SpaceBackdrop meteors={3} calm={3} stars={80} nebula={{ x: 0.3, y: 0.3 }} seed={29} /> : null}
       <View style={[styles.top, { paddingTop: insets.top + Spacing.md }]}>
         <View style={styles.dots} accessible accessibilityLabel={`Slide ${page + 1} of 3`}>
           {[0, 1, 2].map((index) => (

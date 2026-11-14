@@ -2,7 +2,7 @@
 
 Paste the block under **Notes** into App Store Connect → your app → the 1.0 version page → **App Review Information → Notes**, attach the screen recording link, then click **Resubmit for Review** (or reply in Resolution Center and resubmit).
 
-Make sure the attached build on the version page is the latest one in TestFlight, **1.0.0 (16)**.
+Make sure the attached build on the version page is the latest one in TestFlight, **1.0.0 (17)**.
 
 ---
 
@@ -53,7 +53,7 @@ There is no account creation, so no login or account-deletion flow applies. Ther
 
 Apple requires it to be captured **on a physical iPhone running the latest iOS**, starting from the app launch.
 
-1. On your iPhone, install **1.0.0 (16)** from TestFlight and make sure iOS is up to date (Settings → General → Software Update).
+1. On your iPhone, install **1.0.0 (17)** from TestFlight and make sure iOS is up to date (Settings → General → Software Update).
 2. If the app was already opened on this phone, go to Profile → **Erase all data** first, so the recording starts at the welcome screen.
 3. Swipe down from the top-right corner → tap the **Screen Record** button in Control Center (add it under Settings → Control Center if it's missing). The 3-second countdown starts; now open JustTrack from the home screen.
 4. Record this flow, about 90 seconds, no narration needed:

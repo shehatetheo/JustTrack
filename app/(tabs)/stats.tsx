@@ -37,7 +37,7 @@ export default function ProgressScreen() {
 
   return (
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content}>
-      <GradientHeader>
+      <GradientHeader seed={19}>
         <ThemedText variant="headline" style={[styles.center, { color: colors.onGradient }]} accessibilityRole="header">
           Progress
         </ThemedText>

@@ -21,9 +21,9 @@ import { formatNumber } from '@/utils/format';
 import { HEIGHT_UNIT_LABELS, WEIGHT_UNIT_LABELS } from '@/utils/units';
 
 const APPEARANCE_OPTIONS: readonly { value: ThemePreference; label: string }[] = [
-  { value: 'system', label: 'System' },
-  { value: 'light', label: 'Light' },
   { value: 'dark', label: 'Dark' },
+  { value: 'light', label: 'Light' },
+  { value: 'system', label: 'Match phone' },
 ];
 const WEIGHT_OPTIONS: readonly { value: WeightUnit; label: string }[] = [
   { value: 'lb', label: WEIGHT_UNIT_LABELS.lb },
@@ -69,7 +69,7 @@ export default function ProfileScreen() {
 
   return (
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content}>
-      <GradientHeader fadeEnd={0.9}>
+      <GradientHeader fadeEnd={0.9} seed={41}>
         <ThemedText variant="headline" style={[styles.title, { color: colors.onGradient }]} accessibilityRole="header">
           Profile
         </ThemedText>

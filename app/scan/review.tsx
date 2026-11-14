@@ -1,12 +1,13 @@
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import React, { useState, useSyncExternalStore } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { FoodHero } from '@/components/food/FoodHero';
 import { MealTypePicker } from '@/components/food/MealTypePicker';
 import { NutritionColumns } from '@/components/food/NutritionColumns';
+import { MeteorLoader } from '@/components/space/MeteorLoader';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { Banner } from '@/components/ui/Banner';
 import { Button } from '@/components/ui/Button';
@@ -161,12 +162,7 @@ export default function ReviewScreen() {
 
       <View style={styles.body}>
         {state.status === 'analyzing' ? (
-          <View style={styles.center}>
-            <ActivityIndicator color={colors.accent} />
-            <ThemedText variant="subhead" color="secondary">
-              {described ? 'Splitting it into foods and sizing each one. This takes a few seconds.' : 'Naming the food and sizing the portions. This takes a few seconds.'}
-            </ThemedText>
-          </View>
+          <MeteorLoader message={described ? 'Splitting it into foods and sizing each one. This takes a few seconds.' : 'Naming the food and sizing the portions. This takes a few seconds.'} />
         ) : null}
 
         {state.status === 'error' ? (
