@@ -66,10 +66,12 @@ export function ReminderPrompt() {
       <Animated.View
         entering={SlideInDown.springify().damping(20).stiffness(190)}
         exiting={SlideOutDown.duration(220)}
-        style={[styles.sheet, shadows.lg, { backgroundColor: colors.background, paddingBottom: insets.bottom + Spacing.lg }]}
+        style={[styles.sheet, shadows.lg, { backgroundColor: colors.surface, borderColor: colors.border, paddingBottom: insets.bottom + Spacing.lg }]}
       >
         <View style={[styles.grabber, { backgroundColor: colors.border }]} />
-        <ThemedText style={styles.emoji}>🔔</ThemedText>
+        <ThemedText variant="overline" color="tertiary" style={styles.center}>
+          REMINDERS
+        </ThemedText>
         <ThemedText variant="title2" style={styles.center} accessibilityRole="header">
           {firstName ? `${firstName}, want us to nag you?` : 'Want us to nag you?'}
         </ThemedText>
@@ -79,7 +81,7 @@ export function ReminderPrompt() {
         <View style={styles.preview}>
           <NotificationPreview title={sample.title} body={sample.body} />
         </View>
-        <Button label="Yes, nag me 🙌" onPress={() => void accept()} loading={working} />
+        <Button label="Yes, nag me" onPress={() => void accept()} loading={working} />
         <Button label="Not now" variant="secondary" onPress={notNow} disabled={working} />
         <Pressable
           onPress={() => {
@@ -101,10 +103,9 @@ export function ReminderPrompt() {
 }
 
 const styles = StyleSheet.create({
-  backdrop: { backgroundColor: 'rgba(8,6,20,0.55)' },
-  sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, borderTopLeftRadius: Radii['2xl'], borderTopRightRadius: Radii['2xl'], paddingHorizontal: Spacing.xl, paddingTop: Spacing.md, gap: Spacing.md },
+  backdrop: { backgroundColor: 'rgba(0,0,0,0.6)' },
+  sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, borderTopLeftRadius: Radii['2xl'], borderTopRightRadius: Radii['2xl'], borderWidth: StyleSheet.hairlineWidth * 2, borderBottomWidth: 0, paddingHorizontal: Spacing.xl, paddingTop: Spacing.md, gap: Spacing.md },
   grabber: { alignSelf: 'center', width: 40, height: 5, borderRadius: 3, marginBottom: Spacing.xs },
-  emoji: { fontSize: 44, lineHeight: 54, textAlign: 'center' },
   center: { textAlign: 'center' },
   preview: { marginVertical: Spacing.xs },
   never: { alignSelf: 'center', paddingVertical: Spacing.xs },

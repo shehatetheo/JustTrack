@@ -9,8 +9,6 @@ import { ThemedText } from './ThemedText';
 interface ListRowProps {
   title: string;
   icon?: AppIconName;
-  iconBackground?: string;
-  iconColor?: string;
   value?: string;
   onPress?: () => void;
   destructive?: boolean;
@@ -19,12 +17,10 @@ interface ListRowProps {
   accessory?: React.ReactNode;
 }
 
-/** An iOS Settings-style row: tinted icon tile, title, trailing value, chevron. */
+/** A settings row: a quiet monochrome icon tile, title, trailing value, chevron. */
 export function ListRow({
   title,
   icon,
-  iconBackground,
-  iconColor = '#FFFFFF',
   value,
   onPress,
   destructive = false,
@@ -38,8 +34,8 @@ export function ListRow({
   const body = (
     <>
       {icon ? (
-        <View style={[styles.iconTile, { backgroundColor: iconBackground ?? colors.accent }]}>
-          <AppIcon name={icon} size={16} color={iconColor} weight="semibold" />
+        <View style={[styles.iconTile, { backgroundColor: colors.surfaceTintStrong }]}>
+          <AppIcon name={icon} size={15} color={destructive ? colors.danger : colors.text} weight="semibold" />
         </View>
       ) : null}
       <View
@@ -87,7 +83,7 @@ export function ListSection({ title, children, footer, style }: ListSectionProps
   return (
     <View style={[styles.section, style]}>
       {title ? (
-        <ThemedText variant="footnote" color="secondary" style={styles.sectionTitle}>
+        <ThemedText variant="overline" color="tertiary" style={styles.sectionTitle}>
           {title.toUpperCase()}
         </ThemedText>
       ) : null}
@@ -111,7 +107,7 @@ const styles = StyleSheet.create({
   iconTile: {
     width: 30,
     height: 30,
-    borderRadius: Radii.sm,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Spacing.md,
@@ -127,11 +123,11 @@ const styles = StyleSheet.create({
   },
   trailing: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   section: { marginTop: Spacing['2xl'] },
-  sectionTitle: { marginBottom: Spacing.sm, marginLeft: Spacing.lg, letterSpacing: 0.5 },
+  sectionTitle: { marginBottom: Spacing.sm, marginLeft: Spacing.xs },
   sectionBody: {
-    borderRadius: Radii.md,
+    borderRadius: Radii.lg,
     overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: StyleSheet.hairlineWidth * 2,
   },
-  sectionFooter: { marginTop: Spacing.sm, marginHorizontal: Spacing.lg },
+  sectionFooter: { marginTop: Spacing.sm, marginHorizontal: Spacing.xs },
 });

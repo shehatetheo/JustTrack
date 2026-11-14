@@ -2,7 +2,7 @@
 
 Paste the block under **Notes** into App Store Connect → your app → the 1.0 version page → **App Review Information → Notes**, attach the screen recording link, then click **Resubmit for Review** (or reply in Resolution Center and resubmit).
 
-Make sure the attached build on the version page is the latest one in TestFlight, **1.0.0 (14)**.
+Make sure the attached build on the version page is the latest one in TestFlight, **1.0.0 (16)**.
 
 ---
 
@@ -21,7 +21,8 @@ There is no account, login, registration or subscription. No credentials or samp
 - Home: today's calories left, protein/carbs/fat rings, meals for the day, a week strip to view other days.
 - Search (center tab button): type any food ("chobani", "banana", "big mac") or pick a restaurant from the grid to browse its full menu. Chipotle, Subway, Jersey Mike's and Panda Express also have a "Build your order" flow where you pick base, protein and toppings and the menu's nutrition is added up.
 - Scan (viewfinder tab): photograph a plate; the app returns an estimate of each food, grams and macros. Results are labelled "Estimated" and can be edited or swapped for a database entry before logging. The scan tab also has a barcode scanner for packaged foods, and a "Describe what you ate" option (pencil button) that does the same from a typed sentence.
-- Today tab: balance score, calories by meal, last 7 days.
+- Progress tab: today's calories, logging streak, weight with a trend chart (tap the Weight card, then Log weight), balance score, calories by meal, last 7 days. Weight is typed in by the user and stored only on the device; the app does not read from or write to Apple Health.
+- A short, skippable set of "welcome back" slides appears if nothing has been logged for three days.
 - Profile: goals, units, appearance, meal reminders, privacy policy, support, and "Erase all data", which wipes the on-device log and settings.
 - Reminders: optional local notifications that nudge the user to log food, every 1.5 hours or at mealtimes. They are off by default. The app asks once it is open, the user can decline, and they can be switched off in Profile → Meal reminders. They are scheduled on the device; the app does not use push notifications or any notification server.
 
@@ -52,7 +53,7 @@ There is no account creation, so no login or account-deletion flow applies. Ther
 
 Apple requires it to be captured **on a physical iPhone running the latest iOS**, starting from the app launch.
 
-1. On your iPhone, install **1.0.0 (14)** from TestFlight and make sure iOS is up to date (Settings → General → Software Update).
+1. On your iPhone, install **1.0.0 (16)** from TestFlight and make sure iOS is up to date (Settings → General → Software Update).
 2. If the app was already opened on this phone, go to Profile → **Erase all data** first, so the recording starts at the welcome screen.
 3. Swipe down from the top-right corner → tap the **Screen Record** button in Control Center (add it under Settings → Control Center if it's missing). The 3-second countdown starts; now open JustTrack from the home screen.
 4. Record this flow, about 90 seconds, no narration needed:
@@ -62,7 +63,7 @@ Apple requires it to be captured **on a physical iPhone running the latest iOS**
    4. Back in search, tap Chipotle → browse the menu → tap "Build your order" → pick a protein, tap 2× → Add.
    5. Tap the Scan tab → take a photo of any food (or a picture of food on a screen) → wait for the estimate → show the "Estimated" label → tap Add.
    6. Home again: the meal cards now have entries. Swipe one entry to show edit/delete.
-   7. Today tab: scroll through balance, calories by meal, last 7 days.
+   7. Progress tab: scroll through the streak, weight, balance, calories by meal, last 7 days.
    8. Profile: open Privacy policy, go back, then tap **Erase all data** and confirm, to show the data-deletion path.
 5. Stop recording (tap the red status bar → Stop). The video lands in Photos.
 6. Host it where the reviewer can open it without a login: upload to **iCloud Drive and share a link** (Files app → the video → Share → Copy iCloud Link, set to "Anyone with the link"), or a Google Drive link set to "Anyone with the link", or an unlisted YouTube video. Paste the link at the top of the Notes.

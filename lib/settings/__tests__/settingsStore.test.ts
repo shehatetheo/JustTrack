@@ -16,6 +16,9 @@ describe('parseSettings', () => {
       weightUnit: 'kg',
       heightUnit: 'cm',
       reminders: DEFAULT_REMINDERS,
+      goalWeightKg: null,
+      welcomedAt: null,
+      welcomeBackAt: null,
     });
     expect(parseSettings({ calorieGoal: 500 })?.calorieGoal).toBe(1200);
   });

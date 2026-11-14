@@ -8,6 +8,7 @@ import { MacroRings } from '@/components/home/MacroRings';
 import { MealCard } from '@/components/home/MealCard';
 import { WeekStrip } from '@/components/home/WeekStrip';
 import { GradientHeader } from '@/components/layout/GradientHeader';
+import { AppIcon } from '@/components/ui/AppIcon';
 import { Tap } from '@/components/ui/Tap';
 import { ThemedText } from '@/components/ui/ThemedText';
 import { PRIVACY_LINE } from '@/constants/brand';
@@ -15,6 +16,7 @@ import { Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { useCurrentTime } from '@/hooks/useCurrentTime';
 import { useLog } from '@/hooks/useLog';
+import { streakSummary } from '@/lib/log/streak';
 import { useSettings } from '@/hooks/useSettings';
 import { formatRelativeDay, getGreeting, isSameDay } from '@/utils/date';
 
@@ -37,7 +39,8 @@ export default function HomeScreen() {
   // Follow the calendar: once a new day starts, the picked day falls back to today.
   const day = picked && picked <= today ? picked : today;
   const isToday = isSameDay(day, today);
-  const { sections, totals } = useLog(day);
+  const { sections, totals, all } = useLog(day);
+  const streak = streakSummary(all, today);
   const settings = useSettings();
 
   return (
@@ -45,14 +48,28 @@ export default function HomeScreen() {
       <GradientHeader fadeEnd={0.92}>
         <View style={styles.topRow}>
           <View style={styles.greeting}>
-            <ThemedText variant="footnote" style={{ color: colors.onGradientMuted }}>
-              {isToday ? `${getGreeting(now)}${settings.displayName ? `, ${settings.displayName.split(' ')[0]}` : ''} 👋` : formatRelativeDay(day, today)}
+            <ThemedText variant="overline" style={{ color: colors.onGradientMuted }}>
+              {(isToday ? `${getGreeting(now)}${settings.displayName ? `, ${settings.displayName.split(' ')[0]}` : ''}` : formatRelativeDay(day, today)).toUpperCase()}
             </ThemedText>
             <ThemedText variant="title2" style={{ color: colors.onGradient }} accessibilityRole="header">
               {isToday ? 'Stay on track today' : day.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </ThemedText>
           </View>
-          <Tap onPress={() => router.push('/profile')} pressScale={0.9} accessibilityRole="button" accessibilityLabel={settings.displayName ? `${settings.displayName}, profile` : 'Profile'} style={[styles.avatar, { backgroundColor: 'rgba(255,255,255,0.25)' }]}>
+          {streak.current > 0 ? (
+            <Tap
+              onPress={() => router.push('/stats')}
+              pressScale={0.94}
+              accessibilityRole="button"
+              accessibilityLabel={`${streak.current} day streak${streak.waiting ? ', log today to keep it' : ''}`}
+              style={[styles.streak, { backgroundColor: 'rgba(255,255,255,0.14)', borderColor: 'rgba(255,255,255,0.22)', opacity: streak.waiting ? 0.7 : 1 }]}
+            >
+              <AppIcon name="flame" size={14} color={streak.waiting ? colors.onGradientMuted : colors.carbs} />
+              <ThemedText variant="subheadEmphasized" style={[styles.streakCount, { color: colors.onGradient }]}>
+                {streak.current}
+              </ThemedText>
+            </Tap>
+          ) : null}
+          <Tap onPress={() => router.push('/profile')} pressScale={0.9} accessibilityRole="button" accessibilityLabel={settings.displayName ? `${settings.displayName}, profile` : 'Profile'} style={[styles.avatar, { backgroundColor: 'rgba(255,255,255,0.14)', borderColor: 'rgba(255,255,255,0.22)', borderWidth: StyleSheet.hairlineWidth * 2 }]}>
             <ThemedText variant="subheadEmphasized" style={{ color: colors.onGradient }}>
               {initialFor(settings.displayName)}
             </ThemedText>
@@ -102,6 +119,8 @@ const styles = StyleSheet.create({
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md },
   greeting: { flex: 1, gap: 2 },
   avatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  streak: { flexDirection: 'row', alignItems: 'center', gap: 5, height: 36, paddingHorizontal: Spacing.md, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth * 2 },
+  streakCount: { fontVariant: ['tabular-nums'], fontWeight: '700' },
   rings: { paddingBottom: Spacing.lg },
   body: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.sm },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.md },

@@ -237,7 +237,7 @@ export default function ReviewScreen() {
                   </ThemedText>
                   <MealTypePicker value={mealType} onChange={setMealType} />
                 </View>
-                <Button label={`Add ${rows.length === 1 ? 'it' : `${rows.length} items`} to ${MEAL_TYPE_META[mealType].label}`} icon="plus" onPress={logAll} />
+                <Button label={`Add ${rows.length === 1 ? 'it' : `${rows.length} items`} to ${MEAL_TYPE_META[mealType].label}`} onPress={logAll} />
                 <ThemedText variant="caption1" color="tertiary" style={styles.centerText}>
                   {described ? 'Estimated from your description. Pick a database match for exact label numbers, and adjust anything that looks off.' : 'Estimated nutrition. A photo can’t weigh your food — adjust anything that looks off.'}
                 </ThemedText>

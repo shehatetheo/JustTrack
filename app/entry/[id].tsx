@@ -127,8 +127,8 @@ export default function EditEntryScreen() {
 
         <View style={styles.actions}>
           <Button label="Save changes" onPress={save} disabled={!canSave} />
-          <Button label="Log it again" icon="duplicate" variant="secondary" onPress={logAgain} />
-          <Button label="Delete entry" icon="trash" variant="ghostDestructive" onPress={() => void remove()} />
+          <Button label="Log it again" variant="secondary" onPress={logAgain} />
+          <Button label="Delete entry" variant="ghostDestructive" onPress={() => void remove()} />
         </View>
       </View>
     </ScrollView>

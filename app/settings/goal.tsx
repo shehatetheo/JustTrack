@@ -136,7 +136,7 @@ export default function GoalScreen() {
             <TextField label="Weight" value={stats.weight} onChangeText={(weight) => setStats({ ...stats, weight: weight.replace(/[^0-9.]/g, '') })} keyboardType="decimal-pad" suffix={settings.weightUnit} error={statErrors.weight} />
             <OptionPicker label="Activity" options={ACTIVITY_OPTIONS.map((option) => ({ value: option.value, label: option.title }))} value={activity} onChange={setActivity} />
             <PillTabs options={GOAL_OPTIONS.map((option) => ({ value: option.value, label: option.title.replace(' weight', '') }))} value={goal} onChange={setGoal} accessibilityLabel="Goal" />
-            <Button label="Estimate my goal" variant="secondary" icon="target" onPress={estimate} />
+            <Button label="Estimate my goal" variant="secondary" onPress={estimate} />
           </View>
         ) : null}
       </Card>

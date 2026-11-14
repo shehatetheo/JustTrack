@@ -4,12 +4,10 @@ import { ActivityIndicator, Pressable, StyleSheet, type PressableProps } from 'r
 
 import { Radii, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
-import { AppIcon, type AppIconName } from './AppIcon';
 import { ThemedText } from './ThemedText';
 
 interface ButtonProps extends Omit<PressableProps, 'style'> {
   label: string;
-  icon?: AppIconName;
   variant?: 'primary' | 'secondary' | 'ghost' | 'destructive' | 'ghostDestructive';
   size?: 'md' | 'lg';
   loading?: boolean;
@@ -18,7 +16,6 @@ interface ButtonProps extends Omit<PressableProps, 'style'> {
 
 export function Button({
   label,
-  icon,
   variant = 'primary',
   size = 'lg',
   loading = false,
@@ -31,7 +28,7 @@ export function Button({
 
   const palette = {
     primary: { bg: colors.text, fg: colors.textInverse, border: 'transparent' },
-    secondary: { bg: colors.surfaceTint, fg: colors.text, border: 'transparent' },
+    secondary: { bg: colors.surfaceTint, fg: colors.text, border: colors.border },
     ghost: { bg: 'transparent', fg: colors.text, border: 'transparent' },
     destructive: { bg: colors.danger, fg: colors.textInverse, border: 'transparent' },
     ghostDestructive: { bg: 'transparent', fg: colors.danger, border: 'transparent' },
@@ -57,12 +54,9 @@ export function Button({
       {loading ? (
         <ActivityIndicator color={palette.fg} />
       ) : (
-        <>
-          {icon ? <AppIcon name={icon} size={18} color={palette.fg} weight="semibold" /> : null}
-          <ThemedText variant="bodyEmphasized" style={{ color: palette.fg }}>
-            {label}
-          </ThemedText>
-        </>
+        <ThemedText variant="bodyEmphasized" style={[styles.label, { color: palette.fg }]} numberOfLines={1}>
+          {label}
+        </ThemedText>
       )}
     </Pressable>
   );
@@ -72,12 +66,13 @@ const styles = StyleSheet.create({
   base: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: Radii.full,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: Radii.md + 2,
+    borderWidth: StyleSheet.hairlineWidth * 2,
     flexDirection: 'row',
     gap: Spacing.sm,
   },
   md: { paddingVertical: Spacing.sm, paddingHorizontal: Spacing.lg },
   lg: { paddingVertical: Spacing.md, paddingHorizontal: Spacing.xl, minHeight: 54 },
   fullWidth: { alignSelf: 'stretch' },
+  label: { fontWeight: '700', letterSpacing: -0.1 },
 });

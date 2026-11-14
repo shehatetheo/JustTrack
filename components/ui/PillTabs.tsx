@@ -13,12 +13,12 @@ interface PillTabsProps<T extends string> {
   accessibilityLabel?: string;
 }
 
-/** A soft segmented control: a lavender track with a white pill on the chosen option. */
+/** A segmented control: a glass track with a solid plate on the chosen option. */
 export function PillTabs<T extends string>({ options, value, onChange, accessibilityLabel }: PillTabsProps<T>) {
-  const { colors, shadows } = useAppTheme();
+  const { colors, isDark } = useAppTheme();
 
   return (
-    <View style={[styles.track, { backgroundColor: colors.backgroundSecondary }]} accessibilityRole="tablist" accessibilityLabel={accessibilityLabel}>
+    <View style={[styles.track, { backgroundColor: colors.surfaceTint, borderColor: colors.border }]} accessibilityRole="tablist" accessibilityLabel={accessibilityLabel}>
       {options.map((option) => {
         const selected = option.value === value;
         return (
@@ -31,7 +31,7 @@ export function PillTabs<T extends string>({ options, value, onChange, accessibi
             }}
             accessibilityRole="tab"
             accessibilityState={{ selected }}
-            style={[styles.pill, selected && [styles.selected, shadows.sm, { backgroundColor: colors.surface }]]}
+            style={[styles.pill, selected && { backgroundColor: isDark ? colors.surfaceTintStrong : '#FFFFFF' }]}
           >
             <ThemedText variant={selected ? 'subheadEmphasized' : 'subhead'} color={selected ? 'primary' : 'secondary'}>
               {option.label}
@@ -44,7 +44,6 @@ export function PillTabs<T extends string>({ options, value, onChange, accessibi
 }
 
 const styles = StyleSheet.create({
-  track: { flexDirection: 'row', padding: 4, borderRadius: Radii.full },
-  pill: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.sm, borderRadius: Radii.full, minHeight: 36 },
-  selected: {},
+  track: { flexDirection: 'row', padding: 3, borderRadius: Radii.md, borderWidth: StyleSheet.hairlineWidth * 2 },
+  pill: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.sm, borderRadius: Radii.md - 3, minHeight: 36 },
 });

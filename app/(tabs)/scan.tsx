@@ -130,7 +130,7 @@ export default function ScanScreen() {
 
 function ScanFallback({ reason, scan, busy }: { reason: 'denied' | 'no_camera' | 'unsupported'; scan: (from: 'camera' | 'library') => Promise<void>; busy: boolean }) {
   const router = useRouter();
-  const { colors, shadows } = useAppTheme();
+  const { colors, shadows, isDark } = useAppTheme();
   const insets = useSafeAreaInsets();
   const note =
     reason === 'denied'
@@ -148,11 +148,10 @@ function ScanFallback({ reason, scan, busy }: { reason: 'denied' | 'no_camera' |
         Photograph the plate. JustTrack names what’s on it and estimates the calories — you check it, then log it.
       </ThemedText>
 
-      <LinearGradient colors={[colors.gradientStart, colors.gradientMiddle]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.heroCard, shadows.lg]}>
+      <LinearGradient colors={isDark ? [colors.surfaceTintStrong, colors.surfaceTint] : [colors.gradientStart, colors.gradientMiddle]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.heroCard, { borderColor: colors.border }]}>
         <View style={styles.heroBadge}>
-          <AppIcon name="sparkles" size={14} color="#FFFFFF" />
           <ThemedText variant="caption2" style={styles.heroBadgeText}>
-            AI ESTIMATE
+            ESTIMATE
           </ThemedText>
         </View>
         <ThemedText variant="title1" style={styles.heroTitle} accessibilityRole="header">
@@ -162,8 +161,8 @@ function ScanFallback({ reason, scan, busy }: { reason: 'denied' | 'no_camera' |
           {note}
         </ThemedText>
         <View style={styles.actions}>
-          {reason === 'unsupported' ? <Action icon="camera" label="Take photo" onPress={() => void scan('camera')} disabled={busy} /> : null}
-          <Action icon="photo" label="Choose photo" onPress={() => void scan('library')} disabled={busy} />
+          {reason === 'unsupported' ? <Action label="Take photo" onPress={() => void scan('camera')} disabled={busy} /> : null}
+          <Action label="Choose photo" onPress={() => void scan('library')} disabled={busy} />
         </View>
       </LinearGradient>
 
@@ -225,7 +224,7 @@ function ScanFallback({ reason, scan, busy }: { reason: 'denied' | 'no_camera' |
   );
 }
 
-function Action({ icon, label, onPress, disabled }: { icon: AppIconName; label: string; onPress: () => void; disabled?: boolean }) {
+function Action({ label, onPress, disabled }: { label: string; onPress: () => void; disabled?: boolean }) {
   return (
     <Pressable
       onPress={onPress}
@@ -235,7 +234,6 @@ function Action({ icon, label, onPress, disabled }: { icon: AppIconName; label: 
       accessibilityState={{ disabled: Boolean(disabled) }}
       style={({ pressed }) => [styles.action, { opacity: disabled ? 0.5 : pressed ? 0.8 : 1 }]}
     >
-      <AppIcon name={icon} size={20} color="#17142B" weight="semibold" />
       <ThemedText variant="subheadEmphasized" style={styles.actionLabel}>
         {label}
       </ThemedText>
@@ -264,14 +262,14 @@ const styles = StyleSheet.create({
   // Fallback
   content: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing['5xl'], gap: Spacing.md },
   lede: { marginBottom: Spacing.sm },
-  heroCard: { borderRadius: Radii['2xl'], padding: Spacing['2xl'], gap: Spacing.sm },
-  heroBadge: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.22)', paddingHorizontal: Spacing.sm, paddingVertical: 4, borderRadius: Radii.full },
-  heroBadgeText: { color: '#FFFFFF', letterSpacing: 0.6 },
+  heroCard: { borderRadius: Radii.xl, borderWidth: StyleSheet.hairlineWidth * 2, padding: Spacing['2xl'], gap: Spacing.sm },
+  heroBadge: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.22)', paddingHorizontal: Spacing.sm, paddingVertical: 4, borderRadius: 6 },
+  heroBadgeText: { color: '#FFFFFF', letterSpacing: 0.9, fontWeight: '700' },
   heroTitle: { color: '#FFFFFF', marginTop: Spacing.sm },
   heroText: { color: 'rgba(255,255,255,0.8)' },
   actions: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.lg },
   action: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, backgroundColor: '#FFFFFF', borderRadius: Radii.lg, paddingVertical: Spacing.md, minHeight: 48 },
-  actionLabel: { color: '#17142B' },
+  actionLabel: { color: '#0A0A0B' },
   card: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: Spacing.lg, borderRadius: Radii.xl, borderWidth: StyleSheet.hairlineWidth },
   iconTile: { width: 48, height: 48, borderRadius: Radii.md, alignItems: 'center', justifyContent: 'center' },
   cardText: { flex: 1, gap: 2 },

@@ -143,4 +143,17 @@ export interface Settings {
   weightUnit: WeightUnit;
   heightUnit: HeightUnit;
   reminders: ReminderSettings;
+  /** The weight the user is working toward, if they set one. */
+  goalWeightKg: number | null;
+  /** When the welcome screen was finished; the fallback "last active" date before anything is logged. */
+  welcomedAt: ISODateString | null;
+  /** When the welcome-back slides were last shown, so one lapse gets one showing. */
+  welcomeBackAt: ISODateString | null;
+}
+
+/** One weigh-in. There is at most one per calendar day; weighing again replaces it. */
+export interface WeightEntry {
+  /** Local calendar day, YYYY-MM-DD. */
+  date: string;
+  kg: number;
 }

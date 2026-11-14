@@ -2,6 +2,8 @@ import React from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { MacroShareRow } from '@/components/home/MacroShareRow';
+import { StreakCard } from '@/components/progress/StreakCard';
+import { WeightCard } from '@/components/progress/WeightCard';
 import { GradientHeader } from '@/components/layout/GradientHeader';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { Card } from '@/components/ui/Card';
@@ -14,17 +16,19 @@ import { useCurrentTime } from '@/hooks/useCurrentTime';
 import { useLog } from '@/hooks/useLog';
 import { useSettings } from '@/hooks/useSettings';
 import { caloriesByDay } from '@/lib/log/day';
+import { streakSummary } from '@/lib/log/streak';
 import { balanceScore, MIN_CALORIES_FOR_SCORE } from '@/lib/nutrition/balance';
 import { addDays } from '@/utils/date';
 import { formatNumber } from '@/utils/format';
 
-/** Today at a glance: balance, macros, calories by meal, and the week so far. */
-export default function TodayScreen() {
+/** Progress: today's intake, the streak, weight, balance, calories by meal, and the week so far. */
+export default function ProgressScreen() {
   const { colors } = useAppTheme();
   const { today } = useCurrentTime();
   const { sections, totals, all } = useLog(today);
   const settings = useSettings();
   const balance = balanceScore(totals);
+  const streak = streakSummary(all, today);
   const maxMeal = Math.max(...sections.map((section) => section.totals.calories), 1);
   const week = Array.from({ length: 7 }, (_, index) => addDays(today, index - 6));
   const weekCalories = caloriesByDay(all, week);
@@ -35,14 +39,14 @@ export default function TodayScreen() {
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content}>
       <GradientHeader>
         <ThemedText variant="headline" style={[styles.center, { color: colors.onGradient }]} accessibilityRole="header">
-          Today
+          Progress
         </ThemedText>
         <View style={styles.headline}>
           <ThemedText variant="display" style={[styles.tabular, { color: colors.onGradient }]}>
             {formatNumber(totals.calories)}
           </ThemedText>
           <ThemedText variant="subhead" style={{ color: colors.onGradientMuted }}>
-            of {formatNumber(settings.calorieGoal)} kcal eaten
+            of {formatNumber(settings.calorieGoal)} kcal eaten today
           </ThemedText>
           <View style={[styles.track, { backgroundColor: 'rgba(255,255,255,0.25)' }]} accessible accessibilityLabel={`${Math.round(progress * 100)} percent of your goal`}>
             <GrowBar fraction={progress} style={[styles.fill, { backgroundColor: colors.onGradient }]} />
@@ -52,6 +56,9 @@ export default function TodayScreen() {
       </GradientHeader>
 
       <View style={styles.body}>
+        <StreakCard streak={streak} />
+        <WeightCard today={today} />
+
         <Card style={styles.card}>
           <View style={styles.cardHeader}>
             <ThemedText variant="headline">Balance</ThemedText>
@@ -113,7 +120,7 @@ export default function TodayScreen() {
             {week.map((day, index) => (
               <View key={day.toISOString()} style={styles.weekDay}>
                 <View style={[styles.weekTrack, { backgroundColor: colors.accentMuted }]}>
-                  <GrowBar axis="y" delay={index * 40} fraction={weekCalories[index] / maxDay} style={[styles.weekFill, { backgroundColor: index === 6 ? colors.accent : colors.gradientMiddle }]} />
+                  <GrowBar axis="y" delay={index * 40} fraction={weekCalories[index] / maxDay} style={[styles.weekFill, { backgroundColor: index === 6 ? colors.text : colors.textTertiary }]} />
                 </View>
                 <ThemedText variant="caption2" color={index === 6 ? 'primary' : 'secondary'}>
                   {day.toLocaleDateString('en-US', { weekday: 'narrow' })}

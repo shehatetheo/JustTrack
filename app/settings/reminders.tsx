@@ -87,8 +87,8 @@ export default function RemindersScreen() {
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content}>
       <Stack.Screen options={{ headerRight: () => <CloseButton onPress={() => router.back()} />, headerTitleAlign: 'center' }} />
 
-      <View style={[styles.stage, { backgroundColor: colors.surfaceTint }]}>
-        <ThemedText variant="footnote" color="secondary" style={styles.stageLabel}>
+      <View style={[styles.stage, { backgroundColor: colors.surfaceTint, borderColor: colors.border }]}>
+        <ThemedText variant="overline" color="tertiary">
           WHAT THEY LOOK LIKE
         </ThemedText>
         <NotificationPreview title={sample.title} body={sample.body} />
@@ -100,10 +100,9 @@ export default function RemindersScreen() {
           accessibilityRole="button"
           accessibilityLabel="Show another reminder"
           hitSlop={8}
-          style={({ pressed }) => [styles.shuffle, { backgroundColor: colors.surface, opacity: pressed ? 0.7 : 1 }]}
+          style={({ pressed }) => [styles.shuffle, { backgroundColor: colors.surfaceTintStrong, borderColor: colors.border, opacity: pressed ? 0.7 : 1 }]}
         >
-          <AppIcon name="sparkles" size={14} color={colors.accent} />
-          <ThemedText variant="footnote" style={{ color: colors.accent, fontWeight: '600' }}>
+          <ThemedText variant="footnote" style={{ color: colors.text, fontWeight: '700' }}>
             Show me another
           </ThemedText>
         </Pressable>
@@ -118,7 +117,7 @@ export default function RemindersScreen() {
       <ListSection footer={reminders.enabled ? summary : 'Off. Flip it on and we’ll poke you to log your food. Jokes included.'}>
         <ListRow
           icon="bell"
-          iconBackground={colors.accent}
+         
           title="Meal reminders"
           showChevron={false}
           isLast
@@ -139,7 +138,7 @@ export default function RemindersScreen() {
           <ListSection title="How often">
             <ListRow
               icon="clock"
-              iconBackground={colors.carbs}
+             
               title="Every 1.5 hours"
               showChevron={false}
               onPress={() => pickMode('interval')}
@@ -147,7 +146,7 @@ export default function RemindersScreen() {
             />
             <ListRow
               icon="dinner"
-              iconBackground={colors.protein}
+             
               title="Just mealtimes"
               showChevron={false}
               onPress={() => pickMode('meals')}
@@ -161,7 +160,7 @@ export default function RemindersScreen() {
               <ListSection footer={`Then one every hour and a half. The last one is at or before ${formatMinute(LAST_MINUTE_OF_DAY)}, and a nudge is skipped if you just logged something.`}>
                 <ListRow
                   icon="breakfast"
-                  iconBackground={colors.fat}
+                 
                   title="First reminder"
                   value={formatMinute(reminders.startHour * 60)}
                   onPress={() => showOptionSheet({ title: 'First reminder of the day', options: START_OPTIONS, selected: String(reminders.startHour), onSelect: (hour) => updateReminders({ startHour: Number(hour) }) })}
@@ -176,7 +175,7 @@ export default function RemindersScreen() {
                   <ListRow
                     key={meal}
                     icon={MEAL_LABELS[meal].icon}
-                    iconBackground={colors.fat}
+                   
                     title={MEAL_LABELS[meal].title}
                     value={formatMinute(MEAL_MINUTES[meal])}
                     showChevron={false}
@@ -200,7 +199,7 @@ export default function RemindersScreen() {
 
           {remindersSupported && permission === 'granted' ? (
             <View style={styles.test}>
-              <Button label={testSent ? 'On its way…' : 'Send me a test'} icon="bell" variant="secondary" onPress={() => void sendTest()} disabled={testSent} />
+              <Button label={testSent ? 'On its way…' : 'Send me a test'} variant="secondary" onPress={() => void sendTest()} disabled={testSent} />
             </View>
           ) : null}
         </Animated.View>
@@ -215,9 +214,8 @@ export default function RemindersScreen() {
 
 const styles = StyleSheet.create({
   content: { padding: Spacing.lg, paddingBottom: Spacing['5xl'], gap: Spacing.md },
-  stage: { borderRadius: Radii['2xl'], padding: Spacing.lg, gap: Spacing.md },
-  stageLabel: { letterSpacing: 0.5 },
-  shuffle: { alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderRadius: 999 },
+  stage: { borderRadius: Radii.xl, borderWidth: StyleSheet.hairlineWidth * 2, padding: Spacing.lg, gap: Spacing.md },
+  shuffle: { alignSelf: 'center', paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderRadius: Radii.md, borderWidth: StyleSheet.hairlineWidth * 2 },
   stageFoot: { textAlign: 'center' },
   test: { marginTop: Spacing['2xl'] },
   privacy: { textAlign: 'center', marginTop: Spacing.lg, paddingHorizontal: Spacing.lg },

@@ -14,6 +14,7 @@ import { useSettings } from '@/hooks/useSettings';
 import { clearRecentSearches } from '@/lib/food/recentSearches';
 import { clearLog, logStore } from '@/lib/log/logStore';
 import { DEFAULT_SETTINGS, settingsStore, updateSettings } from '@/lib/settings/settingsStore';
+import { clearWeights } from '@/lib/weight/weightStore';
 import type { HeightUnit, ThemePreference, WeightUnit } from '@/types';
 import { confirmAsync, showOptionSheet } from '@/utils/actionSheet';
 import { formatNumber } from '@/utils/format';
@@ -58,9 +59,10 @@ export default function ProfileScreen() {
 
   /** Everything the app has stored on this device: the log, recent searches, name and goals. Lands back on the welcome screen. */
   const confirmErase = async () => {
-    const confirmed = await confirmAsync({ title: 'Erase all data?', message: 'This deletes your food log, recent searches, name and goals from this device and starts the app over. It can’t be undone.', confirmLabel: 'Erase everything' });
+    const confirmed = await confirmAsync({ title: 'Erase all data?', message: 'This deletes your food log, weigh-ins, recent searches, name and goals from this device and starts the app over. It can’t be undone.', confirmLabel: 'Erase everything' });
     if (!confirmed) return;
     clearLog();
+    clearWeights();
     clearRecentSearches();
     settingsStore.set({ ...DEFAULT_SETTINGS, welcomed: false });
   };
@@ -97,32 +99,32 @@ export default function ProfileScreen() {
 
       <View style={styles.body}>
         <ListSection title="Goals">
-          <ListRow icon="target" iconBackground={colors.accent} title="Daily calorie goal" value={`${formatNumber(settings.calorieGoal)} kcal`} onPress={() => router.push('/settings/goal')} />
-          <ListRow icon="flame" iconBackground={colors.carbs} title="Macro targets" value={settings.macroGoals ? 'Set' : 'Off'} onPress={() => router.push('/settings/goal')} isLast />
+          <ListRow icon="target" title="Daily calorie goal" value={`${formatNumber(settings.calorieGoal)} kcal`} onPress={() => router.push('/settings/goal')} />
+          <ListRow icon="flame" title="Macro targets" value={settings.macroGoals ? 'Set' : 'Off'} onPress={() => router.push('/settings/goal')} isLast />
         </ListSection>
 
         <ListSection title="Reminders" footer="A nudge to log your food, with a different joke each time.">
-          <ListRow icon="bell" iconBackground={colors.protein} title="Meal reminders" value={reminderSummary} onPress={() => router.push('/settings/reminders')} isLast />
+          <ListRow icon="bell" title="Meal reminders" value={reminderSummary} onPress={() => router.push('/settings/reminders')} isLast />
         </ListSection>
 
         <ListSection title="Preferences">
           <ListRow
             icon="scale"
-            iconBackground={colors.fat}
+           
             title="Weight"
             value={WEIGHT_UNIT_LABELS[settings.weightUnit]}
             onPress={() => showOptionSheet({ title: 'Weight units', options: WEIGHT_OPTIONS, selected: settings.weightUnit, onSelect: (weightUnit) => updateSettings({ weightUnit }) })}
           />
           <ListRow
             icon="ruler"
-            iconBackground={colors.fat}
+           
             title="Height"
             value={HEIGHT_UNIT_LABELS[settings.heightUnit]}
             onPress={() => showOptionSheet({ title: 'Height units', options: HEIGHT_OPTIONS, selected: settings.heightUnit, onSelect: (heightUnit) => updateSettings({ heightUnit }) })}
           />
           <ListRow
             icon="appearance"
-            iconBackground={colors.protein}
+           
             title="Appearance"
             value={APPEARANCE_OPTIONS.find((option) => option.value === preference)?.label}
             onPress={() => showOptionSheet({ title: 'Appearance', options: APPEARANCE_OPTIONS, selected: preference, onSelect: setPreference })}
@@ -131,17 +133,17 @@ export default function ProfileScreen() {
         </ListSection>
 
         <ListSection title="Privacy" footer={`${PRIVACY_LINE} Meal photos are sent to the scanner for analysis and are not kept.`}>
-          <ListRow icon="shield" iconBackground={colors.success} title="No account, no tracking" showChevron={false} />
-          <ListRow icon="privacy" iconBackground={colors.accent} title="Privacy policy" onPress={() => router.push('/privacy')} />
-          <ListRow icon="trash" iconBackground={colors.danger} title="Clear my log" onPress={() => void confirmClear()} destructive />
-          <ListRow icon="trash" iconBackground={colors.danger} title="Erase all data" onPress={() => void confirmErase()} destructive isLast />
+          <ListRow icon="shield" title="No account, no tracking" showChevron={false} />
+          <ListRow icon="privacy" title="Privacy policy" onPress={() => router.push('/privacy')} />
+          <ListRow icon="trash" title="Clear my log" onPress={() => void confirmClear()} destructive />
+          <ListRow icon="trash" title="Erase all data" onPress={() => void confirmErase()} destructive isLast />
         </ListSection>
 
         <ListSection title="About" footer={`${APP_NAME} ${version} · ${TAGLINE}`}>
-          <ListRow icon="pin" iconBackground={colors.accent} title="Made in Philadelphia" showChevron={false} />
-          <ListRow icon="openSource" iconBackground={colors.textSecondary} title="Open source on GitHub" onPress={() => void WebBrowser.openBrowserAsync(REPOSITORY_URL)} />
-          <ListRow icon="info" iconBackground={colors.textTertiary} title="Food data: USDA & Open Food Facts" onPress={() => void WebBrowser.openBrowserAsync('https://world.openfoodfacts.org')} />
-          <ListRow icon="heart" iconBackground={colors.danger} title="Help & support" onPress={() => router.push('/support')} isLast />
+          <ListRow icon="pin" title="Made in Philadelphia" showChevron={false} />
+          <ListRow icon="openSource" title="Open source on GitHub" onPress={() => void WebBrowser.openBrowserAsync(REPOSITORY_URL)} />
+          <ListRow icon="info" title="Food data: USDA & Open Food Facts" onPress={() => void WebBrowser.openBrowserAsync('https://world.openfoodfacts.org')} />
+          <ListRow icon="heart" title="Help & support" onPress={() => router.push('/support')} isLast />
         </ListSection>
       </View>
     </ScrollView>

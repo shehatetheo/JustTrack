@@ -15,7 +15,7 @@ export const PRIVACY_SECTIONS: readonly LegalSection[] = [
   {
     heading: 'What stays on your device',
     paragraphs: [
-      'Your food log, calorie and macro goals, display name, and preferences are stored only on your device. We have no server that holds them and no way to see them. Deleting the app deletes them; "Clear my log" in Profile deletes the log.',
+      'Your food log, weigh-ins, goal weight, calorie and macro goals, display name, and preferences are stored only on your device. We have no server that holds them and no way to see them. Deleting the app deletes them; "Clear my log" in Profile deletes the log.',
     ],
   },
   {
@@ -76,6 +76,6 @@ export const SUPPORT_SECTIONS: readonly LegalSection[] = [
   },
   {
     heading: 'My data',
-    paragraphs: [`Everything you log lives on your device. To delete just the log, use "Clear my log" in Profile. To delete everything the app has stored (log, recent searches, name and goals) and start over, use "Erase all data" in Profile. See the privacy policy at ${PRIVACY_URL} for details.`],
+    paragraphs: [`Everything you log lives on your device. To delete just the log, use "Clear my log" in Profile. To delete everything the app has stored (log, weigh-ins, recent searches, name and goals) and start over, use "Erase all data" in Profile. See the privacy policy at ${PRIVACY_URL} for details.`],
   },
 ];

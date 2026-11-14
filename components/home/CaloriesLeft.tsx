@@ -24,8 +24,8 @@ export function CaloriesLeft({ eaten, goal }: CaloriesLeftProps) {
       <ThemedText variant="display" style={[styles.number, { color: colors.onGradient }]}>
         {formatNumber(shown)}
       </ThemedText>
-      <ThemedText variant="subhead" style={{ color: colors.onGradientMuted }}>
-        {over ? 'kcal over' : 'kcal left'}
+      <ThemedText variant="overline" style={{ color: over ? colors.danger : colors.onGradient, opacity: over ? 1 : 0.8 }}>
+        {over ? 'KCAL OVER' : 'KCAL LEFT'}
       </ThemedText>
     </View>
   );

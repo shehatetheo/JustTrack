@@ -190,15 +190,12 @@ export default function FoodSearchScreen() {
                   onPress={() => router.push('/scan/describe')}
                   accessibilityRole="button"
                   accessibilityLabel="Describe what you ate"
-                  style={({ pressed }) => [styles.describe, { backgroundColor: colors.surfaceTint, opacity: pressed ? 0.85 : 1 }]}
+                  style={({ pressed }) => [styles.describe, { backgroundColor: colors.surfaceTint, borderColor: colors.border, opacity: pressed ? 0.85 : 1 }]}
                 >
-                  <View style={[styles.describeIcon, { backgroundColor: colors.accentMuted }]}>
-                    <AppIcon name="sparkles" size={18} color={colors.accent} />
-                  </View>
                   <View style={styles.describeText}>
                     <ThemedText variant="headline">Describe what you ate</ThemedText>
                     <ThemedText variant="footnote" color="secondary" numberOfLines={2}>
-                      “2 eggs and toast, iced latte” — AI sizes it, you pick the numbers.
+                      Type “2 eggs and toast, iced latte”. It gets sized, and you pick the numbers.
                     </ThemedText>
                   </View>
                   <AppIcon name="chevronRight" size={14} color={colors.textTertiary} weight="semibold" />
@@ -249,7 +246,7 @@ const styles = StyleSheet.create({
   sectionTitle: { letterSpacing: 0.5, flex: 1 },
   browse: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   landing: { paddingTop: Spacing.sm },
-  describe: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: Spacing.md, borderRadius: Radii.xl, marginBottom: Spacing.lg },
+  describe: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: Spacing.lg, borderRadius: Radii.lg, borderWidth: StyleSheet.hairlineWidth * 2, marginBottom: Spacing.lg },
   describeIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   describeText: { flex: 1, gap: 2 },
   browseTitle: { letterSpacing: 0.5, paddingHorizontal: Spacing.lg, paddingTop: Spacing.xl },

@@ -69,6 +69,8 @@ function RootNavigator() {
             name="settings/goal"
             options={{ presentation: 'modal', headerShown: true, title: 'Daily Goal', headerShadowVisible: false, headerTintColor: colors.text, headerStyle: { backgroundColor: colors.background } }}
           />
+          <Stack.Screen name="weight/index" options={{ headerShown: true, title: 'Weight', headerShadowVisible: false, headerTintColor: colors.text, headerStyle: { backgroundColor: colors.background } }} />
+          <Stack.Screen name="weight/log" options={{ presentation: 'modal', headerShown: true, title: 'Log weight', headerShadowVisible: false, headerTintColor: colors.text, headerStyle: { backgroundColor: colors.background } }} />
           <Stack.Screen
             name="settings/reminders"
             options={{ presentation: 'modal', headerShown: true, title: 'Reminders', headerShadowVisible: false, headerTintColor: colors.text, headerStyle: { backgroundColor: colors.background } }}

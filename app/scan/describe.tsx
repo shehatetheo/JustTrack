@@ -6,7 +6,6 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TermChips } from '@/components/food/SearchChips';
-import { AppIcon } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
 import { CloseButton } from '@/components/ui/CloseButton';
 import { ThemedText } from '@/components/ui/ThemedText';
@@ -60,7 +59,6 @@ export default function DescribeScreen() {
           />
           <View style={styles.boxFooter}>
             <View style={styles.hintRow}>
-              <AppIcon name="sparkles" size={13} color={colors.accent} />
               <ThemedText variant="caption1" color="secondary" style={styles.hint}>
                 Say how much when you can: 2 eggs, half a bowl, large fries.
               </ThemedText>
@@ -94,7 +92,7 @@ export default function DescribeScreen() {
       </ScrollView>
 
       <View style={[styles.footer, { backgroundColor: colors.background, borderTopColor: colors.border, paddingBottom: insets.bottom + Spacing.md }]}>
-        <Button label={busy ? 'Working it out…' : 'Work it out'} icon="sparkles" onPress={submit} disabled={!canSubmit} />
+        <Button label={busy ? 'Working it out…' : 'Work it out'} onPress={submit} disabled={!canSubmit} />
       </View>
     </KeyboardAvoidingView>
   );

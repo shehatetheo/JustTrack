@@ -26,7 +26,7 @@ interface MealCardProps {
  * the card.
  */
 export function MealCard({ section, onAdd }: MealCardProps) {
-  const { colors, shadows } = useAppTheme();
+  const { colors } = useAppTheme();
   const actions = useEntryActions();
   const meta = MEAL_TYPE_META[section.mealType];
   const hasEntries = section.entries.length > 0;
@@ -42,12 +42,12 @@ export function MealCard({ section, onAdd }: MealCardProps) {
   ];
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.surfaceTint }]}>
+    <View style={[styles.card, { backgroundColor: colors.surfaceTint, borderColor: colors.border }]}>
       <View style={[styles.top, onCover && styles.topCover]}>
         {cover ? (
           <>
             <Image source={{ uri: cover }} style={StyleSheet.absoluteFill} contentFit="cover" transition={200} accessibilityIgnoresInvertColors />
-            <LinearGradient colors={['rgba(20,12,40,0.15)', 'rgba(20,12,40,0.7)']} style={StyleSheet.absoluteFill} pointerEvents="none" />
+            <LinearGradient colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.72)']} style={StyleSheet.absoluteFill} pointerEvents="none" />
           </>
         ) : null}
         <View style={styles.header}>
@@ -68,9 +68,9 @@ export function MealCard({ section, onAdd }: MealCardProps) {
             accessibilityRole="button"
             accessibilityLabel={`Add food to ${meta.label}`}
             hitSlop={6}
-            style={({ pressed }) => [styles.addButton, shadows.sm, { backgroundColor: onCover ? '#FFFFFF' : colors.surface, opacity: pressed ? 0.7 : 1 }]}
+            style={({ pressed }) => [styles.addButton, { backgroundColor: onCover ? '#FFFFFF' : colors.surfaceTintStrong, borderColor: onCover ? 'transparent' : colors.border, opacity: pressed ? 0.7 : 1 }]}
           >
-            <AppIcon name="plus" size={18} color={onCover ? '#17142B' : colors.text} weight="semibold" />
+            <AppIcon name="plus" size={18} color={onCover ? '#0A0A0B' : colors.text} weight="semibold" />
           </Pressable>
         </View>
 
@@ -101,12 +101,12 @@ export function MealCard({ section, onAdd }: MealCardProps) {
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: Radii['2xl'], overflow: 'hidden' },
+  card: { borderRadius: Radii.xl, borderWidth: StyleSheet.hairlineWidth * 2, overflow: 'hidden' },
   top: { overflow: 'hidden' },
   topCover: { minHeight: 132, justifyContent: 'flex-end' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md, padding: Spacing.lg, paddingBottom: Spacing.md },
   titleBlock: { flex: 1, gap: 2 },
-  addButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  addButton: { width: 40, height: 40, borderRadius: Radii.md, borderWidth: StyleSheet.hairlineWidth * 2, alignItems: 'center', justifyContent: 'center' },
   macroLine: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing.lg, letterSpacing: 0.2 },
   entries: { borderTopWidth: StyleSheet.hairlineWidth },
   tabular: { fontVariant: ['tabular-nums'] },

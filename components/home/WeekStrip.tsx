@@ -20,7 +20,8 @@ export function WeekStrip({ today, selected, onSelect }: WeekStripProps) {
   const { colors, isDark } = useAppTheme();
   const monday = startOfWeek(selected);
   const days = DAYS.map((name, index) => ({ name, date: addDays(monday, index) }));
-  const chip = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.78)';
+  const chip = isDark ? colors.surfaceTint : 'rgba(255,255,255,0.8)';
+  const edge = isDark ? colors.border : 'transparent';
 
   return (
     <View style={styles.row}>
@@ -28,7 +29,9 @@ export function WeekStrip({ today, selected, onSelect }: WeekStripProps) {
         const isSelected = isSameDay(date, selected);
         const isToday = isSameDay(date, today);
         const future = date > today;
-        const ink = isSelected ? '#FFFFFF' : isDark ? colors.onGradient : colors.text;
+        // The picked day is a solid plate: white on black in dark mode, violet in light.
+        const plate = isDark ? '#FFFFFF' : colors.accent;
+        const ink = isSelected ? (isDark ? '#000000' : '#FFFFFF') : isDark ? colors.onGradient : colors.text;
         return (
           <Pressable
             key={date.toISOString()}
@@ -40,10 +43,10 @@ export function WeekStrip({ today, selected, onSelect }: WeekStripProps) {
             accessibilityRole="button"
             accessibilityLabel={date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             accessibilityState={{ selected: isSelected, disabled: future }}
-            style={({ pressed }) => [styles.day, { backgroundColor: isSelected ? colors.accent : chip, opacity: future ? 0.45 : pressed ? 0.75 : 1 }]}
+            style={({ pressed }) => [styles.day, { backgroundColor: isSelected ? plate : chip, borderColor: isSelected ? plate : edge, opacity: future ? 0.4 : pressed ? 0.75 : 1 }]}
           >
-            <ThemedText variant="caption2" style={{ color: ink, opacity: isSelected ? 0.85 : 0.7 }}>
-              {name}
+            <ThemedText variant="caption2" style={{ color: ink, opacity: isSelected ? 0.7 : 0.6, fontWeight: '700', letterSpacing: 0.6 }}>
+              {name.toUpperCase()}
             </ThemedText>
             <ThemedText variant="subheadEmphasized" style={[styles.number, { color: ink }]}>
               {date.getDate()}
@@ -58,7 +61,7 @@ export function WeekStrip({ today, selected, onSelect }: WeekStripProps) {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', gap: 6, marginTop: Spacing.lg },
-  day: { flex: 1, paddingVertical: Spacing.sm, borderRadius: Radii.md, alignItems: 'center', gap: 1 },
-  number: { fontVariant: ['tabular-nums'] },
+  day: { flex: 1, paddingVertical: Spacing.sm, borderRadius: Radii.md, borderWidth: StyleSheet.hairlineWidth * 2, alignItems: 'center', gap: 2 },
+  number: { fontVariant: ['tabular-nums'], fontWeight: '700' },
   dot: { width: 4, height: 4, borderRadius: 2, marginTop: 1 },
 });

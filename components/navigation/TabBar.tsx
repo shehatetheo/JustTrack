@@ -7,11 +7,12 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-na
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
+import { Glass } from '@/components/ui/Glass';
 import { Radii, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 
 /**
- * The tab bar: a floating white pill with four round icon buttons and, in
+ * The tab bar: a floating capsule of frosted glass with four round icon buttons and, in
  * the middle, the one that matters — a search button that starts logging. The
  * selected tab is a dark circle. Composed inline in app/(tabs)/_layout.tsx
  * because expo-router/ui reads the TabTriggers there.
@@ -24,7 +25,11 @@ export function TabBarContainer({ style, children, ref, ...rest }: ViewProps & {
   return (
     // TabList passes a row layout; ours comes last so the pill fills the width.
     <View {...rest} ref={ref} accessibilityRole="tablist" style={[style, styles.container, { paddingBottom: Math.max(insets.bottom, Spacing.md) }]}>
-      <View style={[styles.pill, shadows.lg, { backgroundColor: colors.tabBarBackground, borderColor: colors.tabBarBorder }]}>{children}</View>
+      <View style={[styles.shadow, shadows.lg]}>
+        <Glass blur flat radius={Radii.full} style={[styles.pill, { borderColor: colors.tabBarBorder }]}>
+          {children}
+        </Glass>
+      </View>
     </View>
   );
 }
@@ -57,8 +62,8 @@ export function TabBarButton({ icon, activeIcon, label, isFocused, onPress, styl
       // TabTrigger injects a row layout; ours must come last to win.
       style={(state) => [typeof style === 'function' ? style(state) : style, styles.tab]}
     >
-      <Animated.View style={[styles.circle, isFocused && { backgroundColor: colors.fab }, circle]}>
-        <AppIcon name={isFocused && activeIcon ? activeIcon : icon} size={22} color={isFocused ? colors.fabIcon : colors.tabIconDefault} />
+      <Animated.View style={[styles.circle, isFocused && { backgroundColor: colors.surfaceTintStrong }, circle]}>
+        <AppIcon name={isFocused && activeIcon ? activeIcon : icon} size={22} color={isFocused ? colors.tabIconSelected : colors.tabIconDefault} />
       </Animated.View>
     </Pressable>
   );
@@ -92,7 +97,8 @@ const FAB_SIZE = 56;
 
 const styles = StyleSheet.create({
   container: { flexDirection: 'column', alignItems: 'stretch', paddingTop: Spacing.sm, paddingHorizontal: Spacing.lg, backgroundColor: 'transparent' },
-  pill: { alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 6, borderRadius: Radii.full, borderWidth: StyleSheet.hairlineWidth },
+  shadow: { alignSelf: 'stretch', borderRadius: Radii.full },
+  pill: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 6 },
   tab: { flex: 1, flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: FAB_SIZE },
   circle: { width: CIRCLE, height: CIRCLE, borderRadius: CIRCLE / 2, alignItems: 'center', justifyContent: 'center' },
   fab: { width: FAB_SIZE, height: FAB_SIZE, borderRadius: FAB_SIZE / 2, alignItems: 'center', justifyContent: 'center' },

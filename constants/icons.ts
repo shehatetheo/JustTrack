@@ -29,6 +29,7 @@ export const AppIcons = {
   chevronRight: { sf: 'chevron.right', ionicon: 'chevron-forward' },
   chevronLeft: { sf: 'chevron.left', ionicon: 'chevron-back' },
   chevronDown: { sf: 'chevron.down', ionicon: 'chevron-down' },
+  chevronUp: { sf: 'chevron.up', ionicon: 'chevron-up' },
   close: { sf: 'xmark', ionicon: 'close' },
   closeCircle: { sf: 'xmark.circle.fill', ionicon: 'close-circle' },
   check: { sf: 'checkmark', ionicon: 'checkmark' },

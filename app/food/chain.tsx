@@ -15,7 +15,7 @@ import { useAppTheme } from '@/contexts/ThemeContext';
 import { useCurrentTime } from '@/hooks/useCurrentTime';
 import { builderForChain } from '@/lib/food/builders';
 import { chainRows, chainRowToFood, searchChainFoods } from '@/lib/food/chainDatabase';
-import { groupEmoji, groupMenu } from '@/lib/food/menuGroups';
+import { groupMenu } from '@/lib/food/menuGroups';
 import { matchRowToFood } from '@/lib/scan/reviewStore';
 import type { FoodDetail } from '@/types';
 import { defaultMealType } from '@/utils/mealTime';
@@ -102,8 +102,8 @@ export default function ChainMenuScreen() {
         }
         renderSectionHeader={({ section }) => (
           <View style={[styles.sectionHeader, { backgroundColor: colors.background }]}>
-            <ThemedText variant="footnote" color="secondary" style={styles.sectionTitle}>
-              {groupEmoji(section.title)}  {section.title.toUpperCase()}
+            <ThemedText variant="overline" color="tertiary">
+              {section.title.toUpperCase()}
             </ThemedText>
           </View>
         )}
@@ -137,5 +137,4 @@ const styles = StyleSheet.create({
   sectionHeader: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.lg, paddingBottom: Spacing.sm },
   rowWrap: { paddingHorizontal: Spacing.lg },
   gap: { height: Spacing.xs },
-  sectionTitle: { letterSpacing: 0.5 },
 });

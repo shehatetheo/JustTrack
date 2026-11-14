@@ -20,7 +20,7 @@ export default function WelcomeScreen() {
   const insets = useSafeAreaInsets();
 
   const start = (thenGoal: boolean) => {
-    updateSettings({ welcomed: true });
+    updateSettings({ welcomed: true, welcomedAt: new Date().toISOString() });
     if (thenGoal) router.push('/settings/goal');
   };
 

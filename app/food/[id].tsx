@@ -104,7 +104,7 @@ export default function AddFoodScreen() {
           <MealTypePicker value={mealType} onChange={setMealType} />
         </View>
 
-        <Button label={`Add to ${MEAL_TYPE_META[mealType].label}`} icon="plus" onPress={add} disabled={!portion.stored} />
+        <Button label={`Add to ${MEAL_TYPE_META[mealType].label}`} onPress={add} disabled={!portion.stored} />
         <FoodDataAttribution />
       </View>
     </ScrollView>

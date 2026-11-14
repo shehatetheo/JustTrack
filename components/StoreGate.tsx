@@ -7,24 +7,25 @@ import { LoadingScreen } from '@/components/LoadingScreen';
 
 import { logStore } from '@/lib/log/logStore';
 import { settingsStore } from '@/lib/settings/settingsStore';
+import { weightStore } from '@/lib/weight/weightStore';
 
 /** Long enough for the loading animation to read as an animation rather than a flash. */
 const MIN_LOADING_MS = 900;
 
 /**
- * Shows the loading screen until the on-device log and settings have been
+ * Shows the loading screen until the on-device log, weigh-ins and settings have been
  * read. The app mounts underneath as soon as the data is in, so by the time
  * the loading screen fades away the first screen is already drawn.
  */
 export function StoreGate({ children }: { children: React.ReactNode }) {
-  const [ready, setReady] = useState(() => logStore.isHydrated() && settingsStore.isHydrated());
+  const [ready, setReady] = useState(() => logStore.isHydrated() && settingsStore.isHydrated() && weightStore.isHydrated());
   const [held, setHeld] = useState(true);
 
   useEffect(() => {
     // The static launch image hands over to the animated loading screen as soon as it's on screen.
     SplashScreen.hideAsync();
     let cancelled = false;
-    Promise.all([logStore.hydrate(), settingsStore.hydrate()]).then(() => {
+    Promise.all([logStore.hydrate(), settingsStore.hydrate(), weightStore.hydrate()]).then(() => {
       if (!cancelled) setReady(true);
     });
     const timer = setTimeout(() => setHeld(false), MIN_LOADING_MS);

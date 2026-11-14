@@ -1,42 +1,24 @@
 import React from 'react';
-import { StyleSheet, View, type ViewProps } from 'react-native';
+import { StyleSheet, type ViewProps } from 'react-native';
 
 import { Radii, Spacing } from '@/constants/theme';
-import { useAppTheme } from '@/contexts/ThemeContext';
+import { Glass } from './Glass';
 
 interface CardProps extends ViewProps {
   padded?: boolean;
+  /** Kept for callers; glass panels sit flat on the page, so this no longer draws a shadow. */
   elevated?: 'sm' | 'md' | 'lg' | 'none';
 }
 
-export function Card({ padded = true, elevated = 'sm', style, children, ...rest }: CardProps) {
-  const { colors, shadows } = useAppTheme();
-
+/** A glass panel with the standard inset. */
+export function Card({ padded = true, style, children, elevated: _elevated, ...rest }: CardProps) {
   return (
-    <View
-      style={[
-        styles.base,
-        {
-          backgroundColor: colors.surface,
-          borderColor: colors.border,
-        },
-        padded && styles.padded,
-        elevated !== 'none' && shadows[elevated],
-        style,
-      ]}
-      {...rest}
-    >
+    <Glass radius={Radii.xl} style={[padded && styles.padded, style]} {...rest}>
       {children}
-    </View>
+    </Glass>
   );
 }
 
 const styles = StyleSheet.create({
-  base: {
-    borderRadius: Radii.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  padded: {
-    padding: Spacing.lg,
-  },
+  padded: { padding: Spacing.lg },
 });

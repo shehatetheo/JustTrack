@@ -73,7 +73,7 @@ function StatusBar() {
   const time = useClock();
   const { isDark } = useAppTheme();
   const light = useWantsLightStatusBar() || isDark;
-  const ink = light ? WHITE : '#17142B';
+  const ink = light ? WHITE : '#0A0A0B';
   return (
     <View pointerEvents="none" style={[styles.statusBar, { opacity: 1 }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       <ThemedText variant="subheadEmphasized" style={[styles.statusText, { color: ink, textShadowColor: light ? 'rgba(0,0,0,0.35)' : 'transparent' }]}>

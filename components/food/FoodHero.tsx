@@ -40,7 +40,7 @@ export function FoodHero({ title, subtitle, amount, amountCaption, imageUri, tin
   useLightStatusBar(isDark);
   const ink = isDark ? '#FFFFFF' : colors.text;
   const inkMuted = isDark ? 'rgba(255,255,255,0.8)' : colors.textSecondary;
-  const scrim = isDark ? ['rgba(20,12,40,0.55)', 'rgba(20,12,40,0.05)', 'rgba(20,12,40,0.6)'] : ['rgba(255,255,255,0.35)', 'rgba(255,255,255,0.0)', 'rgba(255,255,255,0.82)'];
+  const scrim = isDark ? ['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.08)', 'rgba(0,0,0,0.82)'] : ['rgba(255,255,255,0.35)', 'rgba(255,255,255,0.0)', 'rgba(255,255,255,0.82)'];
 
   return (
     <View style={styles.hero}>
@@ -103,8 +103,8 @@ const styles = StyleSheet.create({
   hero: { height: 340, justifyContent: 'space-between', overflow: 'hidden' },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.lg },
   backButton: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  badge: { backgroundColor: 'rgba(255,255,255,0.9)', paddingHorizontal: Spacing.sm, paddingVertical: 3, borderRadius: Radii.full },
-  badgeText: { color: '#17142B', letterSpacing: 0.5 },
+  badge: { backgroundColor: 'rgba(255,255,255,0.92)', paddingHorizontal: Spacing.sm, paddingVertical: 4, borderRadius: 6 },
+  badgeText: { color: '#0A0A0B', letterSpacing: 0.9, fontWeight: '700' },
   titles: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: Spacing.lg, paddingHorizontal: Spacing.lg, paddingBottom: Spacing['3xl'] },
   titleBlock: { flex: 1, gap: 2 },
   amountBlock: { alignItems: 'flex-end' },

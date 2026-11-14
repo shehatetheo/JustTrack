@@ -3,9 +3,12 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AddButton, TabBarButton, TabBarContainer } from '@/components/navigation/TabBar';
+import { useWelcomeBack, WelcomeBack } from '@/components/onboarding/WelcomeBack';
 import { ReminderPrompt } from '@/components/reminders/ReminderPrompt';
 
 export default function TabsLayout() {
+  const welcomeBack = useWelcomeBack();
+
   return (
     <View style={styles.root}>
       <Tabs>
@@ -16,7 +19,7 @@ export default function TabsLayout() {
               <TabBarButton icon="home" activeIcon="homeFilled" label="Home" />
             </TabTrigger>
             <TabTrigger name="stats" href="/stats" asChild>
-              <TabBarButton icon="stats" activeIcon="statsFilled" label="Today" />
+              <TabBarButton icon="stats" activeIcon="statsFilled" label="Progress" />
             </TabTrigger>
             <AddButton />
             <TabTrigger name="scan" href="/scan" asChild>
@@ -28,7 +31,8 @@ export default function TabsLayout() {
           </TabBarContainer>
         </TabList>
       </Tabs>
-      <ReminderPrompt />
+      {/* One thing at a time: the reminder question waits until the welcome-back slides are gone. */}
+      {welcomeBack.days !== null ? <WelcomeBack days={welcomeBack.days} onClose={welcomeBack.close} /> : <ReminderPrompt />}
     </View>
   );
 }

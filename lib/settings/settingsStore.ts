@@ -1,6 +1,7 @@
 import { MAX_CALORIE_TARGET } from '@/constants/onboarding';
 import { MIN_CALORIE_TARGET } from '@/lib/nutrition/calorieTarget';
 import { createPersistedStore } from '@/lib/storage/persistedStore';
+import { MAX_WEIGHT_KG, MIN_WEIGHT_KG } from '@/lib/weight/limits';
 import type { MacroGoals, ReminderSettings, Settings } from '@/types';
 
 /** Earliest and latest hour the first reminder of the day can be set to. */
@@ -22,6 +23,9 @@ export const DEFAULT_SETTINGS: Settings = {
   weightUnit: 'lb',
   heightUnit: 'ft_in',
   reminders: DEFAULT_REMINDERS,
+  goalWeightKg: null,
+  welcomedAt: null,
+  welcomeBackAt: null,
 };
 
 function clampGoal(value: unknown): number {
@@ -34,6 +38,10 @@ function parseMacroGoals(raw: unknown): MacroGoals | null {
   const { protein, carbs, fat } = raw as Record<string, unknown>;
   const ok = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 2000;
   return ok(protein) && ok(carbs) && ok(fat) ? { protein: Math.round(protein), carbs: Math.round(carbs), fat: Math.round(fat) } : null;
+}
+
+function parseTimestamp(raw: unknown): string | null {
+  return typeof raw === 'string' && Number.isFinite(Date.parse(raw)) ? raw : null;
 }
 
 function parseReminders(raw: unknown): ReminderSettings {
@@ -62,6 +70,9 @@ export function parseSettings(raw: unknown): Settings | null {
     weightUnit: item.weightUnit === 'kg' ? 'kg' : 'lb',
     heightUnit: item.heightUnit === 'cm' ? 'cm' : 'ft_in',
     reminders: parseReminders(item.reminders),
+    goalWeightKg: typeof item.goalWeightKg === 'number' && item.goalWeightKg >= MIN_WEIGHT_KG && item.goalWeightKg <= MAX_WEIGHT_KG ? item.goalWeightKg : null,
+    welcomedAt: parseTimestamp(item.welcomedAt),
+    welcomeBackAt: parseTimestamp(item.welcomeBackAt),
   };
 }
 
