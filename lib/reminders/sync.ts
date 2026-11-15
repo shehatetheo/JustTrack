@@ -1,11 +1,10 @@
-import { Alert } from 'react-native';
-
 import { loggedOn } from '@/lib/log/day';
 import { logStore } from '@/lib/log/logStore';
 import { getReminderPermission, openSystemSettings, remindersSupported, requestReminderPermission, scheduleReminders, type ReminderPermission } from '@/lib/reminders/notifier';
 import { planReminders, REMINDER_MEALS } from '@/lib/reminders/plan';
 import { settingsStore, updateReminders } from '@/lib/settings/settingsStore';
 import type { ReminderMeal } from '@/types';
+import { showNotice } from '@/utils/actionSheet';
 
 /**
  * Rebuilds the queue of reminders from what's on the device right now: the
@@ -30,10 +29,7 @@ export async function turnOnReminders(): Promise<ReminderPermission> {
   const permission = await requestReminderPermission();
   updateReminders(permission === 'granted' ? { enabled: true, asked: true } : { asked: true });
   if (permission !== 'granted') {
-    Alert.alert('Notifications are off', 'JustTrack isn’t allowed to send notifications yet. Switch them on in Settings and reminders will start.', [
-      { text: 'Not now', style: 'cancel' },
-      { text: 'Open Settings', onPress: openSystemSettings },
-    ]);
+    showNotice({ title: 'Notifications are off', message: 'JustTrack isn’t allowed to send notifications yet. Switch them on in Settings and reminders will start.', actionLabel: 'Open Settings', onAction: openSystemSettings });
   }
   return permission;
 }

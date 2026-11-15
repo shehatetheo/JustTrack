@@ -75,6 +75,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
+/**
+ * Everything inside is drawn with the dark theme's inks, whichever theme is
+ * chosen: for the few screens that sit on the artwork from edge to edge
+ * (welcome, the welcome-back slides), where the ground is black in both.
+ */
+export function OnDark({ children }: { children: React.ReactNode }) {
+  const theme = useAppTheme();
+  const value = useMemo<ThemeContextValue>(() => (theme.isDark ? theme : { ...theme, scheme: 'dark', isDark: true, colors: Colors.dark, shadows: Shadows.dark }), [theme]);
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+}
+
 export function useAppTheme(): ThemeContextValue {
   const ctx = useContext(ThemeContext);
   if (!ctx) {

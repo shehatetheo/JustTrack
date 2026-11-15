@@ -66,23 +66,17 @@ function RootNavigator() {
           <Stack.Screen name="scan/review" options={{ ...TRACKING_MODAL, gestureEnabled: false }} />
           <Stack.Screen name="scan/barcode" options={TRACKING_MODAL} />
           <Stack.Screen name="scan/describe" options={TRACKING_MODAL} />
-          <Stack.Screen
-            name="settings/goal"
-            options={{ presentation: 'modal', headerShown: true, title: 'Daily Goal', headerShadowVisible: false, headerTintColor: colors.text, headerStyle: { backgroundColor: colors.background } }}
-          />
-          <Stack.Screen name="weight/index" options={{ headerShown: true, title: 'Weight', headerShadowVisible: false, headerTintColor: colors.text, headerStyle: { backgroundColor: colors.background } }} />
-          <Stack.Screen name="weight/log" options={{ presentation: 'modal', headerShown: true, title: 'Log weight', headerShadowVisible: false, headerTintColor: colors.text, headerStyle: { backgroundColor: colors.background } }} />
-          <Stack.Screen
-            name="settings/reminders"
-            options={{ presentation: 'modal', headerShown: true, title: 'Reminders', headerShadowVisible: false, headerTintColor: colors.text, headerStyle: { backgroundColor: colors.background } }}
-          />
+          <Stack.Screen name="settings/goal" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="settings/reminders" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="weight/index" />
+          <Stack.Screen name="weight/log" options={{ presentation: 'modal' }} />
         </Stack.Protected>
         <Stack.Protected guard={!welcomed}>
           <Stack.Screen name="welcome" />
         </Stack.Protected>
         <Stack.Screen name="privacy" options={{ presentation: 'modal' }} />
         <Stack.Screen name="support" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="+not-found" options={{ headerShown: true, title: 'Not Found' }} />
+        <Stack.Screen name="+not-found" />
       </Stack>
     </NavigationThemeProvider>
   );

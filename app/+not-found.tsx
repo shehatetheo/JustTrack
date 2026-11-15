@@ -1,28 +1,21 @@
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { Screen } from '@/components/ui/Screen';
-import { ThemedText } from '@/components/ui/ThemedText';
-import { Spacing } from '@/constants/theme';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { useAppTheme } from '@/contexts/ThemeContext';
 
 export default function NotFoundScreen() {
+  const router = useRouter();
   const { colors } = useAppTheme();
 
   return (
-    <Screen scroll={false} edges={[]}>
-      <View style={styles.container}>
-        <ThemedText variant="title3">This screen doesn&apos;t exist.</ThemedText>
-        <Link href="/" style={[styles.link, { color: colors.accent }]}>
-          Go to Home
-        </Link>
-      </View>
-    </Screen>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <EmptyState title="nothing here" message="This screen doesn’t exist." actionLabel="Go to Home" onAction={() => router.replace('/')} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.lg },
-  link: { fontSize: 17, fontWeight: '600' },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 });

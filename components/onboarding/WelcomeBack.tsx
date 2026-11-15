@@ -1,16 +1,16 @@
-import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { Pressable, ScrollView, StyleSheet, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
+import { ScrollView, StyleSheet, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { SpaceBackdrop } from '@/components/space/SpaceBackdrop';
+import { AnimatedBackground } from '@/components/background/AnimatedBackground';
+import { CountUp, InkReveal, PressScale, SlashWipe, StampThump } from '@/components/motion';
 import { Button } from '@/components/ui/Button';
 import { Glass } from '@/components/ui/Glass';
 import { ThemedText } from '@/components/ui/ThemedText';
-import { Radii, Spacing } from '@/constants/theme';
-import { useAppTheme } from '@/contexts/ThemeContext';
+import { HAIRLINE, MIN_TAP, Radii, Spacing } from '@/constants/theme';
+import { OnDark, useAppTheme } from '@/contexts/ThemeContext';
 import { useSettings } from '@/hooks/useSettings';
 import { logStore } from '@/lib/log/logStore';
 import { lapseDays, streakSummary } from '@/lib/log/streak';
@@ -46,9 +46,17 @@ interface WelcomeBackProps {
 }
 
 /** Three short slides for someone returning after a few days: no guilt, the quickest ways to log, and a push to start again. Skippable from every slide. */
-export function WelcomeBack({ days, onClose }: WelcomeBackProps) {
+export function WelcomeBack(props: WelcomeBackProps) {
+  return (
+    <OnDark>
+      <Slides {...props} />
+    </OnDark>
+  );
+}
+
+function Slides({ days, onClose }: WelcomeBackProps) {
   const router = useRouter();
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const { reminders } = useSettings();
   const entries = useSyncExternalStore(logStore.subscribe, logStore.getSnapshot, logStore.getSnapshot);
@@ -60,7 +68,6 @@ export function WelcomeBack({ days, onClose }: WelcomeBackProps) {
   const canRemind = remindersSupported && !reminders.enabled;
 
   const go = (next: number) => {
-    Haptics.selectionAsync();
     pager.current?.scrollTo({ x: next * width, animated: true });
     setPage(next);
   };
@@ -75,19 +82,24 @@ export function WelcomeBack({ days, onClose }: WelcomeBackProps) {
   };
 
   return (
-    <Animated.View entering={FadeIn.duration(260)} exiting={FadeOut.duration(200)} style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]} accessibilityViewIsModal>
-      {isDark ? <SpaceBackdrop meteors={3} calm={3} stars={80} nebula={{ x: 0.3, y: 0.3 }} seed={29} /> : null}
+    <InkReveal style={[StyleSheet.absoluteFill, { backgroundColor: colors.hero }]}>
+      <View style={StyleSheet.absoluteFill} accessibilityViewIsModal>
+      <AnimatedBackground page="welcome" fit="cover" opacity={0.55} stillOnly />
+      <LinearGradient pointerEvents="none" colors={[colors.photoPlate, colors.photoPlate, colors.hero]} locations={[0, 0.5, 0.95]} style={StyleSheet.absoluteFill} />
       <View style={[styles.top, { paddingTop: insets.top + Spacing.md }]}>
+        {/* Progress as a row of stamps: each slide reached gets inked, and the current one lands with a thump. */}
         <View style={styles.dots} accessible accessibilityLabel={`Slide ${page + 1} of 3`}>
           {[0, 1, 2].map((index) => (
-            <View key={index} style={[styles.dot, { backgroundColor: index === page ? colors.text : colors.surfaceRaised, width: index === page ? 22 : 8 }]} />
+            <StampThump key={index} play={index === page ? page + 1 : false} tilt={0}>
+              <View style={[styles.dot, { borderColor: index <= page ? colors.accent : colors.onHeroMuted, backgroundColor: index <= page ? colors.accent : 'transparent' }]} />
+            </StampThump>
           ))}
         </View>
-        <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Skip" hitSlop={12}>
+        <PressScale onPress={onClose} haptic="select" accessibilityRole="button" accessibilityLabel="Skip" style={styles.skip}>
           <ThemedText variant="subheadEmphasized" color="secondary">
-            Skip
+            skip
           </ThemedText>
-        </Pressable>
+        </PressScale>
       </View>
 
       <ScrollView
@@ -104,10 +116,8 @@ export function WelcomeBack({ days, onClose }: WelcomeBackProps) {
           <ThemedText variant="overline" color="tertiary">
             WELCOME BACK
           </ThemedText>
-          <ThemedText variant="display" style={styles.count}>
-            {days}
-          </ThemedText>
-          <ThemedText variant="title1">days off the log.</ThemedText>
+          <CountUp value={days} variant="display" style={styles.count} />
+          <ThemedText variant="title1">days off the log</ThemedText>
           <ThemedText variant="body" color="secondary" style={styles.body}>
             No lecture. The days you missed don’t undo the ones you logged, and today counts the same as any other.
             {best > 1 ? ` Your best run so far is ${best} days.` : ''}
@@ -118,7 +128,7 @@ export function WelcomeBack({ days, onClose }: WelcomeBackProps) {
           <ThemedText variant="overline" color="tertiary">
             THE QUICKEST WAYS IN
           </ThemedText>
-          <ThemedText variant="title1">Log a meal in under ten seconds.</ThemedText>
+          <ThemedText variant="title1">a meal in under ten seconds</ThemedText>
           <View style={styles.ways}>
             {WAYS_IN.map((way, index) => (
               <Glass key={way.title} radius={Radii.lg} style={styles.way}>
@@ -140,13 +150,14 @@ export function WelcomeBack({ days, onClose }: WelcomeBackProps) {
           <ThemedText variant="overline" color="tertiary">
             TODAY
           </ThemedText>
-          <ThemedText variant="title1">Start a new streak.</ThemedText>
+          <ThemedText variant="title1">start a new streak</ThemedText>
           <ThemedText variant="body" color="secondary" style={styles.body}>
             One entry today puts you back on day one. Log the last thing you ate and build from there.
             {canRemind ? ' Want a nudge so it sticks? Turn on reminders.' : ''}
           </ThemedText>
         </View>
       </ScrollView>
+      <SlashWipe trigger={page} />
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + Spacing.lg }]}>
         <Button label={last ? 'Log something now' : 'Next'} onPress={last ? logNow : () => go(page + 1)} />
@@ -161,17 +172,19 @@ export function WelcomeBack({ days, onClose }: WelcomeBackProps) {
           />
         ) : null}
       </View>
-    </Animated.View>
+      </View>
+    </InkReveal>
   );
 }
 
 const styles = StyleSheet.create({
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.xl },
-  dots: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  dot: { height: 4, borderRadius: 2 },
+  dots: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  dot: { width: 12, height: 12, borderRadius: Radii.full, borderWidth: HAIRLINE },
+  skip: { minWidth: MIN_TAP, minHeight: MIN_TAP, alignItems: 'flex-end', justifyContent: 'center' },
   pager: { flex: 1 },
   slide: { flex: 1, justifyContent: 'center', paddingHorizontal: Spacing.xl, gap: Spacing.md },
-  count: { fontSize: 132, lineHeight: 132, letterSpacing: -6, fontVariant: ['tabular-nums'], marginBottom: -Spacing.sm },
+  count: { fontSize: 120, lineHeight: 124, letterSpacing: -5, fontVariant: ['tabular-nums'], marginBottom: -Spacing.sm },
   body: { marginTop: Spacing.xs },
   ways: { gap: Spacing.sm, marginTop: Spacing.md },
   way: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg, padding: Spacing.lg },

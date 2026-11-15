@@ -1,14 +1,18 @@
-import * as Haptics from 'expo-haptics';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppIcon } from '@/components/ui/AppIcon';
+import { SheetFrame } from '@/components/layout/SheetFrame';
+import { SheetHeader } from '@/components/layout/SheetHeader';
+import { InkReveal } from '@/components/motion';
 import { Button } from '@/components/ui/Button';
-import { CloseButton } from '@/components/ui/CloseButton';
+import { OrnateFrame } from '@/components/ui/OrnateFrame';
+import { StepperButton, StepperTick } from '@/components/ui/Stepper';
 import { ThemedText } from '@/components/ui/ThemedText';
-import { Radii, Spacing } from '@/constants/theme';
+import { Fonts } from '@/constants/fonts';
+import { Haptic } from '@/constants/motion';
+import { Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { useSettings } from '@/hooks/useSettings';
 import { useWeights } from '@/hooks/useWeights';
@@ -20,6 +24,14 @@ import { weightFromInput, weightValue } from '@/utils/weight';
 
 /** One number and a Save button: today's weigh-in, or (with ?goal=1) the weight to aim for. */
 export default function LogWeightScreen() {
+  return (
+    <SheetFrame>
+      <LogWeight />
+    </SheetFrame>
+  );
+}
+
+function LogWeight() {
   const router = useRouter();
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
@@ -37,7 +49,6 @@ export default function LogWeightScreen() {
   const nudge = (direction: 1 | -1) => {
     const current = Number.parseFloat(text.replace(',', '.'));
     if (!Number.isFinite(current)) return;
-    Haptics.selectionAsync();
     setText((Math.round((current + direction * step) * 10) / 10).toFixed(1));
   };
 
@@ -45,7 +56,7 @@ export default function LogWeightScreen() {
     if (!valid) return;
     if (forGoal) settingsStore.set((current) => ({ ...current, goalWeightKg: Math.round(kg * 100) / 100 }));
     else logWeight(kg);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Haptic.success();
     router.back();
   };
 
@@ -56,37 +67,39 @@ export default function LogWeightScreen() {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[styles.root, { backgroundColor: colors.background }]}>
-      <Stack.Screen options={{ title: forGoal ? 'Goal weight' : 'Log weight', headerRight: () => <CloseButton onPress={() => router.back()} />, headerTitleAlign: 'center' }} />
+      <SheetHeader title={forGoal ? 'Goal weight' : 'Log weight'} tagline={forGoal ? 'where you’re headed' : 'one number, same time of day'} onClose={() => router.back()} />
 
       <View style={styles.center}>
         <ThemedText variant="overline" color="tertiary">
           {forGoal ? 'THE WEIGHT YOU’RE WORKING TOWARD' : new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase()}
         </ThemedText>
-        <View style={styles.entry}>
-          <Pressable onPress={() => nudge(-1)} accessibilityRole="button" accessibilityLabel={`${step} ${weightUnit} less`} hitSlop={8} style={[styles.step, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <AppIcon name="minus" size={18} color={colors.text} weight="semibold" />
-          </Pressable>
-          <View style={styles.figure}>
-            <TextInput
-              value={text}
-              onChangeText={(value) => setText(value.replace(/[^0-9.,]/g, '').slice(0, 6))}
-              keyboardType="decimal-pad"
-              autoFocus
-              selectTextOnFocus
-              placeholder="0.0"
-              placeholderTextColor={colors.textTertiary}
-              selectionColor={colors.accent}
-              accessibilityLabel={forGoal ? `Goal weight in ${weightUnit}` : `Weight in ${weightUnit}`}
-              style={[styles.input, { color: colors.text }]}
-            />
-            <ThemedText variant="title3" color="secondary">
-              {weightUnit}
-            </ThemedText>
-          </View>
-          <Pressable onPress={() => nudge(1)} accessibilityRole="button" accessibilityLabel={`${step} ${weightUnit} more`} hitSlop={8} style={[styles.step, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <AppIcon name="plus" size={18} color={colors.text} weight="semibold" />
-          </Pressable>
-        </View>
+        <InkReveal>
+          <OrnateFrame variant="corners" corner={36} style={styles.frame}>
+            <View style={styles.entry}>
+              <StepperButton direction="less" accessibilityLabel={`${step} ${weightUnit} less`} onPress={() => nudge(-1)} />
+              <StepperTick value={text}>
+                <View style={styles.figure}>
+                  <TextInput
+                    value={text}
+                    onChangeText={(value) => setText(value.replace(/[^0-9.,]/g, '').slice(0, 6))}
+                    keyboardType="decimal-pad"
+                    autoFocus
+                    selectTextOnFocus
+                    placeholder="0.0"
+                    placeholderTextColor={colors.textTertiary}
+                    selectionColor={colors.accent}
+                    accessibilityLabel={forGoal ? `Goal weight in ${weightUnit}` : `Weight in ${weightUnit}`}
+                    style={[styles.input, { color: colors.text }]}
+                  />
+                  <ThemedText variant="title3" color="secondary">
+                    {weightUnit}
+                  </ThemedText>
+                </View>
+              </StepperTick>
+              <StepperButton direction="more" accessibilityLabel={`${step} ${weightUnit} more`} onPress={() => nudge(1)} />
+            </View>
+          </OrnateFrame>
+        </InkReveal>
         <ThemedText variant="footnote" color="secondary" style={styles.note}>
           {text.length > 0 && !valid ? `Enter a weight between ${weightValue(MIN_WEIGHT_KG, weightUnit)} and ${weightValue(MAX_WEIGHT_KG, weightUnit)} ${weightUnit}.` : forGoal ? 'It shows as a line on your chart.' : 'Logging again today replaces today’s number.'}
         </ThemedText>
@@ -94,7 +107,7 @@ export default function LogWeightScreen() {
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + Spacing.md }]}>
         <Button label={forGoal ? 'Set goal' : 'Save'} onPress={save} disabled={!valid} />
-        {forGoal && goalWeightKg !== null ? <Button label="Remove goal" variant="ghost" onPress={clearGoal} /> : null}
+        {forGoal && goalWeightKg !== null ? <Button label="Remove goal" variant="quiet" onPress={clearGoal} /> : null}
       </View>
     </KeyboardAvoidingView>
   );
@@ -103,10 +116,10 @@ export default function LogWeightScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.lg, paddingHorizontal: Spacing.lg },
-  entry: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg },
+  frame: { paddingVertical: Spacing['2xl'], paddingHorizontal: Spacing.lg },
+  entry: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   figure: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.sm },
-  input: { fontSize: 64, lineHeight: 72, fontWeight: '700', letterSpacing: -2, fontVariant: ['tabular-nums'], minWidth: 150, textAlign: 'center', padding: 0 },
-  step: { width: 48, height: 48, borderRadius: Radii.md, borderWidth: StyleSheet.hairlineWidth * 2, alignItems: 'center', justifyContent: 'center' },
+  input: { fontFamily: Fonts.bodyHeavy, fontSize: 60, lineHeight: 68, letterSpacing: -2, fontVariant: ['tabular-nums'], minWidth: 150, textAlign: 'center', padding: 0, outlineStyle: 'solid', outlineWidth: 0 },
   note: { textAlign: 'center' },
   footer: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.md, gap: Spacing.sm },
 });

@@ -1,11 +1,12 @@
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
+import { SheetHeader } from '@/components/layout/SheetHeader';
+import { CountUp, InkReveal, Stagger } from '@/components/motion';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { CloseButton } from '@/components/ui/CloseButton';
 import { ListRow, ListSection } from '@/components/ui/ListRow';
 import { PillTabs } from '@/components/ui/PillTabs';
 import { ThemedText } from '@/components/ui/ThemedText';
@@ -46,17 +47,21 @@ export default function WeightScreen() {
   };
 
   return (
-    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content}>
-      <Stack.Screen options={{ headerLeft: () => <CloseButton back onPress={() => router.back()} />, headerTitleAlign: 'center' }} />
-
-      <View style={styles.head}>
+    <View style={[styles.root, { backgroundColor: colors.background }]}>
+      <SheetHeader title="Weight" tagline="the trend, not the day" onBack={() => router.back()} />
+      <ScrollView contentContainerStyle={styles.content}>
+      <InkReveal style={styles.head}>
         <ThemedText variant="overline" color="tertiary">
           {latest ? `CURRENT · ${longDate(latest.date).toUpperCase()}` : 'NO WEIGH-INS YET'}
         </ThemedText>
         <View style={styles.figure}>
-          <ThemedText variant="display" style={styles.number}>
-            {latest ? weightValue(latest.kg, weightUnit) : '—'}
-          </ThemedText>
+          {latest ? (
+            <CountUp value={Number(weightValue(latest.kg, weightUnit))} format={(value) => value.toFixed(1)} variant="display" style={styles.number} />
+          ) : (
+            <ThemedText variant="display" style={styles.number}>
+              —
+            </ThemedText>
+          )}
           <ThemedText variant="title3" color="secondary">
             {weightUnit}
           </ThemedText>
@@ -73,22 +78,24 @@ export default function WeightScreen() {
             {latest ? 'One more weigh-in and the trend starts.' : 'Weigh in at the same time of day for a cleaner line.'}
           </ThemedText>
         )}
-      </View>
+      </InkReveal>
 
       <PillTabs options={WEIGHT_RANGES} value={range} onChange={setRange} accessibilityLabel="Time range" />
 
+      <Stagger index={1}>
       <Card style={styles.chart}>
         {summary.points.length > 0 ? (
           <WeightChart key={range} points={summary.points} unit={weightUnit} goalKg={goalWeightKg} />
         ) : (
           <View style={styles.empty}>
-            <ThemedText variant="headline">{entries.length > 0 ? 'Nothing in this range' : 'Your line starts here'}</ThemedText>
+            <ThemedText variant="blackletter">{entries.length > 0 ? 'nothing here' : 'your line starts here'}</ThemedText>
             <ThemedText variant="footnote" color="secondary" style={styles.centerText}>
               {entries.length > 0 ? 'Pick a longer range, or log a weigh-in today.' : 'Log a weigh-in and the chart draws the trend through the daily ups and downs.'}
             </ThemedText>
           </View>
         )}
       </Card>
+      </Stagger>
 
       <View style={styles.stats}>
         <Stat label="CHANGE" value={summary.change !== null ? weightDelta(summary.change, weightUnit) : '—'} />
@@ -119,7 +126,8 @@ export default function WeightScreen() {
           })}
         </ListSection>
       ) : null}
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -137,6 +145,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
+  root: { flex: 1 },
   content: { padding: Spacing.lg, paddingBottom: Spacing['5xl'], gap: Spacing.lg },
   head: { alignItems: 'center', gap: Spacing.xs, paddingTop: Spacing.sm },
   figure: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.sm },

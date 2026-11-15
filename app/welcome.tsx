@@ -1,24 +1,38 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppIcon } from '@/components/ui/AppIcon';
-import { SpaceBackdrop } from '@/components/space/SpaceBackdrop';
-import { Logo } from '@/components/ui/Logo';
+import { AnimatedBackground } from '@/components/background/AnimatedBackground';
+import { MONOGRAM_DRAW_MS, MonogramDraw } from '@/components/brand/MonogramDraw';
+import { Crescent } from '@/components/decor';
+import { InkReveal, Stagger } from '@/components/motion';
+import { Button } from '@/components/ui/Button';
 import { ThemedText } from '@/components/ui/ThemedText';
-import { APP_NAME, HOMETOWN_LINE, PROMISES } from '@/constants/brand';
+import { Wordmark } from '@/components/ui/Wordmark';
+import { HOMETOWN_LINE, PROMISES } from '@/constants/brand';
 import { Radii, Spacing } from '@/constants/theme';
-import { useAppTheme } from '@/contexts/ThemeContext';
+import { OnDark, useAppTheme } from '@/contexts/ThemeContext';
+import { useLightStatusBar } from '@/lib/statusBar';
 import { updateSettings } from '@/lib/settings/settingsStore';
 
-/** First launch: who this is for, what it promises, and one button. */
+const MARK = 116;
+
+/** First launch: the mark is written on, then who this is for, what it promises, and one button. */
 export default function WelcomeScreen() {
+  return (
+    <OnDark>
+      <Welcome />
+    </OnDark>
+  );
+}
+
+function Welcome() {
   const router = useRouter();
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  useLightStatusBar();
 
   const start = (thenGoal: boolean) => {
     updateSettings({ welcomed: true, welcomedAt: new Date().toISOString() });
@@ -26,61 +40,58 @@ export default function WelcomeScreen() {
   };
 
   return (
-    <LinearGradient colors={[colors.background, colors.background, colors.background]} locations={[0, 0.5, 1]} style={styles.root}>
-      {isDark ? <SpaceBackdrop meteors={4} calm={2.2} nebula={{ x: 0.5, y: 0.2 }} /> : null}
+    <View style={[styles.root, { backgroundColor: colors.hero }]}>
+      <AnimatedBackground page="welcome" fit="cover" />
+      <LinearGradient pointerEvents="none" colors={[colors.photoPlate, colors.photoPlate, colors.hero]} locations={[0, 0.5, 0.92]} style={StyleSheet.absoluteFill} />
+
       <View style={[styles.content, { paddingTop: insets.top + Spacing['4xl'], paddingBottom: insets.bottom + Spacing['2xl'] }]}>
         <View style={styles.hero}>
-          <Animated.View entering={FadeInDown.duration(600)}>
-            <Logo width={96} color={colors.onHero} />
-          </Animated.View>
-          <Animated.Text entering={FadeIn.delay(200).duration(600)} style={[styles.wordmark, { color: colors.onHero }]} accessibilityRole="header">
-            {APP_NAME.toUpperCase()}
-          </Animated.Text>
-          <Animated.Text entering={FadeIn.delay(350).duration(600)} style={[styles.headline, { color: colors.onHero }]}>
-            Snap your food.{'\n'}Know your calories.
-          </Animated.Text>
-          <Animated.Text entering={FadeIn.delay(500).duration(600)} style={[styles.sub, { color: colors.onHeroMuted }]}>
-            {HOMETOWN_LINE}
-          </Animated.Text>
+          {/* A black disc behind the mark: the pen effect needs a plain ground to write on. */}
+          <View style={[styles.plate, { backgroundColor: colors.hero }]}>
+            <MonogramDraw size={MARK} ground={colors.hero} color={colors.onHero} delay={200} />
+          </View>
+          <Stagger delay={200 + MONOGRAM_DRAW_MS - 200}>
+            <Wordmark size={20} color={colors.onHero} />
+          </Stagger>
+          <Stagger delay={200 + MONOGRAM_DRAW_MS - 80}>
+            <ThemedText variant="largeTitle" style={[styles.center, { color: colors.onHero }]} accessibilityRole="header">
+              {'snap your food.\nknow your calories.'}
+            </ThemedText>
+          </Stagger>
+          <Stagger delay={200 + MONOGRAM_DRAW_MS + 40}>
+            <ThemedText variant="tagline" style={[styles.center, styles.sub, { color: colors.onHeroMuted }]}>
+              {HOMETOWN_LINE}
+            </ThemedText>
+          </Stagger>
         </View>
 
-        <Animated.View entering={FadeInDown.delay(650).duration(600)} style={styles.bottom}>
+        <InkReveal delay={200 + MONOGRAM_DRAW_MS + 160} style={styles.bottom}>
           <View style={styles.promises}>
             {PROMISES.map((promise) => (
               <View key={promise} style={styles.promise}>
-                <AppIcon name="checkCircle" size={18} color={colors.accent} />
-                <ThemedText variant="subheadEmphasized">{promise}</ThemedText>
+                <Crescent size={15} color={colors.accent} />
+                <ThemedText variant="subheadEmphasized" style={{ color: colors.onHero }}>
+                  {promise.toLowerCase()}
+                </ThemedText>
               </View>
             ))}
           </View>
-          <Pressable
-            onPress={() => start(false)}
-            accessibilityRole="button"
-            style={({ pressed }) => [styles.primary, { backgroundColor: colors.accent, opacity: pressed ? 0.85 : 1 }]}
-          >
-            <ThemedText variant="bodyEmphasized" style={{ color: colors.onAccent }}>
-              Start tracking
-            </ThemedText>
-          </Pressable>
-          <Pressable onPress={() => start(true)} accessibilityRole="button" style={styles.secondary} hitSlop={8}>
-            <ThemedText variant="subheadEmphasized">Set a calorie goal first</ThemedText>
-          </Pressable>
-        </Animated.View>
+          <Button label="Start tracking" onPress={() => start(false)} haptic="success" />
+          <Button label="Set a calorie goal first" variant="quiet" size="md" onPress={() => start(true)} />
+        </InkReveal>
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
   content: { flex: 1, paddingHorizontal: Spacing['2xl'], justifyContent: 'space-between' },
-  hero: { alignItems: 'center', gap: Spacing.lg, paddingTop: Spacing['3xl'] },
-  wordmark: { fontSize: 15, fontWeight: '700', letterSpacing: 6 },
-  headline: { fontSize: 36, lineHeight: 42, fontWeight: '700', letterSpacing: -0.8, textAlign: 'center' },
-  sub: { fontSize: 16, lineHeight: 22, textAlign: 'center', maxWidth: 320 },
-  bottom: { gap: Spacing.md },
+  hero: { alignItems: 'center', gap: Spacing.md, paddingTop: Spacing.xl },
+  plate: { width: MARK + 20, height: MARK + 20, borderRadius: Radii.full, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.xs },
+  center: { textAlign: 'center' },
+  sub: { maxWidth: 320 },
+  bottom: { gap: Spacing.sm },
   promises: { gap: Spacing.sm, marginBottom: Spacing.lg },
   promise: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  primary: { alignItems: 'center', justifyContent: 'center', borderRadius: Radii.full, paddingVertical: Spacing.lg, minHeight: 56 },
-  secondary: { alignItems: 'center', paddingVertical: Spacing.sm },
 });

@@ -1,8 +1,9 @@
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Alert, Platform } from 'react-native';
+import { Platform } from 'react-native';
 
+import { showNotice } from '@/utils/actionSheet';
 import { prepareImage, type PhotoInput } from '@/lib/scan/prepareImage';
 import { failAnalysis, finishAnalysis, setReviewThumbnail, startAnalysis, startDescription } from '@/lib/scan/reviewStore';
 import { analyzeMealDescription, analyzeMealPhoto, ScanError } from '@/services/mealScanService';
@@ -66,7 +67,7 @@ export function useMealScan() {
     if (from === 'camera' && Platform.OS !== 'web') {
       const permission = await ImagePicker.requestCameraPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert('Camera access needed', 'Allow camera access in Settings to photograph a meal, or choose a photo from your library instead.');
+        showNotice({ title: 'Camera access needed', message: 'Allow camera access in Settings to photograph a meal, or choose a photo from your library instead.' });
         return;
       }
     }

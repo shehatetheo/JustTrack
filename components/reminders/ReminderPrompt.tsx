@@ -1,14 +1,13 @@
-import * as Haptics from 'expo-haptics';
 import React, { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StyleSheet, View } from 'react-native';
 
 import { NotificationPreview } from '@/components/reminders/NotificationPreview';
+import { PressScale } from '@/components/motion';
 import { Button } from '@/components/ui/Button';
+import { BottomSheet } from '@/components/ui/Sheet';
 import { ThemedText } from '@/components/ui/ThemedText';
-import { Radii, Spacing } from '@/constants/theme';
-import { useAppTheme } from '@/contexts/ThemeContext';
+import { Haptic } from '@/constants/motion';
+import { MIN_TAP, Spacing } from '@/constants/theme';
 import { useReminderSamples } from '@/hooks/useReminderSamples';
 import { useSettings } from '@/hooks/useSettings';
 import { remindersSupported } from '@/lib/reminders/notifier';
@@ -27,8 +26,6 @@ const DELAY_MS = 2400;
  * interrupts a food being added.
  */
 export function ReminderPrompt() {
-  const { colors, shadows } = useAppTheme();
-  const insets = useSafeAreaInsets();
   const { reminders, displayName } = useSettings();
   const { sample } = useReminderSamples(displayName);
   const wanted = remindersSupported && !reminders.enabled && !reminders.asked;
@@ -41,8 +38,6 @@ export function ReminderPrompt() {
     return () => clearTimeout(timer);
   }, [wanted]);
 
-  if (!visible || !wanted) return null;
-
   const notNow = () => {
     snoozedThisLaunch = true;
     setVisible(false);
@@ -50,7 +45,7 @@ export function ReminderPrompt() {
 
   const accept = async () => {
     setWorking(true);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Haptic.success();
     await turnOnReminders();
     setWorking(false);
     setVisible(false);
@@ -59,54 +54,35 @@ export function ReminderPrompt() {
   const firstName = displayName?.trim().split(/\s+/)[0];
 
   return (
-    <View style={StyleSheet.absoluteFill} accessibilityViewIsModal>
-      <Animated.View entering={FadeIn.duration(220)} exiting={FadeOut.duration(180)} style={[StyleSheet.absoluteFill, styles.backdrop]}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={notNow} accessibilityRole="button" accessibilityLabel="Not now" />
-      </Animated.View>
-      <Animated.View
-        entering={SlideInDown.springify().damping(20).stiffness(190)}
-        exiting={SlideOutDown.duration(220)}
-        style={[styles.sheet, shadows.lg, { backgroundColor: colors.surface, borderColor: colors.border, paddingBottom: insets.bottom + Spacing.lg }]}
+    <BottomSheet visible={visible && wanted} inline onClose={notNow} title={firstName ? `${firstName}, want a nudge?` : 'Want a nudge?'} tagline="so no snack goes unlogged">
+      <ThemedText variant="subhead" color="secondary" style={styles.center}>
+        We’ll poke you every hour and a half. Jokes included, guilt not. Prefer just breakfast, lunch and dinner? Change it in Profile.
+      </ThemedText>
+      <View style={styles.preview}>
+        <NotificationPreview title={sample.title} body={sample.body} />
+      </View>
+      <Button label="Yes, nag me" onPress={() => void accept()} loading={working} haptic={null} />
+      <Button label="Not now" variant="secondary" onPress={notNow} disabled={working} />
+      <PressScale
+        onPress={() => {
+          updateReminders({ asked: true });
+          setVisible(false);
+        }}
+        haptic="select"
+        accessibilityRole="button"
+        disabled={working}
+        style={styles.never}
       >
-        <View style={[styles.grabber, { backgroundColor: colors.border }]} />
-        <ThemedText variant="overline" color="tertiary" style={styles.center}>
-          REMINDERS
+        <ThemedText variant="footnote" color="tertiary">
+          don’t ask again
         </ThemedText>
-        <ThemedText variant="title2" style={styles.center} accessibilityRole="header">
-          {firstName ? `${firstName}, want us to nag you?` : 'Want us to nag you?'}
-        </ThemedText>
-        <ThemedText variant="subhead" color="secondary" style={styles.center}>
-          We’ll poke you every hour and a half so no snack goes unlogged. Jokes included, guilt not. Prefer just breakfast, lunch and dinner? Change it in Profile.
-        </ThemedText>
-        <View style={styles.preview}>
-          <NotificationPreview title={sample.title} body={sample.body} />
-        </View>
-        <Button label="Yes, nag me" onPress={() => void accept()} loading={working} />
-        <Button label="Not now" variant="secondary" onPress={notNow} disabled={working} />
-        <Pressable
-          onPress={() => {
-            updateReminders({ asked: true });
-            setVisible(false);
-          }}
-          accessibilityRole="button"
-          hitSlop={8}
-          disabled={working}
-          style={styles.never}
-        >
-          <ThemedText variant="footnote" color="tertiary">
-            Don’t ask again
-          </ThemedText>
-        </Pressable>
-      </Animated.View>
-    </View>
+      </PressScale>
+    </BottomSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: { backgroundColor: 'rgba(0,0,0,0.6)' },
-  sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, borderTopLeftRadius: Radii['2xl'], borderTopRightRadius: Radii['2xl'], borderWidth: StyleSheet.hairlineWidth * 2, borderBottomWidth: 0, paddingHorizontal: Spacing.xl, paddingTop: Spacing.md, gap: Spacing.md },
-  grabber: { alignSelf: 'center', width: 40, height: 5, borderRadius: 3, marginBottom: Spacing.xs },
   center: { textAlign: 'center' },
   preview: { marginVertical: Spacing.xs },
-  never: { alignSelf: 'center', paddingVertical: Spacing.xs },
+  never: { alignSelf: 'center', minHeight: MIN_TAP, justifyContent: 'center', paddingHorizontal: Spacing.lg },
 });

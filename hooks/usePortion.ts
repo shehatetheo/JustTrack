@@ -1,4 +1,3 @@
-import * as Haptics from 'expo-haptics';
 import { useState } from 'react';
 
 import {
@@ -79,7 +78,7 @@ export function usePortion(food: FoodDetail | undefined, initial?: StoredPortion
     const size = choice.kind === 'serving' ? 0.5 : 10;
     const base = amount ?? 0;
     const next = Math.min(Math.max(Math.round((base + direction * size) * 100) / 100, size), limit);
-    Haptics.selectionAsync();
+    // The stepper button gives the tap; the hook only changes the number.
     setAmountText(formatQuantity(next));
   };
 

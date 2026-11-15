@@ -2,7 +2,7 @@ import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { Hero } from '@/components/layout/Hero';
 import { Heading } from '@/components/ui/Heading';
@@ -18,7 +18,7 @@ import { clearLog, logStore } from '@/lib/log/logStore';
 import { DEFAULT_SETTINGS, settingsStore, updateSettings } from '@/lib/settings/settingsStore';
 import { clearWeights } from '@/lib/weight/weightStore';
 import type { HeightUnit, ThemePreference, WeightUnit } from '@/types';
-import { confirmAsync, showOptionSheet } from '@/utils/actionSheet';
+import { confirmAsync, showNotice, showOptionSheet } from '@/utils/actionSheet';
 import { formatNumber } from '@/utils/format';
 import { HEIGHT_UNIT_LABELS, WEIGHT_UNIT_LABELS } from '@/utils/units';
 
@@ -51,7 +51,7 @@ export default function ProfileScreen() {
   const confirmClear = async () => {
     const count = logStore.getSnapshot().length;
     if (count === 0) {
-      Alert.alert('Nothing to clear', 'Your log is already empty.');
+      showNotice({ title: 'Nothing to clear', message: 'Your log is already empty.' });
       return;
     }
     const confirmed = await confirmAsync({ title: 'Clear your log?', message: `This removes all ${count} ${count === 1 ? 'entry' : 'entries'} from this device. It can’t be undone.`, confirmLabel: 'Clear' });
