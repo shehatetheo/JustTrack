@@ -11,7 +11,7 @@ import { useAppTheme } from '@/contexts/ThemeContext';
 import { dismissToast, toastStore, type ToastState } from '@/utils/toast';
 import { ThemedText } from './ThemedText';
 
-const STAY_MS = 4500;
+const STAY_MS = 5000;
 /** A toast belongs to the tabs: it waits while a sheet is open over them and shows once the sheet has gone. */
 const TAB_PATHS = new Set(['/', '/stats', '/scan', '/profile']);
 /** Clears the tab bar and its raised scan button. */

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
+import { Pressable, StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
 
 import { HAIRLINE, MIN_TAP, Radii, Spacing, Typography } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { AppIcon } from './AppIcon';
+import { Spinner } from './Spinner';
 import { FocusLine } from './FocusLine';
 
 interface SearchFieldProps extends Omit<TextInputProps, 'style'> {
@@ -44,7 +45,7 @@ export function SearchField({ value, onChangeText, loading = false, placeholder 
         }}
         style={[Typography.body, styles.input, { color: colors.text }]}
       />
-      {loading ? <ActivityIndicator size="small" color={colors.accent} /> : null}
+      {loading ? <Spinner color={colors.accentText} /> : null}
       {value.length > 0 && !loading ? (
         <Pressable onPress={() => onChangeText('')} accessibilityRole="button" accessibilityLabel="Clear search" hitSlop={12}>
           <AppIcon name="closeCircle" size={17} color={colors.textTertiary} />

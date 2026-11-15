@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/Button';
 import { OrnateFrame } from '@/components/ui/OrnateFrame';
 import { ThemedText } from '@/components/ui/ThemedText';
 import { Easings, Haptic } from '@/constants/motion';
-import { Radii, Spacing } from '@/constants/theme';
+import { HAIRLINE, Radii, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { rememberFoods } from '@/lib/food/foodStore';
 import { getOpenFoodFactsProduct } from '@/lib/food/openFoodFacts';
@@ -26,7 +26,7 @@ type Status = { kind: 'scanning' } | { kind: 'looking_up'; code: string } | { ki
 const RETICLE = { width: 270, height: 160 };
 
 /** The frame the barcode goes in: filigree corners and a line of light passing over it while the camera looks. */
-function Reticle({ scanning }: { scanning: boolean }) {
+function Reticle({ scanning, found }: { scanning: boolean; found: boolean }) {
   const { colors } = useAppTheme();
   const { reduced } = useMotion();
   const sweep = useSharedValue(0);
@@ -35,6 +35,12 @@ function Reticle({ scanning }: { scanning: boolean }) {
     sweep.set(withRepeat(withSequence(withTiming(1, { duration: 1300, easing: Easings.inOut }), withTiming(0, { duration: 1300, easing: Easings.inOut })), -1, false));
   }, [reduced, scanning, sweep]);
   const line = useAnimatedStyle(() => ({ transform: [{ translateY: sweep.get() * (RETICLE.height - 24) }] }));
+  // A code was read: one bright line snaps across the middle of the frame and fades.
+  const flash = useSharedValue(0);
+  useEffect(() => {
+    if (found) flash.set(withSequence(withTiming(1, { duration: 80 }), withTiming(0, { duration: 420 })));
+  }, [flash, found]);
+  const hit = useAnimatedStyle(() => ({ opacity: flash.get(), transform: [{ scaleX: 0.4 + flash.get() * 0.6 }] }));
 
   return (
     <OrnateFrame variant="corners" corner={40} color={colors.onHero} style={[styles.reticle, RETICLE]}>
@@ -43,6 +49,7 @@ function Reticle({ scanning }: { scanning: boolean }) {
           <LinearGradient colors={['transparent', colors.accent, 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={styles.sweepLine} />
         </Animated.View>
       ) : null}
+      <Animated.View pointerEvents="none" style={[styles.hit, { backgroundColor: colors.accent, shadowColor: colors.accentDeep }, hit]} />
     </OrnateFrame>
   );
 }
@@ -90,7 +97,7 @@ function BarcodeFlow() {
         {live ? <BarcodeScanner onDetected={onDetected} onError={onError} /> : null}
         <LinearGradient pointerEvents="none" colors={[colors.photoPlate, 'transparent']} style={styles.topShade} />
         <View pointerEvents="none" style={styles.frame}>
-          <Reticle scanning={status.kind === 'scanning'} />
+          <Reticle scanning={status.kind === 'scanning'} found={status.kind === 'looking_up'} />
         </View>
         <SheetHeader title="Barcode" tagline="anything in a packet" onClose={() => router.back()} onPhoto style={styles.header} />
       </View>
@@ -145,5 +152,6 @@ const styles = StyleSheet.create({
   reticle: { borderRadius: Radii.lg },
   sweep: { position: 'absolute', left: 12, right: 12, top: 12 },
   sweepLine: { height: 2 },
-  panel: { padding: Spacing.xl, gap: Spacing.md, minHeight: 160, borderTopWidth: StyleSheet.hairlineWidth },
+  hit: { position: 'absolute', left: 8, right: 8, top: RETICLE.height / 2 - 2, height: 4, borderRadius: Radii.full, shadowOpacity: 0.9, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } },
+  panel: { padding: Spacing.xl, gap: Spacing.md, minHeight: 160, borderTopWidth: HAIRLINE },
 });

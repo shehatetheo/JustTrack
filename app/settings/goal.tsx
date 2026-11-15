@@ -111,7 +111,12 @@ function Goal() {
 
   const save = () => {
     if (!calorieValid) {
-      setError(`Enter a goal between ${formatNumber(MIN_CALORIE_TARGET)} and ${formatNumber(MAX_CALORIE_TARGET)} kcal.`);
+      // Too low gets the reason, not a bare range: the floor is there to keep the goal a healthy one.
+      setError(
+        calorieNumber < MIN_CALORIE_TARGET
+          ? `JustTrack doesn’t set goals under ${formatNumber(MIN_CALORIE_TARGET)} calories a day, because it’s hard to eat well on less. ${formatNumber(MIN_CALORIE_TARGET)} or more works.`
+          : `Enter a goal between ${formatNumber(MIN_CALORIE_TARGET)} and ${formatNumber(MAX_CALORIE_TARGET)} kcal.`
+      );
       return;
     }
     let macroGoals = null;
@@ -286,15 +291,7 @@ function Goal() {
                   <TextField label="Fat" value={macros.fat} onChangeText={(fat) => setMacros({ ...macros, fat: fat.replace(/[^0-9]/g, '') })} keyboardType="number-pad" suffix="g" maxLength={4} />
                 </View>
                 <PressScale onPress={suggestMacros} haptic="select" accessibilityRole="button" disabled={!calorieValid} style={styles.link}>
-                  <ThemedText
-                    variant="footnote"
-                    style={[
-                      styles.strong,
-                      {
-                        color: calorieValid ? colors.accentText : colors.textTertiary,
-                      },
-                    ]}
-                  >
+                  <ThemedText variant="footnoteEmphasized" style={{ color: calorieValid ? colors.accentText : colors.textTertiary }}>
                     suggest a split for {formatNumber(calorieNumber || 0)} kcal
                   </ThemedText>
                 </PressScale>
@@ -362,7 +359,6 @@ const styles = StyleSheet.create({
     minHeight: MIN_TAP / 2,
     justifyContent: 'center',
   },
-  strong: { fontWeight: '600' },
   note: { padding: Spacing.lg, gap: Spacing.sm },
   footer: {
     paddingHorizontal: Spacing.lg,

@@ -149,6 +149,8 @@ export interface Settings {
   welcomedAt: ISODateString | null;
   /** When the welcome-back slides were last shown, so one lapse gets one showing. */
   welcomeBackAt: ISODateString | null;
+  /** Ids of the hidden details the user has come across (see lib/easterEggs). Nothing else is recorded about them. */
+  secretsFound: string[];
 }
 
 /** One weigh-in. There is at most one per calendar day; weighing again replaces it. */

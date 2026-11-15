@@ -3,6 +3,7 @@ import { BarcodeFormat, DecodeHintType } from '@zxing/library';
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { INK } from '@/constants/theme';
 import type { BarcodeScannerProps } from './BarcodeScanner';
 
 const FORMATS = [BarcodeFormat.EAN_13, BarcodeFormat.EAN_8, BarcodeFormat.UPC_A, BarcodeFormat.UPC_E];
@@ -59,5 +60,5 @@ export function BarcodeScanner({ onDetected, onError }: BarcodeScannerProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000000', overflow: 'hidden' },
+  container: { flex: 1, backgroundColor: INK, overflow: 'hidden' },
 });

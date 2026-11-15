@@ -11,9 +11,8 @@ import { Button } from '@/components/ui/Button';
 import { FocusLine } from '@/components/ui/FocusLine';
 import { Glass } from '@/components/ui/Glass';
 import { ThemedText } from '@/components/ui/ThemedText';
-import { Fonts } from '@/constants/fonts';
 import { Haptic } from '@/constants/motion';
-import { HAIRLINE, Radii, Spacing } from '@/constants/theme';
+import { HAIRLINE, Radii, Spacing, Typography } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { useMealScan } from '@/hooks/useMealScan';
 import { MAX_DESCRIPTION_LENGTH } from '@/services/mealScanService';
@@ -73,7 +72,7 @@ function Describe() {
               blurOnSubmit
               onSubmitEditing={submit}
               accessibilityLabel="What you ate"
-              style={[styles.input, { color: colors.text }]}
+              style={[Typography.bodyLarge, styles.input, { color: colors.text }]}
             />
             <FocusLine active={focused} />
             <View style={styles.boxFooter}>
@@ -96,7 +95,7 @@ function Describe() {
             {HOW.map((line, index) => (
               <View key={line} style={styles.howRow}>
                 <View style={[styles.stepDot, { borderColor: colors.borderAccent }]}>
-                  <ThemedText variant="caption2" style={[styles.stepNumber, { color: colors.accentText }]}>
+                  <ThemedText variant="overline" style={{ color: colors.accentText }}>
                     {index + 1}
                   </ThemedText>
                 </View>
@@ -120,14 +119,13 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   content: { paddingVertical: Spacing.lg, gap: Spacing.lg, paddingBottom: Spacing['3xl'] },
   box: { marginHorizontal: Spacing.lg, padding: Spacing.lg, gap: Spacing.sm },
-  input: { minHeight: 120, textAlignVertical: 'top', fontFamily: Fonts.body, fontSize: 19, lineHeight: 27, outlineStyle: 'solid', outlineWidth: 0 },
+  input: { minHeight: 120, textAlignVertical: 'top', outlineStyle: 'solid', outlineWidth: 0 },
   boxFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md },
   hint: { flexShrink: 1 },
   count: { fontVariant: ['tabular-nums'] },
   how: { marginHorizontal: Spacing.lg, padding: Spacing.lg, gap: Spacing.md },
   howRow: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
   stepDot: { width: 22, height: 22, borderRadius: Radii.full, borderWidth: HAIRLINE, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
-  stepNumber: { fontWeight: '700' },
   howText: { flex: 1 },
   footer: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.md, borderTopWidth: HAIRLINE },
 });

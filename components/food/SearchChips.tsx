@@ -58,7 +58,7 @@ export function TermChips({ title, terms, onPick, onClear }: TermChipsProps) {
         </ThemedText>
         {onClear ? (
           <PressScale onPress={onClear} haptic="select" accessibilityRole="button" accessibilityLabel={`Clear ${title.toLowerCase()}`} hitSlop={12} style={styles.clear}>
-            <ThemedText variant="footnote" style={[styles.strong, { color: colors.accentText }]}>
+            <ThemedText variant="footnoteEmphasized" style={{ color: colors.accentText }}>
               clear
             </ThemedText>
           </PressScale>
@@ -79,6 +79,5 @@ const styles = StyleSheet.create({
   block: { paddingHorizontal: Spacing.lg, gap: Spacing.sm },
   titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: MIN_TAP / 2 },
   clear: { justifyContent: 'center' },
-  strong: { fontWeight: '600' },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
 });

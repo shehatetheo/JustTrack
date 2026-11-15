@@ -56,9 +56,9 @@ export default function WeightScreen() {
         </ThemedText>
         <View style={styles.figure}>
           {latest ? (
-            <CountUp value={Number(weightValue(latest.kg, weightUnit))} format={(value) => value.toFixed(1)} variant="display" style={styles.number} />
+            <CountUp value={Number(weightValue(latest.kg, weightUnit))} format={(value) => value.toFixed(1)} variant="displaySmall" style={styles.number} />
           ) : (
-            <ThemedText variant="display" style={styles.number}>
+            <ThemedText variant="displaySmall" style={styles.number}>
               —
             </ThemedText>
           )}
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   content: { padding: Spacing.lg, paddingBottom: Spacing['5xl'], gap: Spacing.lg },
   head: { alignItems: 'center', gap: Spacing.xs, paddingTop: Spacing.sm },
   figure: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.sm },
-  number: { fontVariant: ['tabular-nums'], fontSize: 68, lineHeight: 74, letterSpacing: -2.5 },
+  number: { fontVariant: ['tabular-nums'] },
   delta: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
   chart: { paddingHorizontal: Spacing.sm, paddingVertical: Spacing.md },
   empty: { height: 220, alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingHorizontal: Spacing.xl },

@@ -1,9 +1,10 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
+import { discover } from '@/components/easterEggs/found';
 import { EntryRow } from '@/components/food/EntryRow';
 import { PressScale, TearAway, useMotion } from '@/components/motion';
 import { AppIcon } from '@/components/ui/AppIcon';
@@ -15,6 +16,7 @@ import { MEAL_TYPE_META } from '@/constants/nutrition';
 import { HAIRLINE, MIN_TAP, Radii, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { useEntryActions } from '@/hooks/useEntryActions';
+import { countTaps, EASTER_EGGS_ENABLED, postmarkDate } from '@/lib/easterEggs/eggs';
 import { macroShares, type MealSection } from '@/lib/log/entries';
 import { formatNumber } from '@/utils/format';
 
@@ -75,6 +77,17 @@ export function MealCard({ section, onAdd }: MealCardProps) {
   // Anything logged after the card appeared is new and gets to arrive.
   const [mountedAt] = useState(() => Date.now());
   const [tearing, setTearing] = useState<string | null>(null);
+  // Tapped five times, the stamp re-inks as a Philadelphia postmark with today's date.
+  const stampTaps = useRef<number[]>([]);
+  const [postmark, setPostmark] = useState<string | null>(null);
+  const tapStamp = () => {
+    if (!EASTER_EGGS_ENABLED) return;
+    stampTaps.current = countTaps(stampTaps.current, Date.now(), 5, 3000);
+    if (stampTaps.current.length < 5) return;
+    stampTaps.current = [];
+    discover('postmark');
+    setPostmark((current) => (current ? null : postmarkDate(new Date())));
+  };
   if (count !== stamp.count) setStamp({ count, strikes: count > stamp.count ? stamp.strikes + 1 : stamp.strikes });
 
   return (
@@ -95,7 +108,11 @@ export function MealCard({ section, onAdd }: MealCardProps) {
               {hasEntries ? `${formatNumber(section.totals.calories)} kcal` : 'nothing yet'}
             </ThemedText>
           </View>
-          {hasEntries ? <Stamp label="logged" size={50} thump={stamp.strikes > 0 ? stamp.strikes : false} haptic accent={!onCover} seed={meta.label.length} accessibilityLabel={`${meta.label} logged`} /> : null}
+          {hasEntries ? (
+            <Pressable onPress={tapStamp} accessible={false} hitSlop={6}>
+              <Stamp label={postmark ? 'phila pa' : 'logged'} caption={postmark ?? undefined} size={50} thump={postmark ? postmark : stamp.strikes > 0 ? stamp.strikes : false} haptic accent={!onCover} seed={meta.label.length} accessibilityLabel={`${meta.label} logged`} />
+            </Pressable>
+          ) : null}
           <PressScale onPress={onAdd} accessibilityRole="button" accessibilityLabel={`Add food to ${meta.label}`} style={[styles.add, { borderColor: onCover ? colors.onHero : colors.accentText, backgroundColor: onCover ? colors.photoPlate : 'transparent' }]}>
             <AppIcon name="plus" size={13} color={onCover ? colors.onHero : colors.accentText} weight="bold" />
             <ThemedText variant="subheadEmphasized" style={{ color: onCover ? colors.onHero : colors.accentText }}>

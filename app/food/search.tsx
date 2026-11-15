@@ -1,7 +1,9 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo, useState, useSyncExternalStore } from 'react';
+import React, { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { SectionList, StyleSheet, View } from 'react-native';
 
+import { discover } from '@/components/easterEggs/found';
+import { DevCredit, PhillyStamp } from '@/components/easterEggs/SearchEggs';
 import { ChainLogo } from '@/components/food/ChainLogo';
 import { FoodDataAttribution } from '@/components/food/FoodDataAttribution';
 import { FoodSearchRow } from '@/components/food/FoodSearchRow';
@@ -23,12 +25,14 @@ import { useAppTheme } from '@/contexts/ThemeContext';
 import { useCurrentTime } from '@/hooks/useCurrentTime';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useFoodSearch } from '@/hooks/useFoodSearch';
+import { isDevSearch, isPhillySearch } from '@/lib/easterEggs/eggs';
 import { builderForChain } from '@/lib/food/builders';
 import { clearRecentSearches, recentSearchesStore, rememberSearch, SUGGESTED_SEARCHES } from '@/lib/food/recentSearches';
 import { createEntry } from '@/lib/log/entries';
 import { frequentEntries } from '@/lib/log/frequent';
 import { addEntries, logStore, removeEntry } from '@/lib/log/logStore';
 import { matchRowToFood } from '@/lib/scan/reviewStore';
+import { settingsStore } from '@/lib/settings/settingsStore';
 import type { FoodDetail, LogEntry } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { defaultMealType } from '@/utils/mealTime';
@@ -67,6 +71,16 @@ export default function FoodSearchScreen() {
   const builder = pickRowId ? null : builderForChain(search.chainNamed);
   const recents = useSyncExternalStore(recentSearchesStore.subscribe, recentSearchesStore.getSnapshot, recentSearchesStore.getSnapshot);
   const log = useSyncExternalStore(logStore.subscribe, logStore.getSnapshot, logStore.getSnapshot);
+  // Two searches that have nothing to do with food data: a nod to the city, and to who made this.
+  const philly = !pickRowId && isPhillySearch(debouncedQuery);
+  const credit = !pickRowId && isDevSearch(debouncedQuery);
+  // The Philly stamp is a one-time thing: it shows in the sheet that first finds it, and not in later ones.
+  const [stampSpent] = useState(() => settingsStore.getSnapshot().secretsFound.includes('philly'));
+  const stamped = !stampSpent;
+  useEffect(() => {
+    if (philly) discover('philly');
+    if (credit) discover('dev-credit');
+  }, [credit, philly]);
   const often = useMemo(() => (pickRowId ? [] : frequentEntries(log, now)), [log, now, pickRowId]);
 
   /** One tap on something logged often: the latest amount goes into this meal, and the sheet closes on it. */
@@ -144,6 +158,7 @@ export default function FoodSearchScreen() {
       ) : null}
 
       <SectionList
+        ListHeaderComponent={(philly && stamped) || credit ? <View style={styles.egg}>{credit ? <DevCredit /> : <PhillyStamp date={now} />}</View> : null}
         sections={sections}
         keyExtractor={(food) => food.id}
         renderItem={({ item, index, section }) => (
@@ -160,7 +175,7 @@ export default function FoodSearchScreen() {
               </ThemedText>
               {section.key === 'restaurants' && search.chainNamed ? (
                 <PressScale onPress={() => openChain(search.chainNamed as string)} haptic="select" accessibilityRole="button" accessibilityLabel={`Browse the ${search.chainNamed} menu`} hitSlop={12} style={styles.browse}>
-                  <ThemedText variant="footnote" style={[styles.strong, { color: colors.accentText }]}>
+                  <ThemedText variant="footnoteEmphasized" style={{ color: colors.accentText }}>
                     full menu
                   </ThemedText>
                   <AppIcon name="chevronRight" size={11} color={colors.accentText} weight="semibold" />
@@ -248,7 +263,7 @@ function Note({ text, actionLabel, onAction }: { text: string; actionLabel?: str
       </ThemedText>
       {actionLabel && onAction ? (
         <PressScale onPress={onAction} haptic="select" accessibilityRole="button" hitSlop={12} style={styles.noteAction}>
-          <ThemedText variant="footnote" style={[styles.strong, { color: colors.accentText }]}>
+          <ThemedText variant="footnoteEmphasized" style={{ color: colors.accentText }}>
             {actionLabel.toLowerCase()}
           </ThemedText>
         </PressScale>
@@ -266,7 +281,6 @@ const styles = StyleSheet.create({
   sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, minHeight: MIN_TAP / 2 },
   sectionTitle: { flex: 1 },
   browse: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  strong: { fontWeight: '600' },
   landing: { paddingTop: Spacing.md, gap: Spacing.lg },
   often: { paddingHorizontal: Spacing.lg, gap: Spacing.sm },
   oftenWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
@@ -280,4 +294,5 @@ const styles = StyleSheet.create({
   noteText: { flex: 1 },
   noteAction: { justifyContent: 'center' },
   attribution: { marginTop: Spacing.lg },
+  egg: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.md },
 });

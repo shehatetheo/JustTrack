@@ -4,14 +4,16 @@ import * as WebBrowser from 'expo-web-browser';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
+import { SecretsSheet } from '@/components/easterEggs/SecretsSheet';
+import { ShatterMark } from '@/components/easterEggs/ShatterMark';
 import { Hero } from '@/components/layout/Hero';
 import { Heading } from '@/components/ui/Heading';
 import { ListRow, ListSection } from '@/components/ui/ListRow';
-import { Logo } from '@/components/ui/Logo';
 import { ThemedText } from '@/components/ui/ThemedText';
 import { APP_NAME, HOMETOWN_LINE, PRIVACY_LINE, REPOSITORY_URL, TAGLINE } from '@/constants/brand';
 import { Spacing, Typography } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
+import { EASTER_EGGS_ENABLED, EGGS, foundEggs } from '@/lib/easterEggs/eggs';
 import { useSettings } from '@/hooks/useSettings';
 import { clearRecentSearches } from '@/lib/food/recentSearches';
 import { clearLog, logStore } from '@/lib/log/logStore';
@@ -42,6 +44,8 @@ export default function ProfileScreen() {
   const settings = useSettings();
   const [name, setName] = useState(settings.displayName ?? '');
   const version = Constants.expoConfig?.version ?? '1.0.0';
+  const [secretsOpen, setSecretsOpen] = useState(false);
+  const secrets = EASTER_EGGS_ENABLED ? foundEggs(settings.secretsFound).length : 0;
 
   const { reminders } = settings;
   const reminderSummary = !reminders.enabled ? 'Off' : reminders.mode === 'interval' ? 'Every 1.5 hours' : 'Mealtimes';
@@ -68,12 +72,12 @@ export default function ProfileScreen() {
     settingsStore.set({ ...DEFAULT_SETTINGS, welcomed: false });
   };
 
-  return (
+  const page = (
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content}>
       <Hero page="profile" artOpacity={0.4} veil={0.2}>
         <Heading title="profile" tagline="yours, and only on this phone" level="title" align="center" onHero />
         <View style={styles.hero}>
-          <Logo width={84} color={colors.onHero} />
+          <ShatterMark size={84} />
           <TextInput
             value={name}
             onChangeText={setName}
@@ -139,10 +143,17 @@ export default function ProfileScreen() {
           <ListRow icon="pin" title="Made in Philadelphia" showChevron={false} />
           <ListRow icon="openSource" title="Open source on GitHub" onPress={() => void WebBrowser.openBrowserAsync(REPOSITORY_URL)} />
           <ListRow icon="info" title="Food data: USDA & Open Food Facts" onPress={() => void WebBrowser.openBrowserAsync('https://world.openfoodfacts.org')} />
-          <ListRow icon="heart" title="Help & support" onPress={() => router.push('/support')} isLast />
+          <ListRow icon="heart" title="Help & support" onPress={() => router.push('/support')} isLast={secrets === 0} />
+          {secrets > 0 ? <ListRow icon="ellipsis" title="Secrets" value={`${secrets} of ${EGGS.length}`} onPress={() => setSecretsOpen(true)} isLast /> : null}
         </ListSection>
       </View>
     </ScrollView>
+  );
+  return (
+    <>
+      {page}
+      <SecretsSheet visible={secretsOpen} found={settings.secretsFound} onClose={() => setSecretsOpen(false)} />
+    </>
   );
 }
 

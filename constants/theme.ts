@@ -183,6 +183,8 @@ type TypographyToken = Pick<TextStyle, 'fontSize' | 'lineHeight' | 'fontFamily' 
 export const Typography = {
   /** The giant "kcal left" number. */
   display: { fontSize: 84, lineHeight: 88, fontFamily: Fonts.bodyHeavy, letterSpacing: -3 },
+  /** A big number that shares its screen with other things: the weight, a weigh-in being typed. */
+  displaySmall: { fontSize: 64, lineHeight: 70, fontFamily: Fonts.bodyHeavy, letterSpacing: -2.2 },
   /** Figures that head a card: a score, a streak, a weight. Always the sans, always tabular. */
   figure: { fontSize: 36, lineHeight: 42, fontFamily: Fonts.bodyHeavy, letterSpacing: -1.2 },
   figureSmall: { fontSize: 22, lineHeight: 28, fontFamily: Fonts.bodyBold, letterSpacing: -0.5 },
@@ -198,7 +200,11 @@ export const Typography = {
   callout: { fontSize: 16, lineHeight: 21, fontFamily: Fonts.body, letterSpacing: -0.1 },
   subhead: { fontSize: 15, lineHeight: 20, fontFamily: Fonts.body, letterSpacing: -0.1 },
   subheadEmphasized: { fontSize: 15, lineHeight: 20, fontFamily: Fonts.bodySemiBold, letterSpacing: -0.1 },
+  /** Long text being typed, such as a meal described in a sentence. */
+  bodyLarge: { fontSize: 19, lineHeight: 27, fontFamily: Fonts.body, letterSpacing: -0.2 },
   footnote: { fontSize: 13, lineHeight: 18, fontFamily: Fonts.body, letterSpacing: 0 },
+  /** A small text link or label that has to stand out from the footnote around it. */
+  footnoteEmphasized: { fontSize: 13, lineHeight: 18, fontFamily: Fonts.bodySemiBold, letterSpacing: 0 },
   caption1: { fontSize: 12, lineHeight: 16, fontFamily: Fonts.body, letterSpacing: 0 },
   caption2: { fontSize: 11, lineHeight: 14, fontFamily: Fonts.bodyMedium, letterSpacing: 0.1 },
   /** Small tracked capitals above a section or a figure. Callers pass the text already uppercased. */

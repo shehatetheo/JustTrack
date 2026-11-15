@@ -40,7 +40,7 @@ export function Chip({ label, detail, stacked = false, selected = false, onPress
       accessibilityState={checked === undefined ? { selected } : { checked }}
       style={[styles.chip, stacked && styles.stacked, { backgroundColor: selected ? colors.accent : colors.surface, borderColor: selected ? colors.accent : colors.border }, style]}
     >
-      <ThemedText variant={stacked ? 'caption1' : 'subhead'} numberOfLines={1} style={[{ color: ink }, stacked && styles.strong]}>
+      <ThemedText variant={stacked ? 'footnoteEmphasized' : 'subhead'} numberOfLines={1} style={{ color: ink }}>
         {label}
       </ThemedText>
       {detail ? (
@@ -57,5 +57,4 @@ export function Chip({ label, detail, stacked = false, selected = false, onPress
 const styles = StyleSheet.create({
   chip: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs + 2, minHeight: HEIGHT, paddingHorizontal: Spacing.md + 2, borderRadius: Radii.full, borderWidth: HAIRLINE },
   stacked: { flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: 1, minHeight: MIN_TAP, paddingVertical: Spacing.xs + 2, borderRadius: Radii.lg },
-  strong: { fontWeight: '600' },
 });

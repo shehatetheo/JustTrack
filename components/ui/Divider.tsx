@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { Spacing } from '@/constants/theme';
+import { HAIRLINE, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { ThemedText } from './ThemedText';
 
@@ -25,5 +25,5 @@ export function Divider({ label }: { label?: string }) {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-  line: { flex: 1, height: StyleSheet.hairlineWidth },
+  line: { flex: 1, height: HAIRLINE },
 });

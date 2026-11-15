@@ -1,11 +1,16 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
+import { useSharedValue } from 'react-native-reanimated';
 
 import { CaloriesLeft } from '@/components/home/CaloriesLeft';
 import { MacroRings } from '@/components/home/MacroRings';
 import { MealCard } from '@/components/home/MealCard';
 import { WeekStrip } from '@/components/home/WeekStrip';
+import { discover } from '@/components/easterEggs/found';
+import { InkPull } from '@/components/easterEggs/InkPull';
+import { NightOwl, OwlFlight } from '@/components/easterEggs/NightOwl';
+import { Seasonal } from '@/components/easterEggs/Seasonal';
 import { Hero } from '@/components/layout/Hero';
 import { InkReveal, PressScale, Stagger } from '@/components/motion';
 import { AppIcon } from '@/components/ui/AppIcon';
@@ -19,6 +24,7 @@ import { useAppTheme } from '@/contexts/ThemeContext';
 import { useCurrentTime } from '@/hooks/useCurrentTime';
 import { useLog } from '@/hooks/useLog';
 import { useSettings } from '@/hooks/useSettings';
+import { EASTER_EGGS_ENABLED, HIDDEN_LINE, seasonFor } from '@/lib/easterEggs/eggs';
 import { streakSummary } from '@/lib/log/streak';
 import { formatRelativeDay, getGreeting, isSameDay } from '@/utils/date';
 
@@ -47,15 +53,45 @@ export default function HomeScreen() {
   const settings = useSettings();
   const firstName = settings.displayName?.split(' ')[0];
   const plate = { backgroundColor: colors.photoPlate, borderColor: colors.border };
+  // How far Home has been pulled down past its top, for the ink drop that hangs there.
+  const pull = useSharedValue(0);
+  const season = seasonFor(today);
+  useEffect(() => {
+    if (season) discover('seasonal');
+  }, [season]);
 
   return (
-    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content} contentInsetAdjustmentBehavior="never">
+    <ScrollView
+      style={{ backgroundColor: colors.background }}
+      contentContainerStyle={styles.content}
+      contentInsetAdjustmentBehavior="never"
+      scrollEventThrottle={16}
+      onScroll={(event) => {
+        const y = event.nativeEvent.contentOffset.y;
+        pull.set(y < 0 ? -y : 0);
+        // Pulled down well past the top: the line hidden up there has been seen.
+        if (EASTER_EGGS_ENABLED && y < -70) discover('tagline');
+      }}
+    >
+      <InkPull pull={pull} />
+      {EASTER_EGGS_ENABLED ? (
+        <View pointerEvents="none" style={styles.hidden} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          <ThemedText variant="tagline" color="secondary" style={styles.hiddenLine}>
+            {HIDDEN_LINE}
+          </ThemedText>
+        </View>
+      ) : null}
       <Hero page="home">
+        {season ? <Seasonal season={season} /> : null}
+        <OwlFlight />
         <View style={styles.topRow}>
           <View style={styles.greeting}>
-            <ThemedText variant="overline" style={{ color: colors.onHeroMuted }}>
-              {(isToday ? `${getGreeting(now)}${firstName ? `, ${firstName}` : ''}` : formatRelativeDay(day, today)).toUpperCase()}
-            </ThemedText>
+            <View style={styles.greetingRow}>
+              <ThemedText variant="overline" style={{ color: colors.onHeroMuted }}>
+                {(isToday ? `${getGreeting(now)}${firstName ? `, ${firstName}` : ''}` : formatRelativeDay(day, today)).toUpperCase()}
+              </ThemedText>
+              <NightOwl />
+            </View>
             <ThemedText variant="title2" style={{ color: colors.onHero }} accessibilityRole="header">
               {isToday ? 'today' : day.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).toLowerCase()}
             </ThemedText>
@@ -111,6 +147,10 @@ const styles = StyleSheet.create({
   content: { paddingBottom: Spacing['5xl'] },
   topRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   greeting: { flex: 1, gap: Spacing.xxs },
+  greetingRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, height: 16 },
+  // Sits above the top of the page, where only a pull past the edge can reach it.
+  hidden: { position: 'absolute', top: -96, left: 0, right: 0, alignItems: 'center', zIndex: 1 },
+  hiddenLine: { textAlign: 'center' },
   avatar: { width: MIN_TAP, height: MIN_TAP, borderRadius: Radii.full, borderWidth: HAIRLINE, alignItems: 'center', justifyContent: 'center' },
   streak: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, height: 36, paddingHorizontal: Spacing.md, borderRadius: Radii.full, borderWidth: HAIRLINE },
   tabular: { fontVariant: ['tabular-nums'] },

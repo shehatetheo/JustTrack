@@ -1,19 +1,21 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { usePathname, useRouter } from 'expo-router';
 import type { TabTriggerSlotProps } from 'expo-router/ui';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Pressable, StyleSheet, View, type ViewProps } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 import { FiligreeCorner, Splatter } from '@/components/decor';
+import { discover } from '@/components/easterEggs/found';
 import { PressScale, useMotion } from '@/components/motion';
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
 import { ThemedText } from '@/components/ui/ThemedText';
 import { Duration, Haptic, Springs } from '@/constants/motion';
 import { Gloss, HAIRLINE, MIN_TAP, Radii, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
+import { countTaps, EASTER_EGGS_ENABLED } from '@/lib/easterEggs/eggs';
 
 /**
  * The tab bar: a dark blade across the foot of the screen, edged with a
@@ -27,6 +29,21 @@ const SLOTS = 5;
 /** Which slot each tab's path lights. Search isn't a tab: it opens Add Food. */
 const SLOT_FOR_PATH: Record<string, number> = { '/': 0, '/stats': 1, '/scan': 2, '/profile': 4 };
 const SCAN_SIZE = 62;
+
+/** Whether the bar's end caps have been swapped (tap the tab you are on three times, quickly). Lasts until the app restarts. */
+let flipped = false;
+const flipListeners = new Set<() => void>();
+const flipStore = {
+  getSnapshot: () => flipped,
+  subscribe: (listener: () => void) => {
+    flipListeners.add(listener);
+    return () => flipListeners.delete(listener);
+  },
+};
+function flipBlade() {
+  flipped = !flipped;
+  flipListeners.forEach((listener) => listener());
+}
 const SCAN_LIFT = 20;
 
 export function TabBarContainer({ style, children, ref, ...rest }: ViewProps & { ref?: React.Ref<View> }) {
@@ -50,6 +67,14 @@ export function TabBarContainer({ style, children, ref, ...rest }: ViewProps & {
     splash.set(withSequence(withTiming(0, { duration: Duration.micro }), withTiming(1, { duration: Duration.standard })));
   }, [active, position, reduced, splash]);
 
+  const turned = useSyncExternalStore(flipStore.subscribe, flipStore.getSnapshot, flipStore.getSnapshot);
+  const turn = useSharedValue(0);
+  useEffect(() => {
+    turn.set(reduced ? withTiming(turned ? 1 : 0, { duration: Duration.micro }) : withSpring(turned ? 1 : 0, Springs.snappy));
+  }, [reduced, turn, turned]);
+  const capLeft = useAnimatedStyle(() => ({ transform: [{ translateX: turn.get() * Math.max(width - 30, 0) }, { scaleX: 1 - turn.get() * 2 }] }));
+  const capRight = useAnimatedStyle(() => ({ transform: [{ translateX: -turn.get() * Math.max(width - 30, 0) }, { scaleX: 1 - turn.get() * 2 }] }));
+
   const light = useAnimatedStyle(() => ({ transform: [{ translateX: position.get() * slotWidth + slotWidth / 2 - LIGHT_WIDTH / 2 }] }));
   const ink = useAnimatedStyle(() => ({ opacity: splash.get() >= 1 ? 0 : 1 - splash.get(), transform: [{ translateX: active * slotWidth + slotWidth / 2 - 14 }, { scale: 0.5 + splash.get() * 0.9 }] }));
 
@@ -58,14 +83,14 @@ export function TabBarContainer({ style, children, ref, ...rest }: ViewProps & {
     <View {...rest} ref={ref} accessibilityRole="tablist" style={[style, styles.container]}>
       <View style={[styles.blade, shadows.lg, { backgroundColor: colors.surface, borderTopColor: colors.tabBarBorder, paddingBottom: Math.max(insets.bottom, Spacing.sm) }]} onLayout={(event) => setWidth(event.nativeEvent.layout.width)}>
         <LinearGradient pointerEvents="none" colors={[colors.sheen, 'transparent']} style={styles.sheen} />
-        <View pointerEvents="none" style={styles.capLeft}>
+        <Animated.View pointerEvents="none" style={[styles.capLeft, capLeft]}>
           <FiligreeCorner size={22} color={colors.tabBarBorder} />
-        </View>
-        <View pointerEvents="none" style={styles.capRight}>
+        </Animated.View>
+        <Animated.View pointerEvents="none" style={[styles.capRight, capRight]}>
           <View style={styles.flip}>
             <FiligreeCorner size={22} color={colors.tabBarBorder} />
           </View>
-        </View>
+        </Animated.View>
         {width > 0 && active !== 2 ? (
           <>
             <Animated.View pointerEvents="none" style={[styles.light, { backgroundColor: colors.accent, shadowColor: colors.accentDeep }, light]} />
@@ -89,6 +114,7 @@ interface TabBarButtonProps extends TabTriggerSlotProps {
 /** An ordinary tab: an icon over a lowercase label. */
 export function TabBarButton({ icon, activeIcon, label, isFocused, onPress, style, ref, ...rest }: TabBarButtonProps) {
   const { colors } = useAppTheme();
+  const taps = useRef<number[]>([]);
 
   return (
     <Pressable
@@ -98,7 +124,18 @@ export function TabBarButton({ icon, activeIcon, label, isFocused, onPress, styl
       accessibilityLabel={label}
       accessibilityState={{ selected: Boolean(isFocused) }}
       onPress={(event) => {
-        if (!isFocused) Haptic.select();
+        if (!isFocused) {
+          Haptic.select();
+          taps.current = [];
+        } else if (EASTER_EGGS_ENABLED) {
+          // Three quick taps on the tab you are already on swap the bar's end caps.
+          taps.current = countTaps(taps.current, Date.now(), 3, 700);
+          if (taps.current.length === 3) {
+            taps.current = [];
+            discover('blade-flip');
+            flipBlade();
+          }
+        }
         onPress?.(event);
       }}
       // TabTrigger injects a row layout; ours must come last to win.

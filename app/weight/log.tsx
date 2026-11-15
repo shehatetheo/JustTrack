@@ -10,9 +10,8 @@ import { Button } from '@/components/ui/Button';
 import { OrnateFrame } from '@/components/ui/OrnateFrame';
 import { StepperButton, StepperTick } from '@/components/ui/Stepper';
 import { ThemedText } from '@/components/ui/ThemedText';
-import { Fonts } from '@/constants/fonts';
 import { Haptic } from '@/constants/motion';
-import { Spacing } from '@/constants/theme';
+import { Spacing, Typography } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { useSettings } from '@/hooks/useSettings';
 import { useWeights } from '@/hooks/useWeights';
@@ -89,7 +88,7 @@ function LogWeight() {
                     placeholderTextColor={colors.textTertiary}
                     selectionColor={colors.accent}
                     accessibilityLabel={forGoal ? `Goal weight in ${weightUnit}` : `Weight in ${weightUnit}`}
-                    style={[styles.input, { color: colors.text }]}
+                    style={[Typography.displaySmall, styles.input, { color: colors.text }]}
                   />
                   <ThemedText variant="title3" color="secondary">
                     {weightUnit}
@@ -119,7 +118,7 @@ const styles = StyleSheet.create({
   frame: { paddingVertical: Spacing['2xl'], paddingHorizontal: Spacing.lg },
   entry: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   figure: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.sm },
-  input: { fontFamily: Fonts.bodyHeavy, fontSize: 60, lineHeight: 68, letterSpacing: -2, fontVariant: ['tabular-nums'], minWidth: 150, textAlign: 'center', padding: 0, outlineStyle: 'solid', outlineWidth: 0 },
+  input: { fontVariant: ['tabular-nums'], minWidth: 150, textAlign: 'center', padding: 0, outlineStyle: 'solid', outlineWidth: 0 },
   note: { textAlign: 'center' },
   footer: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.md, gap: Spacing.sm },
 });

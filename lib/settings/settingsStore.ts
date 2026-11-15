@@ -26,6 +26,7 @@ export const DEFAULT_SETTINGS: Settings = {
   goalWeightKg: null,
   welcomedAt: null,
   welcomeBackAt: null,
+  secretsFound: [],
 };
 
 function clampGoal(value: unknown): number {
@@ -42,6 +43,12 @@ function parseMacroGoals(raw: unknown): MacroGoals | null {
 
 function parseTimestamp(raw: unknown): string | null {
   return typeof raw === 'string' && Number.isFinite(Date.parse(raw)) ? raw : null;
+}
+
+/** A short list of short ids; anything else in there is dropped. */
+function parseSecrets(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return [...new Set(raw.filter((item): item is string => typeof item === 'string' && item.length > 0 && item.length <= 24))].slice(0, 32);
 }
 
 function parseReminders(raw: unknown): ReminderSettings {
@@ -73,6 +80,7 @@ export function parseSettings(raw: unknown): Settings | null {
     goalWeightKg: typeof item.goalWeightKg === 'number' && item.goalWeightKg >= MIN_WEIGHT_KG && item.goalWeightKg <= MAX_WEIGHT_KG ? item.goalWeightKg : null,
     welcomedAt: parseTimestamp(item.welcomedAt),
     welcomeBackAt: parseTimestamp(item.welcomeBackAt),
+    secretsFound: parseSecrets(item.secretsFound),
   };
 }
 

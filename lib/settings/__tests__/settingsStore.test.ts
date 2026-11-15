@@ -19,7 +19,13 @@ describe('parseSettings', () => {
       goalWeightKg: null,
       welcomedAt: null,
       welcomeBackAt: null,
+      secretsFound: [],
     });
     expect(parseSettings({ calorieGoal: 500 })?.calorieGoal).toBe(1200);
+  });
+
+  it('keeps the list of found secrets short, unique and made of strings', () => {
+    expect(parseSettings({ secretsFound: ['postmark', 'postmark', 7, '', 'night-owl'] })?.secretsFound).toEqual(['postmark', 'night-owl']);
+    expect(parseSettings({ secretsFound: 'postmark' })?.secretsFound).toEqual([]);
   });
 });

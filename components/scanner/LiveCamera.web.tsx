@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { INK } from '@/constants/theme';
 import type { LiveCameraProps } from './LiveCamera';
 
 const CAPTURE_EDGE = 1280;
@@ -68,5 +69,5 @@ export function LiveCamera({ active, onCapture, onUnavailable, bindCapture }: Li
 }
 
 const styles = StyleSheet.create({
-  container: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#000000', overflow: 'hidden' },
+  container: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: INK, overflow: 'hidden' },
 });

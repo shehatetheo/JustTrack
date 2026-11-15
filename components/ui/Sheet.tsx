@@ -125,7 +125,8 @@ export function BottomSheet({ title, tagline, children, ...overlay }: PanelProps
   const insets = useSafeAreaInsets();
   return (
     <Overlay placement="bottom" {...overlay}>
-      <View style={[styles.sheet, { backgroundColor: colors.surface, borderColor: colors.borderAccent, paddingBottom: insets.bottom + Spacing.lg }]}>
+      {/* The filigree along the top edge draws on each time the sheet is shown. */}
+      <OrnateFrame variant="top" corner={30} replay={overlay.visible} style={[styles.sheet, { backgroundColor: colors.surface, borderColor: colors.borderAccent, paddingBottom: insets.bottom + Spacing.lg }]}>
         <View style={[styles.grabber, { backgroundColor: colors.border }]} />
         {title ? (
           <View style={styles.heading}>
@@ -140,7 +141,7 @@ export function BottomSheet({ title, tagline, children, ...overlay }: PanelProps
           </View>
         ) : null}
         {children}
-      </View>
+      </OrnateFrame>
     </Overlay>
   );
 }

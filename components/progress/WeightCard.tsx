@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { PressScale } from '@/components/motion';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -38,7 +39,7 @@ export function WeightCard({ today }: { today: Date }) {
   }
 
   return (
-    <Pressable onPress={() => router.push('/weight')} accessibilityRole="button" accessibilityLabel={`Weight ${weightValue(latest.kg, weightUnit)} ${weightUnit}. Open the chart.`} style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
+    <PressScale onPress={() => router.push('/weight')} pressScale={0.985} haptic="select" accessibilityRole="button" accessibilityLabel={`Weight ${weightValue(latest.kg, weightUnit)} ${weightUnit}. Open the chart.`}>
       <Card style={styles.card}>
         <View style={styles.header}>
           <ThemedText variant="overline" color="tertiary">
@@ -63,7 +64,7 @@ export function WeightCard({ today }: { today: Date }) {
           <View style={styles.spark}>{summary.points.length > 0 ? <WeightChart points={summary.points} unit={weightUnit} height={64} compact /> : null}</View>
         </View>
       </Card>
-    </Pressable>
+    </PressScale>
   );
 }
 

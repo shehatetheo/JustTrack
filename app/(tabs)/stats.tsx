@@ -1,8 +1,12 @@
+import { useIsFocused } from 'expo-router';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { GridPatch } from '@/components/decor';
 import { MacroShareRow } from '@/components/home/MacroShareRow';
+import { discover } from '@/components/easterEggs/found';
+import { InkBurst, SettledInk } from '@/components/easterEggs/InkBurst';
+import { useShake } from '@/components/easterEggs/useShake';
 import { Hero } from '@/components/layout/Hero';
 import { CountUp, PressScale, Stagger } from '@/components/motion';
 import { RankBadge } from '@/components/progress/RankBadge';
@@ -16,7 +20,9 @@ import { OrnateFrame } from '@/components/ui/OrnateFrame';
 import { ThemedText } from '@/components/ui/ThemedText';
 import { MEAL_TYPE_META } from '@/constants/nutrition';
 import { Radii, Spacing } from '@/constants/theme';
+import { Haptic } from '@/constants/motion';
 import { useAppTheme } from '@/contexts/ThemeContext';
+import { EASTER_EGGS_ENABLED } from '@/lib/easterEggs/eggs';
 import { useCurrentTime } from '@/hooks/useCurrentTime';
 import { useLog } from '@/hooks/useLog';
 import { useSettings } from '@/hooks/useSettings';
@@ -36,6 +42,15 @@ export default function TodayScreen() {
   const { sections, totals, all } = useLog(today);
   const settings = useSettings();
   const [explaining, setExplaining] = useState(false);
+  // Shake the phone here and ink flies. Listened for only while this tab is in front.
+  const focused = useIsFocused();
+  const [bursts, setBursts] = useState(0);
+  useShake(() => {
+    if (!EASTER_EGGS_ENABLED) return;
+    discover('ink-shake');
+    Haptic.stamp();
+    setBursts((count) => count + 1);
+  }, focused && EASTER_EGGS_ENABLED);
   const balance = balanceScore(totals);
   const streak = streakSummary(all, today);
   const rank = rankFor(balance?.score ?? null, streak.current);
@@ -46,8 +61,10 @@ export default function TodayScreen() {
   const progress = settings.calorieGoal > 0 ? Math.min(totals.calories / settings.calorieGoal, 1) : 0;
 
   return (
+    <View style={styles.root}>
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content}>
       <Hero page="today" veil={0.35}>
+        <SettledInk arrangement={bursts} />
         <Heading title="today" tagline="the shape of the day" level="title" align="center" onHero />
         <View style={styles.headline} accessible accessibilityLabel={`${formatNumber(totals.calories)} of ${formatNumber(settings.calorieGoal)} calories eaten today`}>
           <CountUp value={totals.calories} variant="display" style={{ color: colors.onHero, textShadowColor: colors.glow, textShadowRadius: 18, textShadowOffset: { width: 0, height: 0 } }} />
@@ -173,12 +190,15 @@ export default function TodayScreen() {
         </Stagger>
       </View>
     </ScrollView>
+    <InkBurst play={bursts} />
+    </View>
   );
 }
 
 const WEEK_HEIGHT = 132;
 
 const styles = StyleSheet.create({
+  root: { flex: 1 },
   content: { paddingBottom: Spacing['5xl'] },
   headline: { alignItems: 'center', paddingTop: Spacing.lg, gap: Spacing.xs },
   track: { width: 200, height: 4, borderRadius: Radii.full, overflow: 'hidden', marginTop: Spacing.md },

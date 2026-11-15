@@ -2,6 +2,8 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { INK } from '@/constants/theme';
+
 export interface BarcodeScannerProps {
   onDetected: (code: string) => void;
   onError: (message: string) => void;
@@ -48,5 +50,5 @@ export function BarcodeScanner({ onDetected, onError }: BarcodeScannerProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000000', overflow: 'hidden' },
+  container: { flex: 1, backgroundColor: INK, overflow: 'hidden' },
 });

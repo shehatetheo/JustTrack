@@ -2,7 +2,7 @@ import { usePathname } from 'expo-router';
 import React, { useRef, useState, useSyncExternalStore } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
-import { PressScale } from '@/components/motion';
+import { PressScale, Stagger } from '@/components/motion';
 import { HAIRLINE, MIN_TAP, Radii, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { dismissSheet, sheetStore, type DialogState, type OverlayState, type SheetState } from '@/utils/actionSheet';
@@ -44,7 +44,7 @@ export function ActionSheetHost() {
   return (
     <>
       <BottomSheet visible={state?.kind === 'sheet'} inline={inline} onClose={dismissSheet} onClosed={closed} title={sheet?.title} tagline={sheet?.tagline}>
-        {sheet ? <Options sheet={sheet} onPick={finish} /> : null}
+        {sheet ? <Options key={`${sheet.title}-${sheet.options.length}`} sheet={sheet} onPick={finish} /> : null}
         <Button label="Cancel" variant="quiet" size="md" onPress={dismissSheet} />
       </BottomSheet>
       <DialogCard visible={state?.kind === 'dialog'} inline={inline} onClose={() => dialog && finish(dialog.onCancel)} onClosed={closed} title={dialog?.title} tagline={dialog?.message}>
@@ -64,8 +64,8 @@ function Options({ sheet, onPick }: { sheet: SheetState; onPick: (action: () => 
   return (
     <View style={[styles.options, { borderColor: colors.border, backgroundColor: colors.surfaceRaised }]} accessibilityRole="menu">
       {sheet.options.map((option, index) => (
+        <Stagger key={`${option.label}-${index}`} index={index} delay={90}>
         <PressScale
-          key={`${option.label}-${index}`}
           onPress={() => onPick(option.onPress)}
           pressScale={0.985}
           haptic="select"
@@ -91,6 +91,7 @@ function Options({ sheet, onPick }: { sheet: SheetState; onPick: (action: () => 
           </View>
           {option.selected ? <AppIcon name="check" size={16} color={colors.accentText} weight="semibold" /> : null}
         </PressScale>
+        </Stagger>
       ))}
     </View>
   );

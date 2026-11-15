@@ -3,6 +3,7 @@ import React from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { ThemedText } from '@/components/ui/ThemedText';
+import { HAIRLINE } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { chainLogo, shortChainName } from '@/lib/food/chainLogos';
 
@@ -13,14 +14,14 @@ interface ChainLogoProps {
   style?: StyleProp<ViewStyle>;
 }
 
-/** A chain's logo on a white tile; without one, its initials on a glass tile, the same for every chain. */
+/** A chain's logo on a white tile, in the chain's own colours like any other photograph; without one, its initials on a glass tile, the same for every chain. */
 export function ChainLogo({ chain, size = 44, radius = 12, style }: ChainLogoProps) {
   const { colors } = useAppTheme();
   const source = chainLogo(chain);
   const box = { width: size, height: size, borderRadius: radius };
   if (source) {
     return (
-      <View style={[box, styles.tile, style]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <View style={[box, styles.tile, { backgroundColor: colors.onHero }, style]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         <Image source={source} style={{ width: size, height: size }} contentFit="cover" transition={120} accessibilityIgnoresInvertColors />
       </View>
     );
@@ -41,7 +42,7 @@ export function ChainLogo({ chain, size = 44, radius = 12, style }: ChainLogoPro
 }
 
 const styles = StyleSheet.create({
-  tile: { backgroundColor: '#FFFFFF', overflow: 'hidden' },
-  mono: { alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth * 2 },
-  initials: { fontWeight: '800', letterSpacing: 0.4 },
+  tile: { overflow: 'hidden' },
+  mono: { alignItems: 'center', justifyContent: 'center', borderWidth: HAIRLINE },
+  initials: { letterSpacing: 0.4 },
 });

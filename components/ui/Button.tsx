@@ -1,11 +1,12 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
-import { ActivityIndicator, StyleSheet, View, type PressableProps } from 'react-native';
+import { StyleSheet, View, type PressableProps } from 'react-native';
 
 import { PressScale } from '@/components/motion';
 import type { HapticName } from '@/constants/motion';
 import { Gloss, HAIRLINE, MIN_TAP, Radii, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
+import { Spinner } from './Spinner';
 import { ThemedText } from './ThemedText';
 
 interface ButtonProps extends Omit<PressableProps, 'style'> {
@@ -68,7 +69,7 @@ export function Button({ label, variant = 'primary', size = 'lg', loading = fals
         </View>
       ) : null}
       {loading ? (
-        <ActivityIndicator color={ink} />
+        <Spinner color={ink} size={20} />
       ) : (
         <ThemedText variant={size === 'lg' ? 'bodyEmphasized' : 'subheadEmphasized'} style={[styles.label, { color: ink }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
           {label.toLowerCase()}

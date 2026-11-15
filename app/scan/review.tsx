@@ -158,7 +158,7 @@ function RowCard({ row, onRemove, onPickMatch }: { row: ReviewRow; onRemove: () 
       </View>
       <PressScale onPress={onPickMatch} haptic="select" accessibilityRole="button" style={styles.matchLink}>
         <AppIcon name="search" size={13} color={colors.accentText} />
-        <ThemedText variant="footnote" style={[styles.strong, { color: colors.accentText }]}>
+        <ThemedText variant="footnoteEmphasized" style={{ color: colors.accentText }}>
           {row.matchedFood ? 'Change match' : row.suggestions.length > 0 ? 'Search the database' : 'Not quite right? Find it in the database'}
         </ThemedText>
       </PressScale>
@@ -334,7 +334,6 @@ const styles = StyleSheet.create({
   grams: { flexDirection: 'row', alignItems: 'center', gap: 2, height: MIN_TAP, paddingHorizontal: Spacing.md, borderRadius: Radii.full, borderWidth: HAIRLINE },
   stepInput: { width: 48, minWidth: 0, textAlign: 'center', paddingVertical: 0, outlineStyle: 'solid', outlineWidth: 0 },
   matchLink: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, minHeight: MIN_TAP / 2, alignSelf: 'flex-start' },
-  strong: { fontWeight: '600' },
   meal: { gap: Spacing.sm },
   footer: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.md, borderTopWidth: HAIRLINE },
 });
