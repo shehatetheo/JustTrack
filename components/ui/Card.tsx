@@ -6,14 +6,14 @@ import { Glass } from './Glass';
 
 interface CardProps extends ViewProps {
   padded?: boolean;
-  /** Kept for callers; glass panels sit flat on the page, so this no longer draws a shadow. */
-  elevated?: 'sm' | 'md' | 'lg' | 'none';
+  /** Lavender edge, for the one card that should stand out. */
+  lit?: boolean;
 }
 
 /** A glass panel with the standard inset. */
-export function Card({ padded = true, style, children, elevated: _elevated, ...rest }: CardProps) {
+export function Card({ padded = true, lit = false, style, children, ...rest }: CardProps) {
   return (
-    <Glass radius={Radii.xl} style={[padded && styles.padded, style]} {...rest}>
+    <Glass radius={Radii.lg} lit={lit} style={[padded && styles.padded, style]} {...rest}>
       {children}
     </Glass>
   );

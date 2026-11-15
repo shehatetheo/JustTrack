@@ -104,8 +104,8 @@ function Blobs() {
   const { colors } = useAppTheme();
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      <View style={[styles.blob, { backgroundColor: colors.gradientMiddle, top: -160, left: '12%', opacity: 0.35 }]} />
-      <View style={[styles.blob, { backgroundColor: colors.gradientStart, bottom: -220, right: '8%', opacity: 0.18 }]} />
+      <View style={[styles.blob, { backgroundColor: colors.accentDeep, top: -160, left: '12%', opacity: 0.35 }]} />
+      <View style={[styles.blob, { backgroundColor: colors.accent, bottom: -220, right: '8%', opacity: 0.18 }]} />
     </View>
   );
 }

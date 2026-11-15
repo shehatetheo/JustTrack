@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/ui/ThemedText';
 import { Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
-import { useCountUp } from '@/hooks/useCountUp';
+import { useCountUp } from '@/components/motion';
 import { formatNumber } from '@/utils/format';
 
 interface CaloriesLeftProps {
@@ -21,10 +21,10 @@ export function CaloriesLeft({ eaten, goal }: CaloriesLeftProps) {
 
   return (
     <View style={styles.container} accessible accessibilityRole="text" accessibilityLabel={`${formatNumber(Math.abs(remaining))} calories ${over ? 'over' : 'left'} today`}>
-      <ThemedText variant="display" style={[styles.number, { color: colors.onGradient }]}>
+      <ThemedText variant="display" style={[styles.number, { color: colors.onHero }]}>
         {formatNumber(shown)}
       </ThemedText>
-      <ThemedText variant="overline" style={{ color: over ? colors.danger : colors.onGradient, opacity: over ? 1 : 0.8 }}>
+      <ThemedText variant="overline" style={{ color: over ? colors.text : colors.onHero, opacity: over ? 1 : 0.8 }}>
         {over ? 'KCAL OVER' : 'KCAL LEFT'}
       </ThemedText>
     </View>

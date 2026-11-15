@@ -38,18 +38,18 @@ export default function ProgressScreen() {
   return (
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content}>
       <GradientHeader seed={19}>
-        <ThemedText variant="headline" style={[styles.center, { color: colors.onGradient }]} accessibilityRole="header">
+        <ThemedText variant="headline" style={[styles.center, { color: colors.onHero }]} accessibilityRole="header">
           Progress
         </ThemedText>
         <View style={styles.headline}>
-          <ThemedText variant="display" style={[styles.tabular, { color: colors.onGradient }]}>
+          <ThemedText variant="display" style={[styles.tabular, { color: colors.onHero }]}>
             {formatNumber(totals.calories)}
           </ThemedText>
-          <ThemedText variant="subhead" style={{ color: colors.onGradientMuted }}>
+          <ThemedText variant="subhead" style={{ color: colors.onHeroMuted }}>
             of {formatNumber(settings.calorieGoal)} kcal eaten today
           </ThemedText>
           <View style={[styles.track, { backgroundColor: 'rgba(255,255,255,0.25)' }]} accessible accessibilityLabel={`${Math.round(progress * 100)} percent of your goal`}>
-            <GrowBar fraction={progress} style={[styles.fill, { backgroundColor: colors.onGradient }]} />
+            <GrowBar fraction={progress} style={[styles.fill, { backgroundColor: colors.onHero }]} />
           </View>
         </View>
         <MacroShareRow totals={totals} goals={settings.macroGoals} onGradient />
@@ -105,7 +105,7 @@ export default function ProgressScreen() {
                       </ThemedText>
                     </View>
                   </View>
-                  <View style={[styles.barTrack, { backgroundColor: colors.accentMuted }]}>
+                  <View style={[styles.barTrack, { backgroundColor: colors.track }]}>
                     <GrowBar fraction={section.totals.calories / maxMeal} style={[styles.barFill, { backgroundColor: colors.accent }]} />
                   </View>
                 </View>
@@ -119,7 +119,7 @@ export default function ProgressScreen() {
           <View style={styles.week} accessible accessibilityLabel={week.map((day, index) => `${day.toLocaleDateString('en-US', { weekday: 'long' })} ${formatNumber(weekCalories[index])} calories`).join(', ')}>
             {week.map((day, index) => (
               <View key={day.toISOString()} style={styles.weekDay}>
-                <View style={[styles.weekTrack, { backgroundColor: colors.accentMuted }]}>
+                <View style={[styles.weekTrack, { backgroundColor: colors.track }]}>
                   <GrowBar axis="y" delay={index * 40} fraction={weekCalories[index] / maxDay} style={[styles.weekFill, { backgroundColor: index === 6 ? colors.text : colors.textTertiary }]} />
                 </View>
                 <ThemedText variant="caption2" color={index === 6 ? 'primary' : 'secondary'}>

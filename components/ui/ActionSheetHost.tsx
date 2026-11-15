@@ -35,7 +35,7 @@ export function ActionSheetHost() {
               {sheet.message}
             </ThemedText>
           ) : null}
-          <View style={[styles.options, { backgroundColor: colors.surfaceTint }]}>
+          <View style={[styles.options, { backgroundColor: colors.surface }]}>
             {sheet.options.map((option, index) => (
               <Pressable
                 key={`${option.label}-${index}`}
@@ -49,17 +49,17 @@ export function ActionSheetHost() {
                 style={({ pressed }) => [
                   styles.option,
                   index < sheet.options.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
-                  pressed && { backgroundColor: colors.surfaceTintStrong },
+                  pressed && { backgroundColor: colors.surfaceRaised },
                 ]}
               >
-                <ThemedText variant="body" style={{ color: option.destructive ? colors.danger : colors.text }}>
+                <ThemedText variant="body" style={{ color: option.destructive ? colors.text : colors.text }}>
                   {option.label}
                 </ThemedText>
                 {option.selected ? <AppIcon name="check" size={16} color={colors.accent} weight="semibold" /> : null}
               </Pressable>
             ))}
           </View>
-          <Pressable onPress={dismissSheet} accessibilityRole="button" style={({ pressed }) => [styles.cancel, { backgroundColor: colors.surfaceTint, opacity: pressed ? 0.7 : 1 }]}>
+          <Pressable onPress={dismissSheet} accessibilityRole="button" style={({ pressed }) => [styles.cancel, { backgroundColor: colors.surface, opacity: pressed ? 0.7 : 1 }]}>
             <ThemedText variant="bodyEmphasized">Cancel</ThemedText>
           </Pressable>
         </View>

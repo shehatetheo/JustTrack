@@ -28,7 +28,7 @@ export function NutritionColumns({ nutrition }: { nutrition: NutritionValues }) 
         return (
           <View
             key={key}
-            style={[styles.column, { backgroundColor: colors.surfaceTint }]}
+            style={[styles.column, { backgroundColor: colors.surface }]}
             accessible
             accessibilityLabel={`${label} ${formatDecimal(nutrition[key])} grams, ${Math.round(share * 100)} percent of calories`}
           >

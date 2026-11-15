@@ -70,7 +70,7 @@ export default function ProfileScreen() {
   return (
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content}>
       <GradientHeader fadeEnd={0.9} seed={41}>
-        <ThemedText variant="headline" style={[styles.title, { color: colors.onGradient }]} accessibilityRole="header">
+        <ThemedText variant="headline" style={[styles.title, { color: colors.onHero }]} accessibilityRole="header">
           Profile
         </ThemedText>
         <View style={[styles.hero, shadows.sm, { backgroundColor: colors.surface, borderColor: colors.border }]}>

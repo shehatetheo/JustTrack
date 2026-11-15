@@ -54,7 +54,7 @@ export function OnboardingScaffold({
           )}
           {progress !== null ? (
             <View
-              style={[styles.track, { backgroundColor: colors.backgroundSecondary }]}
+              style={[styles.track, { backgroundColor: colors.surfaceRaised }]}
               accessible
               accessibilityRole="progressbar"
               accessibilityLabel={`Step ${step} of ${totalSteps}`}

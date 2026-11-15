@@ -68,7 +68,7 @@ export function OptionPicker<T extends string>({ label, options, value, onChange
                 }}
                 accessibilityRole="radio"
                 accessibilityState={{ checked: selected }}
-                style={({ pressed }) => [styles.option, pressed && { backgroundColor: colors.backgroundSecondary }]}
+                style={({ pressed }) => [styles.option, pressed && { backgroundColor: colors.surfaceRaised }]}
               >
                 <ThemedText variant="body" style={styles.optionText}>
                   {option.label}

@@ -1,7 +1,8 @@
 import React from 'react';
 import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { Radii, Spacing } from '@/constants/theme';
+import { Haptic } from '@/constants/motion';
+import { HAIRLINE, MIN_TAP, Radii, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { AppIcon, type AppIconName } from './AppIcon';
 import { ThemedText } from './ThemedText';
@@ -17,7 +18,7 @@ interface ListRowProps {
   accessory?: React.ReactNode;
 }
 
-/** A settings row: a quiet monochrome icon tile, title, trailing value, chevron. */
+/** A list row in the dashboard manner: a small ink icon, the title, a trailing value, a chevron. Pressing lights the row. */
 export function ListRow({
   title,
   icon,
@@ -29,19 +30,19 @@ export function ListRow({
   accessory,
 }: ListRowProps) {
   const { colors } = useAppTheme();
-  const titleColor = destructive ? colors.danger : colors.text;
+  const titleColor = destructive ? colors.textSecondary : colors.text;
 
   const body = (
     <>
       {icon ? (
-        <View style={[styles.iconTile, { backgroundColor: colors.surfaceTintStrong }]}>
-          <AppIcon name={icon} size={15} color={destructive ? colors.danger : colors.text} weight="semibold" />
+        <View style={[styles.iconTile, { borderColor: colors.border }]}>
+          <AppIcon name={icon} size={15} color={destructive ? colors.textSecondary : colors.accentText} weight="semibold" />
         </View>
       ) : null}
       <View
         style={[
           styles.content,
-          !isLast && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+          !isLast && { borderBottomWidth: HAIRLINE, borderBottomColor: colors.border },
         ]}
       >
         <ThemedText variant="body" style={{ color: titleColor, flexShrink: 1 }}>
@@ -64,7 +65,14 @@ export function ListRow({
   if (!onPress) return <View style={[styles.row, { backgroundColor: colors.surface }]}>{body}</View>;
 
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" style={({ pressed }) => [styles.row, { backgroundColor: pressed ? colors.backgroundSecondary : colors.surface }]}>
+    <Pressable
+      onPress={() => {
+        Haptic.tap();
+        onPress();
+      }}
+      accessibilityRole="button"
+      style={({ pressed }) => [styles.row, { backgroundColor: pressed ? colors.surfaceRaised : colors.surface }]}
+    >
       {body}
     </Pressable>
   );
@@ -102,12 +110,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingLeft: Spacing.lg,
-    minHeight: 48,
+    minHeight: MIN_TAP + 4,
   },
   iconTile: {
     width: 30,
     height: 30,
-    borderRadius: 8,
+    borderRadius: Radii.md,
+    borderWidth: HAIRLINE,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Spacing.md,
@@ -127,7 +136,7 @@ const styles = StyleSheet.create({
   sectionBody: {
     borderRadius: Radii.lg,
     overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth * 2,
+    borderWidth: HAIRLINE,
   },
   sectionFooter: { marginTop: Spacing.sm, marginHorizontal: Spacing.xs },
 });

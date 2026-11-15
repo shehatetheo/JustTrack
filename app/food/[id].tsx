@@ -58,7 +58,7 @@ export default function AddFoodScreen() {
     return (
       <View style={[styles.center, { backgroundColor: colors.background }]}>
         {loadError ? (
-          <EmptyState icon="wifiOff" title="Couldn’t load this food" message={loadError} actionLabel="Try Again" onAction={retry} />
+          <EmptyState title="Couldn’t load this food" message={loadError} actionLabel="Try Again" onAction={retry} />
         ) : (
           <ActivityIndicator color={colors.textSecondary} />
         )}

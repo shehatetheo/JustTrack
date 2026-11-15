@@ -63,7 +63,7 @@ export default function LogWeightScreen() {
           {forGoal ? 'THE WEIGHT YOU’RE WORKING TOWARD' : new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase()}
         </ThemedText>
         <View style={styles.entry}>
-          <Pressable onPress={() => nudge(-1)} accessibilityRole="button" accessibilityLabel={`${step} ${weightUnit} less`} hitSlop={8} style={[styles.step, { backgroundColor: colors.surfaceTint, borderColor: colors.border }]}>
+          <Pressable onPress={() => nudge(-1)} accessibilityRole="button" accessibilityLabel={`${step} ${weightUnit} less`} hitSlop={8} style={[styles.step, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <AppIcon name="minus" size={18} color={colors.text} weight="semibold" />
           </Pressable>
           <View style={styles.figure}>
@@ -83,7 +83,7 @@ export default function LogWeightScreen() {
               {weightUnit}
             </ThemedText>
           </View>
-          <Pressable onPress={() => nudge(1)} accessibilityRole="button" accessibilityLabel={`${step} ${weightUnit} more`} hitSlop={8} style={[styles.step, { backgroundColor: colors.surfaceTint, borderColor: colors.border }]}>
+          <Pressable onPress={() => nudge(1)} accessibilityRole="button" accessibilityLabel={`${step} ${weightUnit} more`} hitSlop={8} style={[styles.step, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <AppIcon name="plus" size={18} color={colors.text} weight="semibold" />
           </Pressable>
         </View>

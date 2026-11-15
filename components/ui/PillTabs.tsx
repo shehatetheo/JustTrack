@@ -1,8 +1,8 @@
-import * as Haptics from 'expo-haptics';
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { Radii, Spacing } from '@/constants/theme';
+import { PressScale } from '@/components/motion';
+import { HAIRLINE, MIN_TAP, Radii } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { ThemedText } from './ThemedText';
 
@@ -13,30 +13,29 @@ interface PillTabsProps<T extends string> {
   accessibilityLabel?: string;
 }
 
-/** A segmented control: a glass track with a solid plate on the chosen option. */
+/** A segmented control: a dark track with a lavender plate on the chosen option. */
 export function PillTabs<T extends string>({ options, value, onChange, accessibilityLabel }: PillTabsProps<T>) {
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
 
   return (
-    <View style={[styles.track, { backgroundColor: colors.surfaceTint, borderColor: colors.border }]} accessibilityRole="tablist" accessibilityLabel={accessibilityLabel}>
+    <View style={[styles.track, { backgroundColor: colors.surface, borderColor: colors.border }]} accessibilityRole="tablist" accessibilityLabel={accessibilityLabel}>
       {options.map((option) => {
         const selected = option.value === value;
         return (
-          <Pressable
+          <PressScale
             key={option.value}
             onPress={() => {
-              if (selected) return;
-              Haptics.selectionAsync();
-              onChange(option.value);
+              if (!selected) onChange(option.value);
             }}
+            haptic={selected ? null : 'select'}
             accessibilityRole="tab"
             accessibilityState={{ selected }}
-            style={[styles.pill, selected && { backgroundColor: isDark ? colors.surfaceTintStrong : '#FFFFFF' }]}
+            style={[styles.pill, selected && { backgroundColor: colors.accent }]}
           >
-            <ThemedText variant={selected ? 'subheadEmphasized' : 'subhead'} color={selected ? 'primary' : 'secondary'}>
-              {option.label}
+            <ThemedText variant="subheadEmphasized" style={{ color: selected ? colors.onAccent : colors.textSecondary }}>
+              {option.label.toLowerCase()}
             </ThemedText>
-          </Pressable>
+          </PressScale>
         );
       })}
     </View>
@@ -44,6 +43,6 @@ export function PillTabs<T extends string>({ options, value, onChange, accessibi
 }
 
 const styles = StyleSheet.create({
-  track: { flexDirection: 'row', padding: 3, borderRadius: Radii.md, borderWidth: StyleSheet.hairlineWidth * 2 },
-  pill: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.sm, borderRadius: Radii.md - 3, minHeight: 36 },
+  track: { flexDirection: 'row', padding: 3, borderRadius: Radii.full, borderWidth: HAIRLINE },
+  pill: { flex: 1, alignItems: 'center', justifyContent: 'center', borderRadius: Radii.full, minHeight: MIN_TAP - 8 },
 });

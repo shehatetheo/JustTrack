@@ -98,11 +98,11 @@ export default function GoalScreen() {
       <Card style={styles.card}>
         <ThemedText variant="headline">Calories per day</ThemedText>
         <View style={styles.goalRow}>
-          <Pressable onPress={() => step(-CALORIE_STEP)} accessibilityRole="button" accessibilityLabel={`${CALORIE_STEP} fewer`} style={[styles.stepButton, { backgroundColor: colors.backgroundSecondary }]}>
+          <Pressable onPress={() => step(-CALORIE_STEP)} accessibilityRole="button" accessibilityLabel={`${CALORIE_STEP} fewer`} style={[styles.stepButton, { backgroundColor: colors.surfaceRaised }]}>
             <AppIcon name="minus" size={18} color={colors.text} weight="semibold" />
           </Pressable>
           <TextField label="" value={calories} onChangeText={(text) => setCalories(text.replace(/[^0-9]/g, ''))} keyboardType="number-pad" maxLength={5} suffix="kcal" accessibilityLabel="Daily calorie goal" />
-          <Pressable onPress={() => step(CALORIE_STEP)} accessibilityRole="button" accessibilityLabel={`${CALORIE_STEP} more`} style={[styles.stepButton, { backgroundColor: colors.backgroundSecondary }]}>
+          <Pressable onPress={() => step(CALORIE_STEP)} accessibilityRole="button" accessibilityLabel={`${CALORIE_STEP} more`} style={[styles.stepButton, { backgroundColor: colors.surfaceRaised }]}>
             <AppIcon name="plus" size={18} color={colors.text} weight="semibold" />
           </Pressable>
         </View>
@@ -168,13 +168,13 @@ export default function GoalScreen() {
       </Card>
 
       {error ? (
-        <ThemedText variant="footnote" style={{ color: colors.danger }} accessibilityLiveRegion="polite">
+        <ThemedText variant="footnote" style={{ color: colors.text }} accessibilityLiveRegion="polite">
           {error}
         </ThemedText>
       ) : null}
       <Button label="Save goal" onPress={save} />
 
-      <View style={[styles.note, { backgroundColor: colors.backgroundSecondary }]}>
+      <View style={[styles.note, { backgroundColor: colors.surfaceRaised }]}>
         <AppIcon name="info" size={18} color={colors.textSecondary} />
         <ThemedText variant="footnote" color="secondary" style={styles.noteText}>
           Targets are estimates. JustTrack won’t suggest going below {formatNumber(MIN_CALORIE_TARGET)} calories a day — talk to a doctor or dietitian if you think you need less.

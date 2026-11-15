@@ -17,7 +17,7 @@ function StepButton({ icon, label, onPress }: { icon: AppIconName; label: string
       accessibilityRole="button"
       accessibilityLabel={label}
       hitSlop={4}
-      style={({ pressed }) => [styles.step, { backgroundColor: colors.backgroundSecondary, opacity: pressed ? 0.6 : 1 }]}
+      style={({ pressed }) => [styles.step, { backgroundColor: colors.surfaceRaised, opacity: pressed ? 0.6 : 1 }]}
     >
       <AppIcon name={icon} size={18} color={colors.text} weight="semibold" />
     </Pressable>

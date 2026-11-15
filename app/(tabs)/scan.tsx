@@ -130,7 +130,7 @@ export default function ScanScreen() {
 
 function ScanFallback({ reason, scan, busy }: { reason: 'denied' | 'no_camera' | 'unsupported'; scan: (from: 'camera' | 'library') => Promise<void>; busy: boolean }) {
   const router = useRouter();
-  const { colors, shadows, isDark } = useAppTheme();
+  const { colors, shadows } = useAppTheme();
   const insets = useSafeAreaInsets();
   const note =
     reason === 'denied'
@@ -148,7 +148,7 @@ function ScanFallback({ reason, scan, busy }: { reason: 'denied' | 'no_camera' |
         Photograph the plate. JustTrack names what’s on it and estimates the calories — you check it, then log it.
       </ThemedText>
 
-      <LinearGradient colors={isDark ? [colors.surfaceTintStrong, colors.surfaceTint] : [colors.gradientStart, colors.gradientMiddle]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.heroCard, { borderColor: colors.border }]}>
+      <LinearGradient colors={[colors.surfaceRaised, colors.surface]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.heroCard, { borderColor: colors.border }]}>
         <View style={styles.heroBadge}>
           <ThemedText variant="caption2" style={styles.heroBadgeText}>
             ESTIMATE
@@ -169,7 +169,7 @@ function ScanFallback({ reason, scan, busy }: { reason: 'denied' | 'no_camera' |
       <Pressable
         onPress={() => router.push('/scan/describe')}
         accessibilityRole="button"
-        style={({ pressed }) => [styles.card, shadows.sm, { backgroundColor: colors.surfaceTint, borderColor: colors.border, opacity: pressed ? 0.85 : 1 }]}
+        style={({ pressed }) => [styles.card, shadows.sm, { backgroundColor: colors.surface, borderColor: colors.border, opacity: pressed ? 0.85 : 1 }]}
       >
         <View style={[styles.iconTile, { backgroundColor: colors.surface }]}>
           <AppIcon name="pencil" size={22} color={colors.text} />
@@ -186,7 +186,7 @@ function ScanFallback({ reason, scan, busy }: { reason: 'denied' | 'no_camera' |
       <Pressable
         onPress={() => router.push('/scan/barcode')}
         accessibilityRole="button"
-        style={({ pressed }) => [styles.card, shadows.sm, { backgroundColor: colors.surfaceTint, borderColor: colors.border, opacity: pressed ? 0.85 : 1 }]}
+        style={({ pressed }) => [styles.card, shadows.sm, { backgroundColor: colors.surface, borderColor: colors.border, opacity: pressed ? 0.85 : 1 }]}
       >
         <View style={[styles.iconTile, { backgroundColor: colors.surface }]}>
           <AppIcon name="barcode" size={24} color={colors.text} />
@@ -203,7 +203,7 @@ function ScanFallback({ reason, scan, busy }: { reason: 'denied' | 'no_camera' |
       <Pressable
         onPress={() => router.push('/food/search')}
         accessibilityRole="button"
-        style={({ pressed }) => [styles.card, shadows.sm, { backgroundColor: colors.surfaceTint, borderColor: colors.border, opacity: pressed ? 0.85 : 1 }]}
+        style={({ pressed }) => [styles.card, shadows.sm, { backgroundColor: colors.surface, borderColor: colors.border, opacity: pressed ? 0.85 : 1 }]}
       >
         <View style={[styles.iconTile, { backgroundColor: colors.surface }]}>
           <AppIcon name="search" size={22} color={colors.text} />

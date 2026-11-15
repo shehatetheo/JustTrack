@@ -44,7 +44,7 @@ export function FoodSearchRow({ food, onPress, disambiguate = false, hideBrand =
       accessibilityRole="button"
       accessibilityLabel={[name, hideBrand ? null : food.brand, `${calories} calories per ${serving.description}`].filter(Boolean).join(', ')}
       accessibilityHint="Choose an amount and add it to your diary"
-      style={({ pressed }) => [styles.row, rounded, { backgroundColor: pressed ? colors.backgroundSecondary : colors.surfaceTint }, position !== 'last' && position !== 'only' && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border }]}
+      style={({ pressed }) => [styles.row, rounded, { backgroundColor: pressed ? colors.surfaceRaised : colors.surface }, position !== 'last' && position !== 'only' && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border }]}
     >
       {thumb ? <FoodThumb name={food.name} hints={[food.category, food.brand]} imageUri={food.imageUrl} size={40} radius={12} /> : null}
       <View style={styles.text}>

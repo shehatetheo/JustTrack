@@ -85,7 +85,7 @@ export default function EditEntryScreen() {
   if (!entry) {
     return (
       <View style={[styles.center, { backgroundColor: colors.background }]}>
-        <EmptyState icon="clock" title="This entry is gone" message="It was deleted or cleared." actionLabel="Close" onAction={() => router.back()} />
+        <EmptyState title="This entry is gone" message="It was deleted or cleared." actionLabel="Close" onAction={() => router.back()} />
       </View>
     );
   }
@@ -128,7 +128,7 @@ export default function EditEntryScreen() {
         <View style={styles.actions}>
           <Button label="Save changes" onPress={save} disabled={!canSave} />
           <Button label="Log it again" variant="secondary" onPress={logAgain} />
-          <Button label="Delete entry" variant="ghostDestructive" onPress={() => void remove()} />
+          <Button label="Delete entry" variant="quiet" onPress={() => void remove()} />
         </View>
       </View>
     </ScrollView>

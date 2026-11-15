@@ -9,7 +9,7 @@ import { MealCard } from '@/components/home/MealCard';
 import { WeekStrip } from '@/components/home/WeekStrip';
 import { GradientHeader } from '@/components/layout/GradientHeader';
 import { AppIcon } from '@/components/ui/AppIcon';
-import { Tap } from '@/components/ui/Tap';
+import { PressScale } from '@/components/motion';
 import { ThemedText } from '@/components/ui/ThemedText';
 import { PRIVACY_LINE } from '@/constants/brand';
 import { Spacing } from '@/constants/theme';
@@ -48,32 +48,32 @@ export default function HomeScreen() {
       <GradientHeader fadeEnd={0.92}>
         <View style={styles.topRow}>
           <View style={styles.greeting}>
-            <ThemedText variant="overline" style={{ color: colors.onGradientMuted }}>
+            <ThemedText variant="overline" style={{ color: colors.onHeroMuted }}>
               {(isToday ? `${getGreeting(now)}${settings.displayName ? `, ${settings.displayName.split(' ')[0]}` : ''}` : formatRelativeDay(day, today)).toUpperCase()}
             </ThemedText>
-            <ThemedText variant="title2" style={{ color: colors.onGradient }} accessibilityRole="header">
+            <ThemedText variant="title2" style={{ color: colors.onHero }} accessibilityRole="header">
               {isToday ? 'Stay on track today' : day.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </ThemedText>
           </View>
           {streak.current > 0 ? (
-            <Tap
+            <PressScale
               onPress={() => router.push('/stats')}
               pressScale={0.94}
               accessibilityRole="button"
               accessibilityLabel={`${streak.current} day streak${streak.waiting ? ', log today to keep it' : ''}`}
               style={[styles.streak, { backgroundColor: 'rgba(255,255,255,0.14)', borderColor: 'rgba(255,255,255,0.22)', opacity: streak.waiting ? 0.7 : 1 }]}
             >
-              <AppIcon name="flame" size={14} color={streak.waiting ? colors.onGradientMuted : colors.carbs} />
-              <ThemedText variant="subheadEmphasized" style={[styles.streakCount, { color: colors.onGradient }]}>
+              <AppIcon name="flame" size={14} color={streak.waiting ? colors.onHeroMuted : colors.carbs} />
+              <ThemedText variant="subheadEmphasized" style={[styles.streakCount, { color: colors.onHero }]}>
                 {streak.current}
               </ThemedText>
-            </Tap>
+            </PressScale>
           ) : null}
-          <Tap onPress={() => router.push('/profile')} pressScale={0.9} accessibilityRole="button" accessibilityLabel={settings.displayName ? `${settings.displayName}, profile` : 'Profile'} style={[styles.avatar, { backgroundColor: 'rgba(255,255,255,0.14)', borderColor: 'rgba(255,255,255,0.22)', borderWidth: StyleSheet.hairlineWidth * 2 }]}>
-            <ThemedText variant="subheadEmphasized" style={{ color: colors.onGradient }}>
+          <PressScale onPress={() => router.push('/profile')} pressScale={0.9} accessibilityRole="button" accessibilityLabel={settings.displayName ? `${settings.displayName}, profile` : 'Profile'} style={[styles.avatar, { backgroundColor: 'rgba(255,255,255,0.14)', borderColor: 'rgba(255,255,255,0.22)', borderWidth: StyleSheet.hairlineWidth * 2 }]}>
+            <ThemedText variant="subheadEmphasized" style={{ color: colors.onHero }}>
               {initialFor(settings.displayName)}
             </ThemedText>
-          </Tap>
+          </PressScale>
         </View>
         <WeekStrip today={today} selected={day} onSelect={setPicked} />
         <Animated.View key={day.toDateString()} entering={firstShow ? FadeIn.duration(350) : undefined}>
@@ -90,11 +90,11 @@ export default function HomeScreen() {
             Daily meals
           </ThemedText>
           {!isToday ? (
-            <Tap onPress={() => setPicked(null)} accessibilityRole="button" hitSlop={8} style={[styles.todayChip, { backgroundColor: colors.surfaceTint }]}>
+            <PressScale onPress={() => setPicked(null)} accessibilityRole="button" hitSlop={8} style={[styles.todayChip, { backgroundColor: colors.surface }]}>
               <ThemedText variant="footnote" style={{ color: colors.accent, fontWeight: '600' }}>
                 Back to today
               </ThemedText>
-            </Tap>
+            </PressScale>
           ) : null}
         </View>
 

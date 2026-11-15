@@ -36,7 +36,7 @@ export default function OrderBuilderScreen() {
   const [selection, setSelection] = useState<Selection>(() => config?.defaultSelection ?? {});
 
   if (!config) {
-    return <EmptyState icon="search" title="Nothing to build here" message="Search for Chipotle, Subway, Panda Express, or Jersey Mike’s." actionLabel="Close" onAction={() => router.back()} />;
+    return <EmptyState title="Nothing to build here" message="Search for Chipotle, Subway, Panda Express, or Jersey Mike’s." actionLabel="Close" onAction={() => router.back()} />;
   }
 
   const totals = nutritionOf(config, selection);
@@ -58,7 +58,7 @@ export default function OrderBuilderScreen() {
       <Stack.Screen options={{ title: config.title, headerLeft: () => null, headerRight: () => <CloseButton onPress={() => router.back()} />, headerTitleAlign: 'center' }} />
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <View style={[styles.summary, { backgroundColor: colors.surfaceTint }]}>
+        <View style={[styles.summary, { backgroundColor: colors.surface }]}>
           <BuildPreview shape={shapeOf(config, selection)} ingredients={ingredients} length={lengthOf(config, selection)} />
           <ThemedText variant="headline" numberOfLines={2}>
             {config.nameOf(selection)}
@@ -118,9 +118,9 @@ export default function OrderBuilderScreen() {
                       accessibilityRole={step.mode === 'one' ? 'radio' : 'checkbox'}
                       accessibilityLabel={option.label}
                       accessibilityState={{ checked: picked }}
-                      style={({ pressed }) => [styles.chip, { backgroundColor: picked ? colors.fab : colors.surfaceTint, borderColor: picked ? colors.fab : colors.border, opacity: pressed ? 0.8 : 1 }, picked && option.doubleable && styles.chipJoined]}
+                      style={({ pressed }) => [styles.chip, { backgroundColor: picked ? colors.accent : colors.surface, borderColor: picked ? colors.accent : colors.border, opacity: pressed ? 0.8 : 1 }, picked && option.doubleable && styles.chipJoined]}
                     >
-                      <ThemedText variant="subhead" style={{ color: picked ? colors.fabIcon : colors.text }}>
+                      <ThemedText variant="subhead" style={{ color: picked ? colors.onAccent : colors.text }}>
                         {option.label}
                       </ThemedText>
                     </Pressable>
@@ -133,7 +133,7 @@ export default function OrderBuilderScreen() {
                         accessibilityRole="switch"
                         accessibilityLabel={`Double ${option.label.toLowerCase()}`}
                         accessibilityState={{ checked: count === 2 }}
-                        style={({ pressed }) => [styles.doubleChip, { backgroundColor: count === 2 ? colors.accent : colors.surfaceTint, opacity: pressed ? 0.8 : 1 }]}
+                        style={({ pressed }) => [styles.doubleChip, { backgroundColor: count === 2 ? colors.accent : colors.surface, opacity: pressed ? 0.8 : 1 }]}
                       >
                         <ThemedText variant="subheadEmphasized" style={{ color: count === 2 ? '#FFFFFF' : colors.accent }}>
                           2×

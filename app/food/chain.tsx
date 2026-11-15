@@ -84,17 +84,17 @@ export default function ChainMenuScreen() {
                 onPress={() => router.push({ pathname: '/food/build', params: { builder: builder.key, mealType } })}
                 accessibilityRole="button"
                 accessibilityLabel={`Build your ${builder.chain} order`}
-                style={({ pressed }) => [styles.builder, { backgroundColor: colors.fab, opacity: pressed ? 0.85 : 1 }]}
+                style={({ pressed }) => [styles.builder, { backgroundColor: colors.accent, opacity: pressed ? 0.85 : 1 }]}
               >
                 <View style={styles.builderText}>
-                  <ThemedText variant="headline" style={{ color: colors.fabIcon }}>
+                  <ThemedText variant="headline" style={{ color: colors.onAccent }}>
                     Build your order
                   </ThemedText>
-                  <ThemedText variant="footnote" style={{ color: colors.fabIcon, opacity: 0.75 }}>
+                  <ThemedText variant="footnote" style={{ color: colors.onAccent, opacity: 0.75 }}>
                     Pick it like you’d order it.
                   </ThemedText>
                 </View>
-                <AppIcon name="chevronRight" size={14} color={colors.fabIcon} weight="semibold" />
+                <AppIcon name="chevronRight" size={14} color={colors.onAccent} weight="semibold" />
               </Pressable>
             ) : null}
             {menu.length > 0 ? <SearchField value={query} onChangeText={setQuery} placeholder={`Search the ${chain} menu`} /> : null}
@@ -115,9 +115,9 @@ export default function ChainMenuScreen() {
         renderSectionFooter={() => <View style={styles.gap} />}
         ListEmptyComponent={
           menu.length === 0 ? (
-            <EmptyState icon="clock" title="Menu coming soon" message={`${chain} isn’t in our menu data yet. Search for the item by name, or snap a photo and the scanner will estimate it.`} />
+            <EmptyState title="Menu coming soon" message={`${chain} isn’t in our menu data yet. Search for the item by name, or snap a photo and the scanner will estimate it.`} />
           ) : (
-            <EmptyState icon="search" title="Nothing on this menu matches" message="Try a shorter word, like “chicken” or “large”." />
+            <EmptyState title="Nothing on this menu matches" message="Try a shorter word, like “chicken” or “large”." />
           )
         }
         contentContainerStyle={styles.list}

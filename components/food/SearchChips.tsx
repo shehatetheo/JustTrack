@@ -35,13 +35,13 @@ export function FilterChips<T extends string>({ options, selected, onSelect }: F
             accessibilityRole="radio"
             accessibilityState={{ selected: active }}
             accessibilityLabel={option.count !== undefined ? `${option.label}, ${option.count}` : option.label}
-            style={({ pressed }) => [styles.chip, { backgroundColor: active ? colors.fab : colors.backgroundSecondary, opacity: pressed ? 0.8 : 1 }]}
+            style={({ pressed }) => [styles.chip, { backgroundColor: active ? colors.accent : colors.surfaceRaised, opacity: pressed ? 0.8 : 1 }]}
           >
-            <ThemedText variant="subheadEmphasized" style={{ color: active ? colors.fabIcon : colors.text }}>
+            <ThemedText variant="subheadEmphasized" style={{ color: active ? colors.onAccent : colors.text }}>
               {option.label}
             </ThemedText>
             {option.count !== undefined ? (
-              <ThemedText variant="caption1" style={{ color: active ? colors.fabIcon : colors.textSecondary, opacity: 0.8 }}>
+              <ThemedText variant="caption1" style={{ color: active ? colors.onAccent : colors.textSecondary, opacity: 0.8 }}>
                 {option.count}
               </ThemedText>
             ) : null}
@@ -87,7 +87,7 @@ export function TermChips({ title, terms, onPick, onClear }: TermChipsProps) {
             }}
             accessibilityRole="button"
             accessibilityLabel={`Search ${term}`}
-            style={({ pressed }) => [styles.term, { backgroundColor: colors.surfaceTint, opacity: pressed ? 0.7 : 1 }]}
+            style={({ pressed }) => [styles.term, { backgroundColor: colors.surface, opacity: pressed ? 0.7 : 1 }]}
           >
             <ThemedText variant="subhead">{term}</ThemedText>
           </Pressable>

@@ -57,7 +57,8 @@
           "cameraPermission": "JustTrack uses the camera to photograph meals and scan barcodes."
         }
       ],
-      "./plugins/withoutPushEntitlement"
+      "./plugins/withoutPushEntitlement",
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true,

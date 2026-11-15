@@ -80,7 +80,7 @@ export function WelcomeBack({ days, onClose }: WelcomeBackProps) {
       <View style={[styles.top, { paddingTop: insets.top + Spacing.md }]}>
         <View style={styles.dots} accessible accessibilityLabel={`Slide ${page + 1} of 3`}>
           {[0, 1, 2].map((index) => (
-            <View key={index} style={[styles.dot, { backgroundColor: index === page ? colors.text : colors.surfaceTintStrong, width: index === page ? 22 : 8 }]} />
+            <View key={index} style={[styles.dot, { backgroundColor: index === page ? colors.text : colors.surfaceRaised, width: index === page ? 22 : 8 }]} />
           ))}
         </View>
         <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Skip" hitSlop={12}>

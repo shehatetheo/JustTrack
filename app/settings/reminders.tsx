@@ -87,7 +87,7 @@ export default function RemindersScreen() {
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content}>
       <Stack.Screen options={{ headerRight: () => <CloseButton onPress={() => router.back()} />, headerTitleAlign: 'center' }} />
 
-      <View style={[styles.stage, { backgroundColor: colors.surfaceTint, borderColor: colors.border }]}>
+      <View style={[styles.stage, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <ThemedText variant="overline" color="tertiary">
           WHAT THEY LOOK LIKE
         </ThemedText>
@@ -100,7 +100,7 @@ export default function RemindersScreen() {
           accessibilityRole="button"
           accessibilityLabel="Show another reminder"
           hitSlop={8}
-          style={({ pressed }) => [styles.shuffle, { backgroundColor: colors.surfaceTintStrong, borderColor: colors.border, opacity: pressed ? 0.7 : 1 }]}
+          style={({ pressed }) => [styles.shuffle, { backgroundColor: colors.surfaceRaised, borderColor: colors.border, opacity: pressed ? 0.7 : 1 }]}
         >
           <ThemedText variant="footnote" style={{ color: colors.text, fontWeight: '700' }}>
             Show me another

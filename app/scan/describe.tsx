@@ -43,7 +43,7 @@ export default function DescribeScreen() {
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[styles.root, { backgroundColor: colors.background }]}>
       <Stack.Screen options={{ headerShown: true, title: 'Describe what you ate', headerTitleAlign: 'center', headerShadowVisible: false, headerTintColor: colors.text, headerStyle: { backgroundColor: colors.background }, headerLeft: () => null, headerRight: () => <CloseButton onPress={() => router.back()} /> }} />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Animated.View entering={FadeInDown.duration(260)} style={[styles.box, { backgroundColor: colors.surfaceTint }]}>
+        <Animated.View entering={FadeInDown.duration(260)} style={[styles.box, { backgroundColor: colors.surface }]}>
           <TextInput
             value={text}
             onChangeText={(value) => setText(value.slice(0, MAX_DESCRIPTION_LENGTH))}
@@ -71,14 +71,14 @@ export default function DescribeScreen() {
 
         <TermChips title="Try" terms={EXAMPLES} onPick={setText} />
 
-        <View style={[styles.how, { backgroundColor: colors.surfaceTint }]}>
+        <View style={[styles.how, { backgroundColor: colors.surface }]}>
           {[
             ['1', 'AI splits it into foods and sizes each portion.'],
             ['2', 'Each food gets database matches to pick from, or keep the estimate.'],
             ['3', 'Adjust grams, then add it all to a meal.'],
           ].map(([step, line]) => (
             <View key={step} style={styles.howRow}>
-              <View style={[styles.stepDot, { backgroundColor: colors.accentMuted }]}>
+              <View style={[styles.stepDot, { backgroundColor: colors.track }]}>
                 <ThemedText variant="caption2" style={{ color: colors.accent, fontWeight: '700' }}>
                   {step}
                 </ThemedText>

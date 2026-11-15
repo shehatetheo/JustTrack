@@ -6,7 +6,7 @@ import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
 
 import { MeteorShower } from '@/components/space/MeteorShower';
 import { Starfield } from '@/components/space/Starfield';
-import { Spacing } from '@/constants/theme';
+import { INK, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { useLightStatusBar } from '@/lib/statusBar';
 
@@ -44,7 +44,7 @@ export function GradientHeader({ children, style, fadeEnd = 1, seed = 7 }: Gradi
   }
 
   return (
-    <LinearGradient colors={[colors.gradientStart, colors.gradientMiddle, colors.gradientEnd]} locations={[0, Math.max(0.35, fadeEnd * 0.55), fadeEnd]} style={[styles.gradient, padding, style]}>
+    <LinearGradient colors={[INK, INK, colors.background]} locations={[0, Math.max(0.35, fadeEnd * 0.55), fadeEnd]} style={[styles.gradient, padding, style]}>
       <Starfield count={40} seed={seed} twinkle={4} dim={0.7} />
       <MeteorShower count={1} seed={seed + 2} calm={8} />
       <Halo />
@@ -79,7 +79,7 @@ function Halo() {
       {[520, 400, 280].map((size) => (
         <View
           key={size}
-          style={[styles.ring, { width: size, height: size, borderRadius: size / 2, marginLeft: -size / 2, marginTop: -size / 2 + 150, borderColor: colors.onGradient, opacity: isDark ? 0.08 : 0.12 }]}
+          style={[styles.ring, { width: size, height: size, borderRadius: size / 2, marginLeft: -size / 2, marginTop: -size / 2 + 150, borderColor: colors.onHero, opacity: isDark ? 0.08 : 0.12 }]}
         />
       ))}
     </View>

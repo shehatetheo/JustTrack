@@ -1,9 +1,11 @@
+import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useRef, useState } from 'react';
 import { AppState, StyleSheet } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { FONT_FILES } from '@/constants/fonts';
 
 import { logStore } from '@/lib/log/logStore';
 import { settingsStore } from '@/lib/settings/settingsStore';
@@ -21,7 +23,10 @@ const RETURN_MS = 1300;
  * the time the loading screen fades away the first screen is already drawn.
  */
 export function StoreGate({ children }: { children: React.ReactNode }) {
-  const [ready, setReady] = useState(() => logStore.isHydrated() && settingsStore.isHydrated() && weightStore.isHydrated());
+  // If a font fails to load the app still opens, in the system face.
+  const [fontsLoaded, fontError] = useFonts(FONT_FILES);
+  const [stored, setStored] = useState(() => logStore.isHydrated() && settingsStore.isHydrated() && weightStore.isHydrated());
+  const ready = stored && (fontsLoaded || fontError !== null);
   const [showing, setShowing] = useState(true);
   const leftAt = useRef<number | null>(null);
 
@@ -30,7 +35,7 @@ export function StoreGate({ children }: { children: React.ReactNode }) {
     SplashScreen.hideAsync();
     let cancelled = false;
     Promise.all([logStore.hydrate(), settingsStore.hydrate(), weightStore.hydrate()]).then(() => {
-      if (!cancelled) setReady(true);
+      if (!cancelled) setStored(true);
     });
     let timer = setTimeout(() => setShowing(false), LAUNCH_MS);
 

@@ -62,7 +62,7 @@ export function TabBarButton({ icon, activeIcon, label, isFocused, onPress, styl
       // TabTrigger injects a row layout; ours must come last to win.
       style={(state) => [typeof style === 'function' ? style(state) : style, styles.tab]}
     >
-      <Animated.View style={[styles.circle, isFocused && { backgroundColor: colors.surfaceTintStrong }, circle]}>
+      <Animated.View style={[styles.circle, isFocused && { backgroundColor: colors.surfaceRaised }, circle]}>
         <AppIcon name={isFocused && activeIcon ? activeIcon : icon} size={22} color={isFocused ? colors.tabIconSelected : colors.tabIconDefault} />
       </Animated.View>
     </Pressable>
@@ -84,9 +84,9 @@ export function AddButton() {
         accessibilityRole="button"
         accessibilityLabel="Add food"
         accessibilityHint="Search foods, brands, and restaurant menus"
-        style={({ pressed }) => [styles.fab, shadows.md, { backgroundColor: colors.fab, transform: [{ scale: pressed ? 0.94 : 1 }] }]}
+        style={({ pressed }) => [styles.fab, shadows.md, { backgroundColor: colors.accent, transform: [{ scale: pressed ? 0.94 : 1 }] }]}
       >
-        <AppIcon name="search" size={24} color={colors.fabIcon} weight="bold" />
+        <AppIcon name="search" size={24} color={colors.onAccent} weight="bold" />
       </Pressable>
     </View>
   );

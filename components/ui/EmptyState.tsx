@@ -1,32 +1,37 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { Radii, Spacing } from '@/constants/theme';
+import { Crescent, ReceiptScrap } from '@/components/decor';
+import { InkReveal } from '@/components/motion';
+import { Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
-import { AppIcon, type AppIconName } from './AppIcon';
 import { Button } from './Button';
 import { ThemedText } from './ThemedText';
 
 interface EmptyStateProps {
-  icon: AppIconName;
+  /** A word or two in blackletter: the one place it is used for meaning, so keep it short. */
   title: string;
   message: string;
   actionLabel?: string;
   onAction?: () => void;
 }
 
-export function EmptyState({ icon, title, message, actionLabel, onAction }: EmptyStateProps) {
+/** Nothing here yet: a lone receipt scrap under the moon, a line in blackletter, and what to do about it. */
+export function EmptyState({ title, message, actionLabel, onAction }: EmptyStateProps) {
   const { colors } = useAppTheme();
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.iconWrap, { backgroundColor: colors.backgroundSecondary }]}>
-        <AppIcon name={icon} size={28} color={colors.textSecondary} />
+    <InkReveal style={styles.container}>
+      <View style={styles.art}>
+        <View style={styles.moon}>
+          <Crescent size={34} color={colors.accent} />
+        </View>
+        <ReceiptScrap width={72} height={92} opacity={0.9} />
       </View>
-      <ThemedText variant="headline" style={styles.title}>
+      <ThemedText variant="blackletter" style={styles.center} accessibilityRole="header">
         {title}
       </ThemedText>
-      <ThemedText variant="subhead" color="secondary" style={styles.message}>
+      <ThemedText variant="subhead" color="secondary" style={styles.center}>
         {message}
       </ThemedText>
       {actionLabel && onAction ? (
@@ -34,25 +39,14 @@ export function EmptyState({ icon, title, message, actionLabel, onAction }: Empt
           <Button label={actionLabel} onPress={onAction} size="md" fullWidth={false} />
         </View>
       ) : null}
-    </View>
+    </InkReveal>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    paddingVertical: Spacing['3xl'],
-    paddingHorizontal: Spacing['2xl'],
-  },
-  iconWrap: {
-    width: 64,
-    height: 64,
-    borderRadius: Radii.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.lg,
-  },
-  title: { textAlign: 'center' },
-  message: { textAlign: 'center', marginTop: Spacing.xs },
-  action: { marginTop: Spacing.xl },
+  container: { alignItems: 'center', paddingVertical: Spacing['3xl'], paddingHorizontal: Spacing['2xl'], gap: Spacing.sm },
+  art: { width: 130, height: 104, alignItems: 'center', justifyContent: 'flex-end', marginBottom: Spacing.sm },
+  moon: { position: 'absolute', top: 0, right: 6 },
+  center: { textAlign: 'center' },
+  action: { marginTop: Spacing.md },
 });

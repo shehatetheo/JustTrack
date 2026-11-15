@@ -1,40 +1,37 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 
-import { Spacing } from '@/constants/theme';
+import { Shimmer } from '@/components/motion';
+import { HAIRLINE, Radii, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 
-/** Three breathing placeholder rows while packaged foods load, in place of a spinner. */
+/** Placeholder rows while foods load: dark blocks with a slow band of lavender light crossing them. */
 export function SkeletonRows({ count = 3 }: { count?: number }) {
   const { colors } = useAppTheme();
-  const pulse = useSharedValue(0.5);
-  useEffect(() => {
-    pulse.set(withRepeat(withTiming(1, { duration: 700 }), -1, true));
-  }, [pulse]);
-  const style = useAnimatedStyle(() => ({ opacity: pulse.get() }));
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.surfaceTint }]} accessibilityLabel="Loading packaged foods" accessible>
+    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]} accessibilityLabel="Loading foods" accessible>
       {Array.from({ length: count }, (_, index) => (
-        <Animated.View key={index} style={[styles.row, style, index < count - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border }]}>
-          <View style={[styles.thumb, { backgroundColor: colors.backgroundSecondary }]} />
+        <View key={index} style={[styles.row, index < count - 1 && { borderBottomWidth: HAIRLINE, borderBottomColor: colors.border }]}>
+          <Shimmer style={styles.thumb} />
           <View style={styles.lines}>
-            <View style={[styles.line, { width: '62%', backgroundColor: colors.backgroundSecondary }]} />
-            <View style={[styles.line, { width: '38%', backgroundColor: colors.backgroundSecondary }]} />
+            <Shimmer style={[styles.line, styles.long]} />
+            <Shimmer style={[styles.line, styles.short]} />
           </View>
-          <View style={[styles.pill, { backgroundColor: colors.backgroundSecondary }]} />
-        </Animated.View>
+          <Shimmer style={styles.pill} />
+        </View>
       ))}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { marginHorizontal: Spacing.lg, borderRadius: 20, overflow: 'hidden' },
+  card: { marginHorizontal: Spacing.lg, borderRadius: Radii.lg, borderWidth: HAIRLINE, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.md, paddingHorizontal: Spacing.lg, minHeight: 60 },
-  thumb: { width: 40, height: 40, borderRadius: 12 },
-  lines: { flex: 1, gap: 8 },
-  line: { height: 12, borderRadius: 6 },
-  pill: { width: 56, height: 26, borderRadius: 13 },
+  thumb: { width: 40, height: 40, borderRadius: Radii.md },
+  lines: { flex: 1, gap: Spacing.sm },
+  line: { height: 12, borderRadius: Radii.sm },
+  long: { width: '62%' },
+  short: { width: '38%' },
+  pill: { width: 56, height: 24, borderRadius: Radii.full },
 });

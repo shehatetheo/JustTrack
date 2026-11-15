@@ -26,20 +26,20 @@ export default function WelcomeScreen() {
   };
 
   return (
-    <LinearGradient colors={[colors.gradientStart, colors.gradientMiddle, colors.gradientEnd]} locations={[0, 0.5, 1]} style={styles.root}>
+    <LinearGradient colors={[colors.background, colors.background, colors.background]} locations={[0, 0.5, 1]} style={styles.root}>
       {isDark ? <SpaceBackdrop meteors={4} calm={2.2} nebula={{ x: 0.5, y: 0.2 }} /> : null}
       <View style={[styles.content, { paddingTop: insets.top + Spacing['4xl'], paddingBottom: insets.bottom + Spacing['2xl'] }]}>
         <View style={styles.hero}>
           <Animated.View entering={FadeInDown.duration(600)}>
-            <Logo width={96} color={colors.onGradient} />
+            <Logo width={96} color={colors.onHero} />
           </Animated.View>
-          <Animated.Text entering={FadeIn.delay(200).duration(600)} style={[styles.wordmark, { color: colors.onGradient }]} accessibilityRole="header">
+          <Animated.Text entering={FadeIn.delay(200).duration(600)} style={[styles.wordmark, { color: colors.onHero }]} accessibilityRole="header">
             {APP_NAME.toUpperCase()}
           </Animated.Text>
-          <Animated.Text entering={FadeIn.delay(350).duration(600)} style={[styles.headline, { color: colors.onGradient }]}>
+          <Animated.Text entering={FadeIn.delay(350).duration(600)} style={[styles.headline, { color: colors.onHero }]}>
             Snap your food.{'\n'}Know your calories.
           </Animated.Text>
-          <Animated.Text entering={FadeIn.delay(500).duration(600)} style={[styles.sub, { color: colors.onGradientMuted }]}>
+          <Animated.Text entering={FadeIn.delay(500).duration(600)} style={[styles.sub, { color: colors.onHeroMuted }]}>
             {HOMETOWN_LINE}
           </Animated.Text>
         </View>
@@ -56,9 +56,9 @@ export default function WelcomeScreen() {
           <Pressable
             onPress={() => start(false)}
             accessibilityRole="button"
-            style={({ pressed }) => [styles.primary, { backgroundColor: colors.fab, opacity: pressed ? 0.85 : 1 }]}
+            style={({ pressed }) => [styles.primary, { backgroundColor: colors.accent, opacity: pressed ? 0.85 : 1 }]}
           >
-            <ThemedText variant="bodyEmphasized" style={{ color: colors.fabIcon }}>
+            <ThemedText variant="bodyEmphasized" style={{ color: colors.onAccent }}>
               Start tracking
             </ThemedText>
           </Pressable>

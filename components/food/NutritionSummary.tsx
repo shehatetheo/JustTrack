@@ -30,7 +30,7 @@ export function NutritionSummary({ nutrition, caption, estimated = false }: Nutr
   return (
     <Card style={styles.card} accessible accessibilityLabel={spoken}>
       {estimated ? (
-        <View style={[styles.estimate, { backgroundColor: colors.backgroundSecondary }]}>
+        <View style={[styles.estimate, { backgroundColor: colors.surfaceRaised }]}>
           <ThemedText variant="caption2" color="secondary">
             ESTIMATED NUTRITION
           </ThemedText>

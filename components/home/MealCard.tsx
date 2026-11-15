@@ -42,7 +42,7 @@ export function MealCard({ section, onAdd }: MealCardProps) {
   ];
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.surfaceTint, borderColor: colors.border }]}>
+    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
       <View style={[styles.top, onCover && styles.topCover]}>
         {cover ? (
           <>
@@ -68,7 +68,7 @@ export function MealCard({ section, onAdd }: MealCardProps) {
             accessibilityRole="button"
             accessibilityLabel={`Add food to ${meta.label}`}
             hitSlop={6}
-            style={({ pressed }) => [styles.addButton, { backgroundColor: onCover ? '#FFFFFF' : colors.surfaceTintStrong, borderColor: onCover ? 'transparent' : colors.border, opacity: pressed ? 0.7 : 1 }]}
+            style={({ pressed }) => [styles.addButton, { backgroundColor: onCover ? '#FFFFFF' : colors.surfaceRaised, borderColor: onCover ? 'transparent' : colors.border, opacity: pressed ? 0.7 : 1 }]}
           >
             <AppIcon name="plus" size={18} color={onCover ? '#0A0A0B' : colors.text} weight="semibold" />
           </Pressable>

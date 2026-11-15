@@ -45,3 +45,6 @@ example
 
 # Vercel
 .vercel
+
+# Design reference material (inspiration images, source art). The app uses the copies in assets/.
+design-refs/

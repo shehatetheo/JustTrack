@@ -90,7 +90,7 @@ export function WeightChart({ points, unit, goalKg = null, height = 220, compact
               </LinearGradient>
             </Defs>
             {compact ? null : layout.ticks.map((tick) => <Line key={tick.value} x1={box.left} x2={width - box.right} y1={tick.y} y2={tick.y} stroke={colors.border} strokeWidth={1} />)}
-            {layout.goalY !== null ? <Line x1={box.left} x2={width - box.right} y1={layout.goalY} y2={layout.goalY} stroke={colors.success} strokeWidth={1.5} strokeDasharray="5 5" /> : null}
+            {layout.goalY !== null ? <Line x1={box.left} x2={width - box.right} y1={layout.goalY} y2={layout.goalY} stroke={colors.accent} strokeWidth={1.5} strokeDasharray="5 5" /> : null}
             <AnimatedPath d={layout.area} fill={`url(#${fillId})`} animatedProps={fill} />
             <AnimatedPath d={layout.line} stroke={colors.accent} strokeOpacity={0.35} strokeWidth={compact ? 5 : 7} strokeLinecap="round" strokeLinejoin="round" fill="none" strokeDasharray={`${reach} ${reach}`} animatedProps={stroke} />
             <AnimatedPath d={layout.line} stroke={line} strokeWidth={compact ? 2 : 2.5} strokeLinecap="round" strokeLinejoin="round" fill="none" strokeDasharray={`${reach} ${reach}`} animatedProps={stroke} />
@@ -114,7 +114,7 @@ export function WeightChart({ points, unit, goalKg = null, height = 220, compact
                   </ThemedText>
                 ))}
             {!compact && layout.goalY !== null ? (
-              <ThemedText variant="caption2" style={[styles.goal, { top: layout.goalY - 16, left: box.left + 2, color: colors.success }]}>
+              <ThemedText variant="caption2" style={[styles.goal, { top: layout.goalY - 16, left: box.left + 2, color: colors.accent }]}>
                 GOAL
               </ThemedText>
             ) : null}
@@ -132,10 +132,10 @@ export function WeightChart({ points, unit, goalKg = null, height = 220, compact
             ) : null}
             {shown ? (
               <View style={[styles.bubble, { backgroundColor: colors.text, left: Math.min(Math.max(shown.x - 54, 0), Math.max(width - 108, 0)) }]}>
-                <ThemedText variant="caption2" style={{ color: colors.textInverse, opacity: 0.7 }}>
+                <ThemedText variant="caption2" style={{ color: colors.background, opacity: 0.7 }}>
                   {shortDate(shown.point.date)}
                 </ThemedText>
-                <ThemedText variant="subheadEmphasized" style={[styles.tabular, { color: colors.textInverse }]}>
+                <ThemedText variant="subheadEmphasized" style={[styles.tabular, { color: colors.background }]}>
                   {toUnit(shown.point.kg).toFixed(1)} {unit}
                 </ThemedText>
               </View>

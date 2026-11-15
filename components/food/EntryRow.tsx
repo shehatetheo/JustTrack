@@ -61,7 +61,7 @@ export function EntryRow({ entry, isLast, onOpen, onDuplicate, onDelete, onMore 
       renderRightActions={() => (
         <View style={styles.actions}>
           <SwipeAction icon="duplicate" label="Again" color={colors.textSecondary} onPress={run(onDuplicate)} />
-          <SwipeAction icon="trash" label="Delete" color={colors.danger} onPress={run(onDelete)} />
+          <SwipeAction icon="trash" label="Delete" color={colors.text} onPress={run(onDelete)} />
         </View>
       )}
     >
@@ -78,7 +78,7 @@ export function EntryRow({ entry, isLast, onOpen, onDuplicate, onDelete, onMore 
         }}
         style={({ pressed }) => [
           styles.row,
-          { backgroundColor: pressed ? colors.surfaceTintStrong : colors.surfaceTint },
+          { backgroundColor: pressed ? colors.surfaceRaised : colors.surface },
           !isLast && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
         ]}
       >
@@ -89,7 +89,7 @@ export function EntryRow({ entry, isLast, onOpen, onDuplicate, onDelete, onMore 
           </ThemedText>
           <View style={styles.detailRow}>
             {entry.isEstimate ? (
-              <View style={[styles.badge, { backgroundColor: colors.accentMuted }]}>
+              <View style={[styles.badge, { backgroundColor: colors.track }]}>
                 <ThemedText variant="caption2" style={{ color: colors.accent }}>
                   ESTIMATED
                 </ThemedText>

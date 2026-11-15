@@ -19,7 +19,7 @@ export function AppErrorBoundary({ error, retry }: ErrorBoundaryProps) {
         JustTrack hit an unexpected error. Please try again.
       </Text>
       {__DEV__ ? (
-        <Text selectable style={[Typography.footnote, styles.detail, { color: colors.danger }]}>
+        <Text selectable style={[Typography.footnote, styles.detail, { color: colors.text }]}>
           {error.message}
         </Text>
       ) : null}
@@ -28,7 +28,7 @@ export function AppErrorBoundary({ error, retry }: ErrorBoundaryProps) {
         onPress={retry}
         style={({ pressed }) => [styles.button, { backgroundColor: colors.text, opacity: pressed ? 0.85 : 1 }]}
       >
-        <Text style={[Typography.bodyEmphasized, { color: colors.textInverse }]}>Try again</Text>
+        <Text style={[Typography.bodyEmphasized, { color: colors.background }]}>Try again</Text>
       </Pressable>
     </View>
   );

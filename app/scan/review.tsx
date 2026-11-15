@@ -86,12 +86,12 @@ function SourceOptions({ row }: { row: ReviewRow }) {
       accessibilityRole="radio"
       accessibilityState={{ checked: selected }}
       accessibilityLabel={`${title}, ${detail}`}
-      style={({ pressed }) => [styles.option, { backgroundColor: selected ? colors.fab : colors.surface, opacity: pressed ? 0.8 : 1 }]}
+      style={({ pressed }) => [styles.option, { backgroundColor: selected ? colors.accent : colors.surface, opacity: pressed ? 0.8 : 1 }]}
     >
-      <ThemedText variant="caption1" numberOfLines={1} style={{ color: selected ? colors.fabIcon : colors.text, fontWeight: '600' }}>
+      <ThemedText variant="caption1" numberOfLines={1} style={{ color: selected ? colors.onAccent : colors.text, fontWeight: '600' }}>
         {title}
       </ThemedText>
-      <ThemedText variant="caption2" numberOfLines={1} style={{ color: selected ? colors.fabIcon : colors.textSecondary, opacity: selected ? 0.8 : 1 }}>
+      <ThemedText variant="caption2" numberOfLines={1} style={{ color: selected ? colors.onAccent : colors.textSecondary, opacity: selected ? 0.8 : 1 }}>
         {detail}
       </ThemedText>
     </Pressable>
@@ -194,7 +194,7 @@ export default function ReviewScreen() {
                   {rows.map((row, index) => {
                     const nutrition = rowNutrition(row);
                     return (
-                      <Animated.View key={row.id} entering={FadeInDown.delay(80 + index * 60).duration(320)} style={[styles.row, shadows.sm, { backgroundColor: colors.surfaceTint, borderColor: colors.border }]}>
+                      <Animated.View key={row.id} entering={FadeInDown.delay(80 + index * 60).duration(320)} style={[styles.row, shadows.sm, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                         <View style={styles.rowHeader}>
                           <View style={styles.rowTitle}>
                             <ThemedText variant="headline" numberOfLines={2}>

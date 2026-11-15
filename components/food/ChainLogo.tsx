@@ -32,7 +32,7 @@ export function ChainLogo({ chain, size = 44, radius = 12, style }: ChainLogoPro
     .slice(0, 2)
     .toUpperCase();
   return (
-    <View style={[box, styles.mono, { backgroundColor: colors.surfaceTintStrong, borderColor: colors.border }, style]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+    <View style={[box, styles.mono, { backgroundColor: colors.surfaceRaised, borderColor: colors.border }, style]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       <ThemedText variant={size >= 56 ? 'title3' : 'subheadEmphasized'} style={styles.initials}>
         {initials}
       </ThemedText>

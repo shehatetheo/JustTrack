@@ -20,7 +20,7 @@ export function WeekStrip({ today, selected, onSelect }: WeekStripProps) {
   const { colors, isDark } = useAppTheme();
   const monday = startOfWeek(selected);
   const days = DAYS.map((name, index) => ({ name, date: addDays(monday, index) }));
-  const chip = isDark ? colors.surfaceTint : 'rgba(255,255,255,0.8)';
+  const chip = isDark ? colors.surface : 'rgba(255,255,255,0.8)';
   const edge = isDark ? colors.border : 'transparent';
 
   return (
@@ -31,7 +31,7 @@ export function WeekStrip({ today, selected, onSelect }: WeekStripProps) {
         const future = date > today;
         // The picked day is a solid plate: white on black in dark mode, violet in light.
         const plate = isDark ? '#FFFFFF' : colors.accent;
-        const ink = isSelected ? (isDark ? '#000000' : '#FFFFFF') : isDark ? colors.onGradient : colors.text;
+        const ink = isSelected ? (isDark ? '#000000' : '#FFFFFF') : isDark ? colors.onHero : colors.text;
         return (
           <Pressable
             key={date.toISOString()}

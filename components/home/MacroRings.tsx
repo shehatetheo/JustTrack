@@ -42,7 +42,7 @@ export function MacroRings({ totals, goals }: MacroRingsProps) {
             accessible
             accessibilityLabel={goals ? `${label}: ${formatNumber(eaten)} of ${formatNumber(goal)} grams, ${headline} ${left < 0 ? 'over' : 'left'}` : `${label} ${headline} of today's calories`}
           >
-            <Ring progress={progress} size={76} stroke={7} color={colors[key]} trackColor={colors.backgroundSecondary}>
+            <Ring progress={progress} size={76} stroke={7} color={colors[key]} trackColor={colors.surfaceRaised}>
               <ThemedText variant="subheadEmphasized" style={styles.tabular}>
                 {headline}
               </ThemedText>

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
 
-import { Radii, Spacing, Typography } from '@/constants/theme';
+import { HAIRLINE, Radii, Spacing, Typography } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
+import { FocusLine } from './FocusLine';
 import { ThemedText } from './ThemedText';
 
 interface TextFieldProps extends TextInputProps {
@@ -15,14 +16,13 @@ interface TextFieldProps extends TextInputProps {
 export function TextField({ label, suffix, error, style, onFocus, onBlur, ref, ...rest }: TextFieldProps) {
   const { colors } = useAppTheme();
   const [focused, setFocused] = useState(false);
-  const borderColor = error ? colors.danger : focused ? colors.text : 'transparent';
 
   return (
     <View style={styles.container}>
-      <ThemedText variant="footnote" color="secondary" style={styles.label}>
-        {label}
+      <ThemedText variant="overline" color="tertiary" style={styles.label}>
+        {label.toUpperCase()}
       </ThemedText>
-      <View style={[styles.field, { backgroundColor: colors.backgroundSecondary, borderColor }]}>
+      <View style={[styles.field, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <TextInput
           {...rest}
           ref={ref}
@@ -44,9 +44,10 @@ export function TextField({ label, suffix, error, style, onFocus, onBlur, ref, .
             {suffix}
           </ThemedText>
         ) : null}
+        <FocusLine active={focused} error={Boolean(error)} />
       </View>
       {error ? (
-        <ThemedText variant="footnote" style={{ color: colors.danger }} accessibilityLiveRegion="polite">
+        <ThemedText variant="footnote" style={{ color: colors.text }} accessibilityLiveRegion="polite">
           {error}
         </ThemedText>
       ) : null}
@@ -60,12 +61,13 @@ const styles = StyleSheet.create({
   field: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: Radii.md,
-    borderWidth: 1.5,
+    borderRadius: Radii.lg,
+    borderWidth: HAIRLINE,
     paddingHorizontal: Spacing.lg,
     minHeight: 52,
     gap: Spacing.sm,
+    overflow: 'hidden',
   },
   // minWidth 0 lets the input shrink on web, where it otherwise keeps a default width and pushes the suffix out.
-  input: { flex: 1, minWidth: 0, paddingVertical: Spacing.md },
+  input: { flex: 1, minWidth: 0, paddingVertical: Spacing.md, outlineWidth: 0 },
 });

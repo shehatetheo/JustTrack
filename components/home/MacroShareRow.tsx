@@ -26,8 +26,8 @@ export function MacroShareRow({ totals, goals, onGradient = false }: MacroShareR
   const { colors } = useAppTheme();
   const shares = macroShares(totals);
   // The row sits at the foot of the header, where the gradient has already faded into the page.
-  const labelColor = onGradient ? colors.onGradientFootMuted : colors.textSecondary;
-  const valueColor = onGradient ? colors.onGradientFoot : colors.text;
+  const labelColor = onGradient ? colors.onHeroMuted : colors.textSecondary;
+  const valueColor = onGradient ? colors.onHero : colors.text;
 
   return (
     <View style={styles.row}>
