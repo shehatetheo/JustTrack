@@ -37,6 +37,8 @@ interface CountUpProps {
   value: number;
   /** Turns the in-between value into text. Defaults to a whole number with thousands separators. */
   format?: (value: number) => string;
+  /** How long the count takes; shorter for numbers that change as you adjust something. */
+  durationMs?: number;
   variant?: TypographyVariant;
   color?: 'primary' | 'secondary' | 'tertiary' | 'inverse';
   style?: StyleProp<TextStyle>;
@@ -47,8 +49,8 @@ interface CountUpProps {
 const whole = (value: number) => Math.round(value).toLocaleString('en-US');
 
 /** A number that counts to its new value instead of jumping. Screen readers get the final value, not every step. */
-export function CountUp({ value, format = whole, variant = 'body', color, style, ...rest }: CountUpProps) {
-  const shown = useCountUp(value);
+export function CountUp({ value, format = whole, durationMs, variant = 'body', color, style, ...rest }: CountUpProps) {
+  const shown = useCountUp(value, durationMs);
   return (
     <ThemedText variant={variant} color={color} style={[{ fontVariant: ['tabular-nums'] }, style]} accessibilityLabel={format(value)} {...rest}>
       {format(shown)}

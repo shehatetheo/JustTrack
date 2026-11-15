@@ -1,15 +1,15 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { GridPatch, Halftone, Scribble } from '@/components/decor';
+import { FoodGlyph, foodKindFor } from '@/components/food/FoodGlyph';
 import { CloseButton } from '@/components/ui/CloseButton';
 import { ThemedText } from '@/components/ui/ThemedText';
-import { Radii, Spacing } from '@/constants/theme';
+import { HAIRLINE, Radii, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
-import { foodEmojiFor } from '@/lib/food/foodEmoji';
-import { heroTintFor } from '@/lib/food/heroTint';
 import { useLightStatusBar } from '@/lib/statusBar';
 
 interface FoodHeroProps {
@@ -18,97 +18,106 @@ interface FoodHeroProps {
   /** Right-aligned headline, e.g. "150 g". */
   amount?: string | null;
   amountCaption?: string | null;
-  /** A photo to show instead of the tint: a product shot, or the user's own meal photo. */
+  /** A photo to show instead of the drawing: a product shot, or the user's own meal photo. */
   imageUri?: string | null;
-  /** Used to choose the tint when there's no photo. */
+  /** Used to choose the drawing when there's no photo. */
   tintHints?: (string | null | undefined)[];
   badge?: string | null;
   onBack?: () => void;
-  /** A modal closes with an X; a pushed screen goes back with a chevron. */
+  /** A sheet closes with an X; a pushed screen goes back with a chevron. */
   backIcon?: 'close' | 'back';
+  /** A second button on the right that leaves the whole sheet, for a pushed screen. */
+  onClose?: () => void;
 }
 
+const HEIGHT = 300;
+
 /**
- * The top of a food screen: a photo (or a category-tinted gradient) with
- * the food's name and amount set over it, like a magazine cover.
+ * The top of a food screen: a dark plate in both themes. A real photo stays
+ * in colour; without one the food is drawn in white ink over a patch of
+ * grid and halftone. The name and the amount sit along the foot.
  */
-export function FoodHero({ title, subtitle, amount, amountCaption, imageUri, tintHints = [], badge, onBack, backIcon = 'close' }: FoodHeroProps) {
-  const { colors, isDark } = useAppTheme();
+export function FoodHero({ title, subtitle, amount, amountCaption, imageUri, tintHints = [], badge, onBack, backIcon = 'close', onClose }: FoodHeroProps) {
+  const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
-  const [tintStart, tintEnd] = heroTintFor(...tintHints, title);
-  // Light mode sets dark text over a whitened foot of the photo; dark mode keeps white text over a darkened one.
-  useLightStatusBar(isDark);
-  const ink = isDark ? '#FFFFFF' : colors.text;
-  const inkMuted = isDark ? 'rgba(255,255,255,0.8)' : colors.textSecondary;
-  const scrim = isDark ? ['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.08)', 'rgba(0,0,0,0.82)'] : ['rgba(255,255,255,0.35)', 'rgba(255,255,255,0.0)', 'rgba(255,255,255,0.82)'];
+  useLightStatusBar();
 
   return (
-    <View style={styles.hero}>
+    <View style={[styles.hero, { backgroundColor: colors.hero }]}>
       {imageUri ? (
         <Image source={{ uri: imageUri }} style={StyleSheet.absoluteFill} contentFit="cover" transition={250} accessibilityIgnoresInvertColors />
       ) : (
-        <LinearGradient colors={[tintStart, tintEnd]} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={StyleSheet.absoluteFill}>
-          <Text style={styles.emoji} accessible={false}>
-            {foodEmojiFor(title, ...tintHints)}
-          </Text>
-        </LinearGradient>
+        <View style={StyleSheet.absoluteFill} pointerEvents="none">
+          <View style={styles.grid}>
+            <GridPatch width={220} height={170} color={colors.onHero} opacity={0.12} />
+          </View>
+          <View style={styles.halftone}>
+            <Halftone width={150} height={120} color={colors.accent} opacity={0.5} />
+          </View>
+          <View style={styles.scribble}>
+            <Scribble width={200} height={90} color={colors.accent} opacity={0.55} seed={title.length + 3} />
+          </View>
+          <View style={styles.glyph}>
+            <FoodGlyph kind={foodKindFor(title, ...tintHints)} size={150} color={colors.onHero} />
+          </View>
+        </View>
       )}
-      <LinearGradient colors={scrim as [string, string, string]} locations={[0, 0.45, 1]} style={StyleSheet.absoluteFill} pointerEvents="none" />
+      <LinearGradient colors={[colors.photoPlate, 'transparent', colors.photoPlate, colors.hero]} locations={[0, 0.3, 0.72, 1]} style={StyleSheet.absoluteFill} pointerEvents="none" />
 
-      <View style={[styles.topBar, { paddingTop: insets.top + Spacing.sm }]}>
-        {onBack ? (
-          <CloseButton onPress={onBack} onPhoto back={backIcon === 'back'} />
-        ) : (
-          <View style={styles.backButton} />
-        )}
+      <View style={[styles.topBar, { paddingTop: insets.top + Spacing.md }]}>
+        {onBack ? <CloseButton onPress={onBack} onPhoto back={backIcon === 'back'} /> : <View style={styles.spacer} />}
         {badge ? (
-          <View style={styles.badge}>
-            <ThemedText variant="caption2" style={styles.badgeText}>
+          <View style={[styles.badge, { borderColor: colors.onHero, backgroundColor: colors.photoPlate }]}>
+            <ThemedText variant="caption2" style={[styles.badgeText, { color: colors.onHero }]}>
               {badge}
             </ThemedText>
           </View>
         ) : null}
+        {onClose ? <CloseButton onPress={onClose} onPhoto /> : <View style={styles.spacer} />}
       </View>
 
       <View style={styles.titles}>
         <View style={styles.titleBlock}>
-          <ThemedText variant="title1" style={{ color: ink }} numberOfLines={3} accessibilityRole="header">
+          <ThemedText variant="title2" style={{ color: colors.onHero }} numberOfLines={3} accessibilityRole="header">
             {title}
           </ThemedText>
           {subtitle ? (
-            <ThemedText variant="subhead" style={{ color: inkMuted }} numberOfLines={1}>
+            <ThemedText variant="tagline" style={{ color: colors.onHeroMuted }} numberOfLines={1}>
               {subtitle}
             </ThemedText>
           ) : null}
         </View>
         {amount ? (
           <View style={styles.amountBlock}>
-            <ThemedText variant="title1" style={[styles.tabular, { color: ink }]}>
+            <ThemedText variant="figureSmall" style={[styles.tabular, { color: colors.onHero }]}>
               {amount}
             </ThemedText>
             {amountCaption ? (
-              <ThemedText variant="footnote" style={{ color: inkMuted }}>
-                {amountCaption}
+              <ThemedText variant="overline" style={{ color: colors.onHeroMuted }}>
+                {amountCaption.toUpperCase()}
               </ThemedText>
             ) : null}
           </View>
         ) : null}
       </View>
-      <View style={[styles.lip, { backgroundColor: colors.background }]} />
+      <View style={[styles.rule, { backgroundColor: colors.borderAccent }]} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  hero: { height: 340, justifyContent: 'space-between', overflow: 'hidden' },
+  hero: { height: HEIGHT, justifyContent: 'space-between', overflow: 'hidden', borderBottomLeftRadius: Radii['2xl'], borderBottomRightRadius: Radii['2xl'] },
+  grid: { position: 'absolute', left: -20, top: 40 },
+  halftone: { position: 'absolute', right: -10, top: 70 },
+  scribble: { position: 'absolute', left: 30, bottom: 70 },
+  glyph: { position: 'absolute', right: 26, top: 64 },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.lg },
-  backButton: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  badge: { backgroundColor: 'rgba(255,255,255,0.92)', paddingHorizontal: Spacing.sm, paddingVertical: 4, borderRadius: 6 },
-  badgeText: { color: '#0A0A0B', letterSpacing: 0.9, fontWeight: '700' },
-  titles: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: Spacing.lg, paddingHorizontal: Spacing.lg, paddingBottom: Spacing['3xl'] },
-  titleBlock: { flex: 1, gap: 2 },
-  amountBlock: { alignItems: 'flex-end' },
-  emoji: { position: 'absolute', right: 20, top: 92, fontSize: 132, lineHeight: 150, opacity: 0.95 },
+  spacer: { width: 36, height: 36 },
+  badge: { paddingHorizontal: Spacing.sm, paddingVertical: 3, borderRadius: Radii.sm, borderWidth: HAIRLINE },
+  badgeText: { letterSpacing: 1.2, fontWeight: '700' },
+  titles: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: Spacing.lg, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.xl },
+  titleBlock: { flex: 1, gap: Spacing.xxs },
+  amountBlock: { alignItems: 'flex-end', gap: Spacing.xxs },
   tabular: { fontVariant: ['tabular-nums'] },
-  lip: { position: 'absolute', left: 0, right: 0, bottom: -1, height: 24, borderTopLeftRadius: Radii['2xl'], borderTopRightRadius: Radii['2xl'] },
+  rule: { position: 'absolute', left: Spacing.xl, right: Spacing.xl, bottom: 0, height: HAIRLINE },
 });

@@ -14,6 +14,7 @@ import { Heading } from '@/components/ui/Heading';
 import { ThemedText } from '@/components/ui/ThemedText';
 import { PRIVACY_LINE } from '@/constants/brand';
 import { HAIRLINE, MIN_TAP, Radii, Spacing } from '@/constants/theme';
+import { useAddSheet } from '@/hooks/useAddSheet';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { useCurrentTime } from '@/hooks/useCurrentTime';
 import { useLog } from '@/hooks/useLog';
@@ -30,6 +31,7 @@ function initialFor(name: string | null): string {
 
 export default function HomeScreen() {
   const router = useRouter();
+  const addFood = useAddSheet();
   const { colors } = useAppTheme();
   const { now, today } = useCurrentTime();
   const [picked, setPicked] = useState<Date | null>(null);
@@ -89,10 +91,10 @@ export default function HomeScreen() {
           {sections.map((section, index) =>
             firstShow ? (
               <Stagger key={`${section.mealType}-${day.toDateString()}`} index={index} delay={120}>
-                <MealCard section={section} onAdd={() => router.push({ pathname: '/food/search', params: { mealType: section.mealType } })} />
+                <MealCard section={section} onAdd={() => addFood(section.mealType)} />
               </Stagger>
             ) : (
-              <MealCard key={`${section.mealType}-${day.toDateString()}`} section={section} onAdd={() => router.push({ pathname: '/food/search', params: { mealType: section.mealType } })} />
+              <MealCard key={`${section.mealType}-${day.toDateString()}`} section={section} onAdd={() => addFood(section.mealType)} />
             )
           )}
         </View>

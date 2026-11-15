@@ -10,6 +10,7 @@ import { PhoneFrame } from '@/components/layout/PhoneFrame';
 import { ReminderSync } from '@/components/reminders/ReminderSync';
 import { StoreGate } from '@/components/StoreGate';
 import { ActionSheetHost } from '@/components/ui/ActionSheetHost';
+import { ToastHost } from '@/components/ui/ToastHost';
 import { ThemeProvider, useAppTheme } from '@/contexts/ThemeContext';
 import { useSettings } from '@/hooks/useSettings';
 import { useWantsLightStatusBar } from '@/lib/statusBar';
@@ -28,6 +29,7 @@ export default function RootLayout() {
             <PhoneFrame>
               <RootNavigator />
               <ReminderSync />
+              <ToastHost />
               <ActionSheetHost />
             </PhoneFrame>
           </StoreGate>
@@ -37,8 +39,8 @@ export default function RootLayout() {
   );
 }
 
-/** A sheet that covers the screen edge to edge and rises from the bottom. */
-const TRACKING_MODAL = { presentation: 'fullScreenModal', animation: 'slide_from_bottom' } as const;
+/** Logging food happens in a sheet: it rises from the bottom and can be swiped away. The tabs go dark behind it (see the curtain in the tabs layout). */
+const TRACKING_MODAL = { presentation: 'modal' } as const;
 
 function RootNavigator() {
   const { isDark, colors } = useAppTheme();
@@ -59,7 +61,6 @@ function RootNavigator() {
       <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right', animationDuration: 260, contentStyle: { backgroundColor: colors.background } }}>
         <Stack.Protected guard={welcomed}>
           <Stack.Screen name="(tabs)" />
-          {/* Logging food takes the whole screen, so Home never shows behind it. */}
           <Stack.Screen name="food" options={TRACKING_MODAL} />
           <Stack.Screen name="entry/[id]" options={TRACKING_MODAL} />
           <Stack.Screen name="scan/review" options={{ ...TRACKING_MODAL, gestureEnabled: false }} />

@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, FadeOut, ZoomIn } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming } from 'react-native-reanimated';
 import Svg, { Circle, ClipPath, Defs, Ellipse, G, LinearGradient, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
 
+import { useMotion } from '@/components/motion';
 import { ThemedText } from '@/components/ui/ThemedText';
+import { Duration, Springs } from '@/constants/motion';
+import { HAIRLINE, INK, LAVENDER, LAVENDER_DEEP, Radii, Spacing } from '@/constants/theme';
+import { useAppTheme } from '@/contexts/ThemeContext';
 import type { Ingredient, Shape } from '@/lib/food/builders/visual';
 
 interface BuildPreviewProps {
@@ -15,6 +19,7 @@ interface BuildPreviewProps {
 
 const W = 240;
 const H = 140;
+const WHITE = '#FFFFFF';
 
 /** Deterministic scatter so a topping lands in the same spots every render. */
 function scatter(seed: string, n: number, box: Box): { x: number; y: number; r: number }[] {
@@ -32,6 +37,35 @@ interface Box {
   y: number;
   w: number;
   h: number;
+}
+
+function channels(hex: string): [number, number, number] {
+  const full = hex.length === 4 ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}` : hex;
+  const n = parseInt(full.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+function mix(from: string, to: string, amount: number): string {
+  const a = channels(from);
+  const b = channels(to);
+  const blend = (index: number) => Math.round(a[index] + (b[index] - a[index]) * amount);
+  return `#${((blend(0) << 16) | (blend(1) << 8) | blend(2)).toString(16).padStart(6, '0')}`;
+}
+
+/**
+ * The drawing was made in full colour; the app is black, lavender and
+ * white. This keeps how light or dark each colour is and throws the hue
+ * away: strongly coloured things (greens, reds, sauces) become a shade of
+ * lavender, everything else a shade between ink and white. The colours
+ * written in this file are only ever inputs to this function.
+ */
+function mono(hex: string): string {
+  const [r, g, b] = channels(hex);
+  const light = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  const max = Math.max(r, g, b);
+  const vivid = max > 0 && (max - Math.min(r, g, b)) / max > 0.5;
+  if (vivid) return light < 0.5 ? mix(mix(INK, LAVENDER_DEEP, 0.45), LAVENDER_DEEP, light * 2) : mix(LAVENDER_DEEP, LAVENDER, (light - 0.5) * 2);
+  return mix(mix(INK, WHITE, 0.2), WHITE, Math.pow(light, 0.85));
 }
 
 /** Darken or lighten a hex color. */
@@ -65,9 +99,18 @@ function fillArea(shape: Shape, length: number): { box: Box; clip: React.ReactNo
 
 /** One ingredient drawn in its style, inside the given area, as its own animated layer. */
 function Layer({ ingredient, box, index, shape, clip }: { ingredient: Ingredient; box: Box; index: number; shape: Shape; clip: React.ReactNode }) {
-  const { color, style, count, id } = ingredient;
+  const { style, count, id } = ingredient;
+  const color = mono(ingredient.color);
   const key = `g-${id}`;
-  const entering = style === 'drizzle' ? FadeIn.duration(260) : ZoomIn.springify().damping(14).stiffness(180).delay(index * 24);
+  const { reduced } = useMotion();
+  // Each ingredient pops into the dish as it is picked; a drizzle just fades in.
+  const landed = useSharedValue(0);
+  useEffect(() => {
+    landed.set(withDelay(reduced ? 0 : index * 24, reduced || style === 'drizzle' ? withTiming(1, { duration: Duration.standard }) : withSpring(1, Springs.snappy)));
+    // Pops once, when it mounts.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const pop = useAnimatedStyle(() => ({ opacity: Math.min(landed.get() * 1.5, 1), transform: [{ scale: reduced || style === 'drizzle' ? 1 : 0.7 + landed.get() * 0.3 }] }));
   const lift = shape === 'sub' ? -index * 7 : -index * 1.5;
   const gradient = (
     <LinearGradient id={key} x1="0" y1="0" x2="0" y2="1">
@@ -153,7 +196,7 @@ function Layer({ ingredient, box, index, shape, clip }: { ingredient: Ingredient
   }
 
   return (
-    <Animated.View entering={entering} exiting={FadeOut.duration(150)} pointerEvents="none" style={[StyleSheet.absoluteFill, { top: lift }]}>
+    <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { top: lift }, pop]}>
       <Svg width={W} height={H}>
         <Defs>
           {gradient}
@@ -171,7 +214,8 @@ function Layer({ ingredient, box, index, shape, clip }: { ingredient: Ingredient
  * a row, sauce runs along the top. Layers stack upward from the bottom roll.
  */
 function SubBand({ ingredient, box, index, gradientId }: { ingredient: Ingredient; box: Box; index: number; gradientId: string }) {
-  const { color, style, count } = ingredient;
+  const { style, count } = ingredient;
+  const color = mono(ingredient.color);
   const x0 = box.x;
   const x1 = box.x + box.w;
   const w = box.w;
@@ -284,8 +328,8 @@ function SubBand({ ingredient, box, index, gradientId }: { ingredient: Ingredien
   return <Path d={`M${x0 - 2} ${y + 2} H${x1 + 2} v-6 Q${(x0 + x1) / 2} ${y - 9} ${x0 - 2} ${y - 4} Z`} fill={fill} />;
 }
 
-const BOWL = '#5B47D6';
-const BREAD = '#E7B86B';
+const BOWL = mono('#5B47D6');
+const BREAD = mono('#E7B86B');
 
 /** The dish before anything goes in: shadow and the body, with the opening dark and empty. */
 function VesselBack({ shape, length }: { shape: Shape; length: number }) {
@@ -304,32 +348,32 @@ function VesselBack({ shape, length }: { shape: Shape; length: number }) {
           <Stop offset="1" stopColor={shade(BOWL, -0.62)} />
         </RadialGradient>
         <LinearGradient id="v-plate" x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor="#FFFFFF" />
-          <Stop offset="1" stopColor="#D8D1F2" />
+          <Stop offset="0" stopColor={mono('#FFFFFF')} />
+          <Stop offset="1" stopColor={mono('#D8D1F2')} />
         </LinearGradient>
         <RadialGradient id="v-plate-well" cx="50%" cy="40%" rx="55%" ry="70%">
-          <Stop offset="0" stopColor="#FFFFFF" />
-          <Stop offset="1" stopColor="#E6E1F8" />
+          <Stop offset="0" stopColor={mono('#FFFFFF')} />
+          <Stop offset="1" stopColor={mono('#E6E1F8')} />
         </RadialGradient>
         <LinearGradient id="v-crust" x1="0" y1="0" x2="0" y2="1">
           <Stop offset="0" stopColor={shade(BREAD, 0.12)} />
           <Stop offset="1" stopColor={shade(BREAD, -0.32)} />
         </LinearGradient>
         <LinearGradient id="v-crumb" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#FBEFD6" />
-          <Stop offset="1" stopColor="#F0DDB4" />
+          <Stop offset="0" stopColor={mono('#FBEFD6')} />
+          <Stop offset="1" stopColor={mono('#F0DDB4')} />
         </LinearGradient>
         <LinearGradient id="v-tortilla" x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor="#F6E2B8" />
-          <Stop offset="0.6" stopColor="#E9C98F" />
-          <Stop offset="1" stopColor="#C9A262" />
+          <Stop offset="0" stopColor={mono('#F6E2B8')} />
+          <Stop offset="0.6" stopColor={mono('#E9C98F')} />
+          <Stop offset="1" stopColor={mono('#C9A262')} />
         </LinearGradient>
         <LinearGradient id="v-shell" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#F3D27E" />
-          <Stop offset="1" stopColor="#C9933A" />
+          <Stop offset="0" stopColor={mono('#F3D27E')} />
+          <Stop offset="1" stopColor={mono('#C9933A')} />
         </LinearGradient>
       </Defs>
-      <Ellipse cx={W / 2} cy={H - 10} rx={shape === 'sub' ? span / 2 + 6 : 86} ry={8} fill="#000" opacity={0.16} />
+      <Ellipse cx={W / 2} cy={H - 10} rx={shape === 'sub' ? span / 2 + 6 : 86} ry={8} fill={mono('#000000')} opacity={0.16} />
 
       {shape === 'bowl' ? (
         <>
@@ -342,9 +386,9 @@ function VesselBack({ shape, length }: { shape: Shape; length: number }) {
       {shape === 'plate' ? (
         <>
           <Ellipse cx={W / 2} cy={62} rx={110} ry={40} fill="url(#v-plate)" />
-          <Ellipse cx={W / 2} cy={62} rx={110} ry={40} fill="none" stroke="#B4A8E3" strokeWidth={2} opacity={0.9} />
+          <Ellipse cx={W / 2} cy={62} rx={110} ry={40} fill="none" stroke={mono('#B4A8E3')} strokeWidth={2} opacity={0.9} />
           <Ellipse cx={W / 2} cy={60} rx={84} ry={28} fill="url(#v-plate-well)" />
-          <Ellipse cx={W / 2} cy={60} rx={84} ry={28} fill="none" stroke="#D8D1F2" strokeWidth={1.5} />
+          <Ellipse cx={W / 2} cy={60} rx={84} ry={28} fill="none" stroke={mono('#D8D1F2')} strokeWidth={1.5} />
         </>
       ) : null}
 
@@ -353,7 +397,7 @@ function VesselBack({ shape, length }: { shape: Shape; length: number }) {
           {/* Bottom half: crust, then the pale cut face the fillings sit on. */}
           <Path d={`M${x0 + 10} 84 H${x0 + span - 10} q12 0 12 14 q0 16 -14 16 H${x0 + 12} q-14 0 -14 -16 q0 -14 12 -14 Z`} fill="url(#v-crust)" />
           <Path d={`M${x0 + 8} 84 H${x0 + span - 8} q5 0 5 4 q0 4 -5 4 H${x0 + 8} q-5 0 -5 -4 q0 -4 5 -4 Z`} fill="url(#v-crumb)" />
-          <Path d={`M${x0 + 16} 108 q${span / 2 - 16} 6 ${span - 32} 0`} stroke="#FFFFFF" strokeWidth={1.5} fill="none" opacity={0.18} strokeLinecap="round" />
+          <Path d={`M${x0 + 16} 108 q${span / 2 - 16} 6 ${span - 32} 0`} stroke={mono('#FFFFFF')} strokeWidth={1.5} fill="none" opacity={0.18} strokeLinecap="round" />
         </>
       ) : null}
 
@@ -361,11 +405,11 @@ function VesselBack({ shape, length }: { shape: Shape; length: number }) {
         <>
           {/* Burrito on its side, cut end facing us. */}
           <Path d={`M60 46 H${W - 52} a28 28 0 0 1 0 52 H60 Z`} fill="url(#v-tortilla)" />
-          <Path d={`M100 46 q10 26 0 52`} stroke="#C9A262" strokeWidth={2} fill="none" opacity={0.5} />
-          <Path d={`M138 46 q-10 26 0 52`} stroke="#C9A262" strokeWidth={2} fill="none" opacity={0.5} />
-          <Path d={`M172 48 q8 24 0 48`} stroke="#C9A262" strokeWidth={2} fill="none" opacity={0.4} />
-          <Ellipse cx={60} cy={72} rx={26} ry={28} fill="#F3DDB0" />
-          <Ellipse cx={60} cy={72} rx={23} ry={25} fill="#D9B98A" />
+          <Path d={`M100 46 q10 26 0 52`} stroke={mono('#C9A262')} strokeWidth={2} fill="none" opacity={0.5} />
+          <Path d={`M138 46 q-10 26 0 52`} stroke={mono('#C9A262')} strokeWidth={2} fill="none" opacity={0.5} />
+          <Path d={`M172 48 q8 24 0 48`} stroke={mono('#C9A262')} strokeWidth={2} fill="none" opacity={0.4} />
+          <Ellipse cx={60} cy={72} rx={26} ry={28} fill={mono('#F3DDB0')} />
+          <Ellipse cx={60} cy={72} rx={23} ry={25} fill={mono('#D9B98A')} />
         </>
       ) : null}
 
@@ -399,8 +443,8 @@ function VesselFront({ shape, length, stack }: { shape: Shape; length: number; s
           <Stop offset="1" stopColor={shade(BREAD, -0.3)} />
         </LinearGradient>
         <LinearGradient id="f-shell" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#F3D27E" />
-          <Stop offset="1" stopColor="#B97F2C" />
+          <Stop offset="0" stopColor={mono('#F3D27E')} />
+          <Stop offset="1" stopColor={mono('#B97F2C')} />
         </LinearGradient>
       </Defs>
 
@@ -408,11 +452,11 @@ function VesselFront({ shape, length, stack }: { shape: Shape; length: number; s
         <>
           {/* Front rim: the lip of the bowl over the food, plus a glossy highlight on the body. */}
           <Path d={`M26 54 A94 28 0 0 0 ${W - 26} 54`} stroke="url(#f-rim)" strokeWidth={5} fill="none" strokeLinecap="round" />
-          <Path d={`M44 78 C52 100 76 114 100 118`} stroke="#FFFFFF" strokeWidth={4} fill="none" strokeLinecap="round" opacity={0.18} />
+          <Path d={`M44 78 C52 100 76 114 100 118`} stroke={mono('#FFFFFF')} strokeWidth={4} fill="none" strokeLinecap="round" opacity={0.18} />
         </>
       ) : null}
 
-      {shape === 'plate' ? <Path d={`M${W / 2 - 84} 60 A84 28 0 0 0 ${W / 2 + 84} 60`} stroke="#FFFFFF" strokeWidth={2} fill="none" opacity={0.9} /> : null}
+      {shape === 'plate' ? <Path d={`M${W / 2 - 84} 60 A84 28 0 0 0 ${W / 2 + 84} 60`} stroke={mono('#FFFFFF')} strokeWidth={2} fill="none" opacity={0.9} /> : null}
 
       {shape === 'sub' ? (
         <>
@@ -420,9 +464,9 @@ function VesselFront({ shape, length, stack }: { shape: Shape; length: number; s
           <G transform={`translate(0 ${-rise})`}>
             <Path d={`M${x0 + 6} 84 q-8 0 -8 -10 q0 -34 ${span / 2 + 2} -34 q${span / 2 + 2} 0 ${span / 2 + 2} 34 q0 10 -8 10 Z`} fill="url(#f-top)" />
             <Path d={`M${x0 + 2} 78 q4 6 ${span - 4} 0`} stroke={shade(BREAD, -0.45)} strokeWidth={2} fill="none" opacity={0.35} />
-            <Path d={`M${x0 + 22} 56 q${span / 2 - 22} -16 ${span - 44} 0`} stroke="#FFFFFF" strokeWidth={3} fill="none" strokeLinecap="round" opacity={0.3} />
+            <Path d={`M${x0 + 22} 56 q${span / 2 - 22} -16 ${span - 44} 0`} stroke={mono('#FFFFFF')} strokeWidth={3} fill="none" strokeLinecap="round" opacity={0.3} />
             {scatter('sesame', Math.round(span / 16), { x: x0 + 18, y: 44, w: span - 36, h: 20 }).map((p, i) => (
-              <Ellipse key={i} cx={p.x} cy={p.y + Math.abs(p.x - W / 2) / 10} rx={2.2} ry={1.3} fill="#FFF4D8" transform={`rotate(${(i * 61) % 90 - 45} ${p.x} ${p.y})`} opacity={0.95} />
+              <Ellipse key={i} cx={p.x} cy={p.y + Math.abs(p.x - W / 2) / 10} rx={2.2} ry={1.3} fill={mono('#FFF4D8')} transform={`rotate(${(i * 61) % 90 - 45} ${p.x} ${p.y})`} opacity={0.95} />
             ))}
           </G>
         </>
@@ -430,9 +474,9 @@ function VesselFront({ shape, length, stack }: { shape: Shape; length: number; s
 
       {shape === 'wrap' ? (
         <>
-          <Path d={`M60 46 H${W - 52} a28 28 0 0 1 0 52 H60`} stroke="#B8914E" strokeWidth={1} fill="none" opacity={0.5} />
-          <Path d={`M74 52 H${W - 70}`} stroke="#FFFFFF" strokeWidth={3} strokeLinecap="round" fill="none" opacity={0.28} />
-          <Ellipse cx={60} cy={72} rx={26} ry={28} fill="none" stroke="#C9A262" strokeWidth={1.2} opacity={0.6} />
+          <Path d={`M60 46 H${W - 52} a28 28 0 0 1 0 52 H60`} stroke={mono('#B8914E')} strokeWidth={1} fill="none" opacity={0.5} />
+          <Path d={`M74 52 H${W - 70}`} stroke={mono('#FFFFFF')} strokeWidth={3} strokeLinecap="round" fill="none" opacity={0.28} />
+          <Ellipse cx={60} cy={72} rx={26} ry={28} fill="none" stroke={mono('#C9A262')} strokeWidth={1.2} opacity={0.6} />
         </>
       ) : null}
 
@@ -440,7 +484,7 @@ function VesselFront({ shape, length, stack }: { shape: Shape; length: number; s
         ? [0, 1, 2].map((i) => (
             <G key={i} transform={`translate(${44 + i * 56} 0) rotate(${-6 + i * 6} 28 70)`}>
               <Path d="M0 64 a28 40 0 0 0 56 0 V70 a28 36 0 0 1 -56 0 Z" fill="url(#f-shell)" />
-              <Path d="M6 78 q22 16 44 0" stroke="#FFFFFF" strokeWidth={2} fill="none" opacity={0.25} strokeLinecap="round" />
+              <Path d="M6 78 q22 16 44 0" stroke={mono('#FFFFFF')} strokeWidth={2} fill="none" opacity={0.25} strokeLinecap="round" />
             </G>
           ))
         : null}
@@ -455,30 +499,33 @@ function VesselFront({ shape, length, stack }: { shape: Shape; length: number; s
  * double portions scatter more of it.
  */
 export function BuildPreview({ shape, ingredients, length = 0.8 }: BuildPreviewProps) {
+  const { colors } = useAppTheme();
   const { box, clip } = fillArea(shape, length);
-  const label = ingredients.length === 0 ? 'Pick something to start' : `${ingredients.filter((i) => i.count === 2).length ? 'Double up · ' : ''}${ingredients.length} ${ingredients.length === 1 ? 'thing' : 'things'} in`;
+  const label = ingredients.length === 0 ? 'pick something to start' : `${ingredients.filter((i) => i.count === 2).length ? 'double up · ' : ''}${ingredients.length} ${ingredients.length === 1 ? 'thing' : 'things'} in`;
 
   return (
     <View style={styles.stage} accessible accessibilityLabel={`Your order: ${ingredients.map((i) => (i.count === 2 ? `double ${i.label}` : i.label)).join(', ') || 'empty'}`}>
-      <View style={styles.canvas}>
-        <VesselBack shape={shape} length={length} />
-        {/* Everything that goes in is clipped to the opening, so nothing spills over the rim. */}
-        {ingredients.map((ingredient, index) => (
-          <Layer key={ingredient.id + ingredient.count} ingredient={ingredient} box={box} index={index} shape={shape} clip={clip} />
-        ))}
-        <VesselFront shape={shape} length={length} stack={ingredients.length} />
+      {/* A dark plate in both themes, so the white and lavender ink reads the same on paper as on black. */}
+      <View style={[styles.plate, { backgroundColor: colors.hero, borderColor: colors.border }]}>
+        <View style={styles.canvas}>
+          <VesselBack shape={shape} length={length} />
+          {/* Everything that goes in is clipped to the opening, so nothing spills over the rim. */}
+          {ingredients.map((ingredient, index) => (
+            <Layer key={ingredient.id + ingredient.count} ingredient={ingredient} box={box} index={index} shape={shape} clip={clip} />
+          ))}
+          <VesselFront shape={shape} length={length} stack={ingredients.length} />
+        </View>
       </View>
-      <Animated.View key={label} entering={FadeIn.duration(200)}>
-        <ThemedText variant="caption1" color="secondary" style={styles.caption}>
-          {label}
-        </ThemedText>
-      </Animated.View>
+      <ThemedText variant="tagline" color="secondary" style={styles.caption}>
+        {label}
+      </ThemedText>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  stage: { alignItems: 'center', gap: 6 },
+  stage: { alignItems: 'stretch', gap: Spacing.sm },
+  plate: { alignItems: 'center', paddingVertical: Spacing.md, borderRadius: Radii.xl, borderWidth: HAIRLINE, overflow: 'hidden' },
   canvas: { width: W, height: H },
   caption: { textAlign: 'center' },
 });

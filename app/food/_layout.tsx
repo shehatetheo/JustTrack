@@ -1,18 +1,17 @@
 import { Stack } from 'expo-router';
 import React from 'react';
 
+import { SheetFrame } from '@/components/layout/SheetFrame';
+import { Duration } from '@/constants/motion';
 import { useAppTheme } from '@/contexts/ThemeContext';
 
-/** The "Add Food" flow: search, then the food itself (which draws its own header over its hero). */
+/** The add-food sheet: search, a chain's menu, the order builder, and the food itself. Every screen draws its own header. */
 export default function FoodFlowLayout() {
   const { colors } = useAppTheme();
 
   return (
-    <Stack screenOptions={{ headerShadowVisible: false, headerTintColor: colors.text, headerStyle: { backgroundColor: colors.background }, contentStyle: { backgroundColor: colors.background } }}>
-      <Stack.Screen name="search" options={{ headerShown: true, title: 'Add Food' }} />
-      <Stack.Screen name="[id]" options={{ headerShown: false }} />
-      <Stack.Screen name="build" options={{ headerShown: true, title: 'Build your order' }} />
-      <Stack.Screen name="chain" options={{ headerShown: true, title: '' }} />
-    </Stack>
+    <SheetFrame>
+      <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right', animationDuration: Duration.standard, contentStyle: { backgroundColor: colors.background } }} />
+    </SheetFrame>
   );
 }

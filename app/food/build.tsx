@@ -1,22 +1,25 @@
-import * as Haptics from 'expo-haptics';
-import { Stack, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BuildPreview } from '@/components/food/BuildPreview';
+import { LogButton } from '@/components/food/LogButton';
 import { MealTypePicker } from '@/components/food/MealTypePicker';
-import { Button } from '@/components/ui/Button';
+import { SheetHeader } from '@/components/layout/SheetHeader';
+import { CountUp, Stagger } from '@/components/motion';
+import { Chip } from '@/components/ui/Chip';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { CloseButton } from '@/components/ui/CloseButton';
+import { Glass } from '@/components/ui/Glass';
 import { ThemedText } from '@/components/ui/ThemedText';
+import { Duration } from '@/constants/motion';
 import { MEAL_TYPE_META } from '@/constants/nutrition';
-import { Radii, Spacing } from '@/constants/theme';
+import { HAIRLINE, Radii, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { useCurrentTime } from '@/hooks/useCurrentTime';
 import { builderByKey, entryOf, nutritionOf, setCount, toggle, type Selection } from '@/lib/food/builders';
 import { ingredientsOf, lengthOf, shapeOf } from '@/lib/food/builders/visual';
-import { createEntry, macroShares } from '@/lib/log/entries';
+import { createEntry } from '@/lib/log/entries';
 import { addEntries } from '@/lib/log/logStore';
 import type { MealType } from '@/types';
 import { formatNumber } from '@/utils/format';
@@ -35,30 +38,35 @@ export default function OrderBuilderScreen() {
   const [mealType, setMealType] = useState<MealType>(() => mealTypeParam(params.mealType) ?? defaultMealType(now));
   const [selection, setSelection] = useState<Selection>(() => config?.defaultSelection ?? {});
 
-  if (!config) {
-    return <EmptyState title="Nothing to build here" message="Search for Chipotle, Subway, Panda Express, or Jersey Mike’s." actionLabel="Close" onAction={() => router.back()} />;
-  }
-
-  const totals = nutritionOf(config, selection);
-  const shares = macroShares(totals);
-  const extras = config.describe(selection);
-  const ingredients = ingredientsOf(config, selection);
-
-  const add = () => {
-    addEntries([createEntry(entryOf(config, selection, mealType), new Date())]);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    // Close the whole Add Food modal, not just this screen.
+  // Close the whole add-food sheet, not just this screen.
+  const closeFlow = () => {
     const parent = navigation.getParent();
     if (parent?.canGoBack()) parent.goBack();
     else router.replace('/');
   };
+  const canGoBack = router.canGoBack();
+
+  if (!config) {
+    return (
+      <View style={[styles.root, { backgroundColor: colors.background }]}>
+        <SheetHeader title="Build an order" onClose={closeFlow} />
+        <EmptyState title="nothing here" message="Search for Chipotle, Subway, Panda Express, or Jersey Mike’s." actionLabel="Close" onAction={closeFlow} />
+      </View>
+    );
+  }
+
+  const totals = nutritionOf(config, selection);
+  const extras = config.describe(selection);
+  const ingredients = ingredientsOf(config, selection);
+
+  const add = () => addEntries([createEntry(entryOf(config, selection, mealType), new Date())]);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <Stack.Screen options={{ title: config.title, headerLeft: () => null, headerRight: () => <CloseButton onPress={() => router.back()} />, headerTitleAlign: 'center' }} />
+      <SheetHeader title={config.title} tagline="picked the way you’d order it" onBack={canGoBack ? () => router.back() : undefined} onClose={closeFlow} />
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <View style={[styles.summary, { backgroundColor: colors.surface }]}>
+        <Glass radius={Radii['2xl']} lit style={styles.summary}>
           <BuildPreview shape={shapeOf(config, selection)} ingredients={ingredients} length={lengthOf(config, selection)} />
           <ThemedText variant="headline" numberOfLines={2}>
             {config.nameOf(selection)}
@@ -67,19 +75,17 @@ export default function OrderBuilderScreen() {
             {extras || 'Nothing else yet'}
           </ThemedText>
           <View style={styles.summaryRow}>
-            <ThemedText variant="largeTitle" style={styles.tabular}>
-              {formatNumber(totals.calories)}
-            </ThemedText>
-            <ThemedText variant="subhead" color="secondary">
-              kcal
+            <CountUp value={totals.calories} durationMs={Duration.standard} format={(value) => formatNumber(value)} variant="figure" />
+            <ThemedText variant="overline" color="secondary">
+              KCAL
             </ThemedText>
             <View style={styles.pills} accessible accessibilityLabel={`Protein ${formatNumber(totals.protein)} grams, carbs ${formatNumber(totals.carbs)} grams, fat ${formatNumber(totals.fat)} grams`}>
               {[
-                { label: 'P', grams: totals.protein, share: shares.protein },
-                { label: 'C', grams: totals.carbs, share: shares.carbs },
-                { label: 'F', grams: totals.fat, share: shares.fat },
+                { label: 'P', grams: totals.protein },
+                { label: 'C', grams: totals.carbs },
+                { label: 'F', grams: totals.fat },
               ].map((pill) => (
-                <View key={pill.label} style={[styles.pill, { backgroundColor: colors.surface }]}>
+                <View key={pill.label} style={[styles.pill, { borderColor: colors.border }]}>
                   <ThemedText variant="caption2" color="secondary">
                     {pill.label}
                   </ThemedText>
@@ -90,17 +96,17 @@ export default function OrderBuilderScreen() {
               ))}
             </View>
           </View>
-        </View>
+        </Glass>
 
-        {config.steps.map((step) => (
-          <View key={step.id} style={styles.step}>
+        {config.steps.map((step, stepIndex) => (
+          <Stagger key={step.id} index={stepIndex} style={styles.step}>
             <View style={styles.stepHeader}>
-              <ThemedText variant="headline" accessibilityRole="header">
-                {step.title}
+              <ThemedText variant="title3" accessibilityRole="header">
+                {step.title.toLowerCase()}
               </ThemedText>
               {step.hint ? (
-                <ThemedText variant="caption1" color="tertiary" style={styles.hint}>
-                  {step.hint}
+                <ThemedText variant="tagline" color="secondary" style={styles.hint}>
+                  {step.hint.toLowerCase()}
                 </ThemedText>
               ) : null}
             </View>
@@ -110,45 +116,19 @@ export default function OrderBuilderScreen() {
                 const picked = count > 0;
                 return (
                   <View key={option.id} style={styles.chipGroup}>
-                    <Pressable
-                      onPress={() => {
-                        Haptics.selectionAsync();
-                        setSelection((current) => toggle(current, step, option));
-                      }}
-                      accessibilityRole={step.mode === 'one' ? 'radio' : 'checkbox'}
-                      accessibilityLabel={option.label}
-                      accessibilityState={{ checked: picked }}
-                      style={({ pressed }) => [styles.chip, { backgroundColor: picked ? colors.accent : colors.surface, borderColor: picked ? colors.accent : colors.border, opacity: pressed ? 0.8 : 1 }, picked && option.doubleable && styles.chipJoined]}
-                    >
-                      <ThemedText variant="subhead" style={{ color: picked ? colors.onAccent : colors.text }}>
-                        {option.label}
-                      </ThemedText>
-                    </Pressable>
+                    <Chip label={option.label} selected={picked} checked={picked} accessibilityRole={step.mode === 'one' ? 'radio' : 'checkbox'} accessibilityLabel={option.label} onPress={() => setSelection((current) => toggle(current, step, option))} />
                     {picked && option.doubleable ? (
-                      <Pressable
-                        onPress={() => {
-                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                          setSelection((current) => setCount(current, option, count === 2 ? 1 : 2));
-                        }}
-                        accessibilityRole="switch"
-                        accessibilityLabel={`Double ${option.label.toLowerCase()}`}
-                        accessibilityState={{ checked: count === 2 }}
-                        style={({ pressed }) => [styles.doubleChip, { backgroundColor: count === 2 ? colors.accent : colors.surface, opacity: pressed ? 0.8 : 1 }]}
-                      >
-                        <ThemedText variant="subheadEmphasized" style={{ color: count === 2 ? '#FFFFFF' : colors.accent }}>
-                          2×
-                        </ThemedText>
-                      </Pressable>
+                      <Chip label="2×" selected={count === 2} checked={count === 2} haptic="tap" accessibilityRole="switch" accessibilityLabel={`Double ${option.label.toLowerCase()}`} onPress={() => setSelection((current) => setCount(current, option, count === 2 ? 1 : 2))} />
                     ) : null}
                   </View>
                 );
               })}
             </View>
-          </View>
+          </Stagger>
         ))}
 
         <View style={styles.meal}>
-          <ThemedText variant="footnote" color="secondary" style={styles.label}>
+          <ThemedText variant="overline" color="tertiary">
             ADD TO
           </ThemedText>
           <MealTypePicker value={mealType} onChange={setMealType} />
@@ -159,7 +139,7 @@ export default function OrderBuilderScreen() {
       </ScrollView>
 
       <View style={[styles.footer, { backgroundColor: colors.background, borderTopColor: colors.border, paddingBottom: insets.bottom + Spacing.md }]}>
-        <Button label={`Add to ${MEAL_TYPE_META[mealType].label} · ${formatNumber(totals.calories)} kcal`} onPress={add} />
+        <LogButton label={`Add to ${MEAL_TYPE_META[mealType].label} · ${formatNumber(totals.calories)} kcal`} onLog={add} onDone={closeFlow} />
       </View>
     </View>
   );
@@ -168,21 +148,17 @@ export default function OrderBuilderScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   content: { padding: Spacing.lg, gap: Spacing.xl, paddingBottom: Spacing['3xl'] },
-  summary: { borderRadius: Radii['2xl'], padding: Spacing.lg, gap: Spacing.xs },
+  summary: { padding: Spacing.lg, gap: Spacing.xs },
   summaryRow: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.xs, marginTop: Spacing.xs },
   pills: { flexDirection: 'row', gap: Spacing.xs, marginLeft: 'auto' },
-  pill: { flexDirection: 'row', gap: 4, paddingHorizontal: Spacing.sm, paddingVertical: 3, borderRadius: Radii.full },
+  pill: { flexDirection: 'row', gap: 4, paddingHorizontal: Spacing.sm, paddingVertical: 3, borderRadius: Radii.full, borderWidth: HAIRLINE },
   step: { gap: Spacing.sm },
   stepHeader: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', gap: Spacing.sm },
   hint: { flexShrink: 1 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
-  chipGroup: { flexDirection: 'row', alignItems: 'center' },
-  chip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.md + 2, paddingVertical: Spacing.sm + 2, borderRadius: Radii.md, borderWidth: StyleSheet.hairlineWidth * 2, minHeight: 40 },
-  chipJoined: { borderTopRightRadius: 0, borderBottomRightRadius: 0 },
-  doubleChip: { paddingHorizontal: Spacing.md, minHeight: 40, justifyContent: 'center', borderTopRightRadius: Radii.md, borderBottomRightRadius: Radii.md, marginLeft: 2 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, rowGap: Spacing.sm + 2 },
+  chipGroup: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   meal: { gap: Spacing.sm },
-  label: { letterSpacing: 0.5, marginLeft: Spacing.xs },
   footnote: { textAlign: 'center' },
-  footer: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.md, borderTopWidth: StyleSheet.hairlineWidth },
+  footer: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.md, borderTopWidth: HAIRLINE },
   tabular: { fontVariant: ['tabular-nums'] },
 });

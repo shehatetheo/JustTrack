@@ -1,14 +1,33 @@
 import { usePathname } from 'expo-router';
 import { TabList, TabSlot, TabTrigger, Tabs } from 'expo-router/ui';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { SlashWipe } from '@/components/motion';
 import { ScanTabButton, SearchButton, TabBarButton, TabBarContainer } from '@/components/navigation/TabBar';
 import { useWelcomeBack, WelcomeBack } from '@/components/onboarding/WelcomeBack';
 import { ReminderPrompt } from '@/components/reminders/ReminderPrompt';
+import { Duration } from '@/constants/motion';
+import { useAppTheme } from '@/contexts/ThemeContext';
 
 const TAB_PATHS = ['/', '/stats', '/scan', '/profile'];
+/** Routes that open as a sheet over the tabs. */
+const SHEET_PATHS = ['/food', '/entry', '/scan/', '/settings', '/weight/log', '/privacy', '/support'];
+
+/**
+ * While a sheet is open the tabs go dark behind it, so the day's numbers
+ * never show around the edge of a sheet that has numbers of its own.
+ */
+function Curtain({ drawn }: { drawn: boolean }) {
+  const { colors } = useAppTheme();
+  const opacity = useSharedValue(0);
+  useEffect(() => {
+    opacity.set(withTiming(drawn ? 1 : 0, { duration: drawn ? Duration.micro : Duration.standard }));
+  }, [drawn, opacity]);
+  const style = useAnimatedStyle(() => ({ opacity: opacity.get() }));
+  return <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: colors.hero }, style]} />;
+}
 
 export default function TabsLayout() {
   const welcomeBack = useWelcomeBack();
@@ -41,6 +60,7 @@ export default function TabsLayout() {
           </TabBarContainer>
         </TabList>
       </Tabs>
+      <Curtain drawn={SHEET_PATHS.some((path) => pathname.startsWith(path))} />
       {/* One thing at a time: the reminder question waits until the welcome-back slides are gone. */}
       {welcomeBack.days !== null ? <WelcomeBack days={welcomeBack.days} onClose={welcomeBack.close} /> : <ReminderPrompt />}
     </View>

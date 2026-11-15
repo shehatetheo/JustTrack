@@ -1,10 +1,9 @@
-import * as Haptics from 'expo-haptics';
 import React, { useState } from 'react';
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { Spacing } from '@/constants/theme';
+import { PressScale } from '@/components/motion';
+import { HAIRLINE, MIN_TAP, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
-import { showOptionSheet } from '@/utils/actionSheet';
 import { AppIcon } from './AppIcon';
 import { ThemedText } from './ThemedText';
 
@@ -15,33 +14,23 @@ interface OptionPickerProps<T extends string> {
   onChange: (value: T) => void;
 }
 
-/**
- * A "Label ····· Current value ⌄" row for picking one option. iOS opens the
- * native action sheet; elsewhere (web, Android) it expands an inline list.
- */
+/** A "Label ····· Current value ⌄" row that opens its choices in place, so picking one never leaves the screen. */
 export function OptionPicker<T extends string>({ label, options, value, onChange }: OptionPickerProps<T>) {
   const { colors } = useAppTheme();
   const [expanded, setExpanded] = useState(false);
   const current = options.find((option) => option.value === value)?.label ?? '';
-  const inline = Platform.OS !== 'ios';
-
-  const open = () => {
-    if (inline) {
-      setExpanded((isOpen) => !isOpen);
-      return;
-    }
-    showOptionSheet({ title: label, options, selected: value, onSelect: onChange });
-  };
 
   return (
     <View>
-      <Pressable
-        onPress={open}
+      <PressScale
+        onPress={() => setExpanded((isOpen) => !isOpen)}
+        pressScale={0.99}
+        haptic="select"
         accessibilityRole="button"
         accessibilityLabel={`${label}: ${current}`}
         accessibilityHint="Choose a different option"
-        accessibilityState={inline ? { expanded } : undefined}
-        style={({ pressed }) => [styles.row, pressed && { opacity: 0.7 }]}
+        accessibilityState={{ expanded }}
+        style={styles.row}
       >
         <ThemedText variant="body" color="secondary">
           {label}
@@ -50,31 +39,32 @@ export function OptionPicker<T extends string>({ label, options, value, onChange
           <ThemedText variant="bodyEmphasized" numberOfLines={1} style={styles.currentText}>
             {current}
           </ThemedText>
-          <AppIcon name="chevronDown" size={13} color={colors.textSecondary} weight="semibold" />
+          <AppIcon name={expanded ? 'chevronUp' : 'chevronDown'} size={13} color={colors.textSecondary} weight="semibold" />
         </View>
-      </Pressable>
+      </PressScale>
 
-      {inline && expanded ? (
-        <View style={[styles.list, { borderColor: colors.border }]} accessibilityRole="radiogroup">
+      {expanded ? (
+        <View style={[styles.list, { borderTopColor: colors.border }]} accessibilityRole="radiogroup">
           {options.map((option) => {
             const selected = option.value === value;
             return (
-              <Pressable
+              <PressScale
                 key={option.value}
                 onPress={() => {
-                  Haptics.selectionAsync();
                   setExpanded(false);
                   if (!selected) onChange(option.value);
                 }}
+                pressScale={0.99}
+                haptic="select"
                 accessibilityRole="radio"
                 accessibilityState={{ checked: selected }}
-                style={({ pressed }) => [styles.option, pressed && { backgroundColor: colors.surfaceRaised }]}
+                style={styles.option}
               >
-                <ThemedText variant="body" style={styles.optionText}>
+                <ThemedText variant="body" style={[styles.optionText, selected ? { color: colors.accentText } : null]}>
                   {option.label}
                 </ThemedText>
-                {selected ? <AppIcon name="check" size={16} color={colors.accent} weight="semibold" /> : null}
-              </Pressable>
+                {selected ? <AppIcon name="check" size={16} color={colors.accentText} weight="semibold" /> : null}
+              </PressScale>
             );
           })}
         </View>
@@ -84,22 +74,10 @@ export function OptionPicker<T extends string>({ label, options, value, onChange
 }
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: Spacing.md,
-    minHeight: 44,
-  },
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md, minHeight: MIN_TAP },
   current: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, flexShrink: 1 },
   currentText: { flexShrink: 1, textAlign: 'right' },
-  list: { borderTopWidth: StyleSheet.hairlineWidth, marginTop: Spacing.xs },
-  option: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: Spacing.md,
-    minHeight: 44,
-  },
+  list: { borderTopWidth: HAIRLINE, marginTop: Spacing.xs },
+  option: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: Spacing.md, minHeight: MIN_TAP },
   optionText: { flex: 1 },
 });

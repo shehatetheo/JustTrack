@@ -1,26 +1,30 @@
-import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo, useState, useSyncExternalStore } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FoodHero } from '@/components/food/FoodHero';
 import { MealTypePicker } from '@/components/food/MealTypePicker';
 import { NutritionColumns } from '@/components/food/NutritionColumns';
 import { PortionEditor } from '@/components/food/PortionEditor';
+import { SheetFrame } from '@/components/layout/SheetFrame';
+import { SheetHeader } from '@/components/layout/SheetHeader';
+import { CountUp, InkReveal, Stagger } from '@/components/motion';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ThemedText } from '@/components/ui/ThemedText';
+import { Duration, Haptic } from '@/constants/motion';
 import { MEAL_TYPE_META } from '@/constants/nutrition';
-import { Spacing } from '@/constants/theme';
+import { HAIRLINE, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
+import { removeWithUndo } from '@/hooks/useEntryActions';
 import { usePortion } from '@/hooks/usePortion';
 import { getChainFood } from '@/lib/food/chainDatabase';
 import { getUsdaFood } from '@/lib/food/usdaDatabase';
 import { amountLabel, createEntry, entryAsFood, rescaleEntry } from '@/lib/log/entries';
-import { addEntries, logStore, removeEntry, updateEntry } from '@/lib/log/logStore';
+import { addEntries, logStore, updateEntry } from '@/lib/log/logStore';
 import type { StoredPortion } from '@/lib/nutrition/portion';
 import type { MealType } from '@/types';
-import { confirmAsync } from '@/utils/actionSheet';
 import { formatNumber } from '@/utils/format';
 import { singleParam } from '@/utils/routeParams';
 
@@ -30,8 +34,17 @@ function samePortion(a: StoredPortion, b: StoredPortion): boolean {
 
 /** Change the amount or meal of something already logged, log it again, or delete it. */
 export default function EditEntryScreen() {
+  return (
+    <SheetFrame>
+      <EditEntry />
+    </SheetFrame>
+  );
+}
+
+function EditEntry() {
   const router = useRouter();
   const { colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ id: string }>();
   const entryId = singleParam(params.id);
   const entries = useSyncExternalStore(logStore.subscribe, logStore.getSnapshot, logStore.getSnapshot);
@@ -61,7 +74,7 @@ export default function EditEntryScreen() {
       const rescaled = portionChanged && food && portion.stored ? (rescaleEntry(current, food, portion.stored) ?? current) : current;
       return { ...rescaled, mealType };
     });
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Haptic.success();
     router.back();
   };
 
@@ -69,23 +82,23 @@ export default function EditEntryScreen() {
     if (!entry) return;
     const { id: _id, loggedAt: _loggedAt, ...rest } = entry;
     addEntries([createEntry({ ...rest, mealType }, new Date())]);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Haptic.log();
     router.back();
   };
 
-  const remove = async () => {
+  // No question first: the entry goes, the sheet closes, and Home offers to put it back.
+  const remove = () => {
     if (!entry) return;
-    const confirmed = await confirmAsync({ title: 'Delete this entry?', message: `${entry.foodName} will be removed from ${MEAL_TYPE_META[entry.mealType].label}.`, confirmLabel: 'Delete' });
-    if (!confirmed) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    removeEntry(entry.id);
+    Haptic.tap();
+    removeWithUndo(entry);
     router.back();
   };
 
   if (!entry) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.background }]}>
-        <EmptyState title="This entry is gone" message="It was deleted or cleared." actionLabel="Close" onAction={() => router.back()} />
+      <View style={[styles.root, { backgroundColor: colors.background }]}>
+        <SheetHeader title="Entry" onClose={() => router.back()} />
+        <EmptyState title="gone" message="It was deleted or cleared." actionLabel="Close" onAction={() => router.back()} />
       </View>
     );
   }
@@ -93,54 +106,66 @@ export default function EditEntryScreen() {
   const nutrition = portion.nutrition ?? entry;
 
   return (
-    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
-      <FoodHero
-        title={entry.foodName}
-        subtitle={entry.brand ?? MEAL_TYPE_META[entry.mealType].label}
-        amount={portion.description ?? amountLabel(entry)}
-        amountCaption="portion"
-        imageUri={entry.imageUri}
-        tintHints={[databaseFood?.category, entry.brand]}
-        badge={entry.isEstimate ? 'ESTIMATED' : 'EDIT'}
-        onBack={() => router.back()}
-      />
+    <View style={[styles.root, { backgroundColor: colors.background }]}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
+        <FoodHero
+          title={entry.foodName}
+          subtitle={entry.brand ?? MEAL_TYPE_META[entry.mealType].label.toLowerCase()}
+          amount={portion.description ?? amountLabel(entry)}
+          amountCaption="portion"
+          imageUri={entry.imageUri}
+          tintHints={[databaseFood?.category, entry.brand]}
+          badge={entry.isEstimate ? 'ESTIMATED' : 'EDIT'}
+          onBack={() => router.back()}
+        />
 
-      <View style={styles.body}>
-        <View>
-          <ThemedText variant="largeTitle" style={styles.tabular}>
-            {formatNumber(nutrition.calories)}
-          </ThemedText>
-          <ThemedText variant="footnote" color="secondary">
-            kcal in this portion{entry.isEstimate ? ' · estimated from a photo' : ''}
-          </ThemedText>
+        <View style={styles.body}>
+          <InkReveal>
+            <View style={styles.caloriesRow}>
+              <CountUp value={nutrition.calories} durationMs={Duration.standard} format={(value) => formatNumber(value)} variant="figure" />
+              <ThemedText variant="overline" color="secondary" style={styles.unit}>
+                KCAL IN THIS PORTION{entry.isEstimate ? ' · ESTIMATED' : ''}
+              </ThemedText>
+            </View>
+          </InkReveal>
+
+          <Stagger index={1}>
+            <NutritionColumns nutrition={nutrition} />
+          </Stagger>
+          {food ? (
+            <Stagger index={2}>
+              <PortionEditor portion={portion} />
+            </Stagger>
+          ) : null}
+
+          <Stagger index={3} style={styles.meal}>
+            <ThemedText variant="overline" color="tertiary">
+              MEAL
+            </ThemedText>
+            <MealTypePicker value={mealType} onChange={setMealType} />
+          </Stagger>
+
+          <Stagger index={4} style={styles.actions}>
+            <Button label="Log it again" variant="secondary" onPress={logAgain} />
+            <Button label="Delete entry" variant="quiet" onPress={remove} />
+          </Stagger>
         </View>
+      </ScrollView>
 
-        <NutritionColumns nutrition={nutrition} />
-        {food ? <PortionEditor portion={portion} /> : null}
-
-        <View style={styles.meal}>
-          <ThemedText variant="footnote" color="secondary" style={styles.label}>
-            MEAL
-          </ThemedText>
-          <MealTypePicker value={mealType} onChange={setMealType} />
-        </View>
-
-        <View style={styles.actions}>
-          <Button label="Save changes" onPress={save} disabled={!canSave} />
-          <Button label="Log it again" variant="secondary" onPress={logAgain} />
-          <Button label="Delete entry" variant="quiet" onPress={() => void remove()} />
-        </View>
+      <View style={[styles.footer, { backgroundColor: colors.background, borderTopColor: colors.border, paddingBottom: insets.bottom + Spacing.md }]}>
+        <Button label="Save changes" onPress={save} disabled={!canSave} />
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  content: { paddingBottom: Spacing['5xl'] },
-  body: { paddingHorizontal: Spacing.lg, gap: Spacing.lg, marginTop: -Spacing.sm },
+  root: { flex: 1 },
+  content: { paddingBottom: Spacing['3xl'] },
+  body: { paddingHorizontal: Spacing.lg, gap: Spacing.lg, paddingTop: Spacing.lg },
+  caloriesRow: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.sm },
+  unit: { flexShrink: 1 },
   meal: { gap: Spacing.sm },
-  label: { marginLeft: Spacing.xs, letterSpacing: 0.5 },
   actions: { gap: Spacing.sm },
-  tabular: { fontVariant: ['tabular-nums'] },
+  footer: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.md, borderTopWidth: HAIRLINE },
 });

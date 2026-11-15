@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import Animated, { LinearTransition, runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
 
 import { Duration, Easings } from '@/constants/motion';
@@ -25,40 +25,44 @@ function zigzag(width: number): string {
 
 /**
  * A row leaving the way a receipt is torn from the roll: a perforated edge
- * appears, the row slides and tilts off, and the rows below close the gap.
+ * appears, the row slides and tilts off, and the space it took closes up.
  * With motion reduced it fades and the gap closes at once.
  */
 export function TearAway({ tearing, onTorn, style, children }: TearAwayProps) {
   const { colors } = useAppTheme();
   const { reduced } = useMotion();
-  const [width, setWidth] = useState(0);
+  const [size, setSize] = useState({ width: 0, height: 0 });
   const torn = useSharedValue(0);
+  const closed = useSharedValue(0);
 
   useEffect(() => {
     if (!tearing) return;
-    torn.set(
-      withTiming(1, { duration: reduced ? Duration.micro : Duration.standard, easing: Easings.slash }, (finished) => {
-        if (finished) runOnJS(onTorn)();
-      })
-    );
+    const tear = reduced ? Duration.micro : Duration.standard;
+    const close = reduced ? 0 : Duration.micro;
+    torn.set(withTiming(1, { duration: tear, easing: Easings.slash }));
+    closed.set(withDelay(tear, withTiming(1, { duration: close, easing: Easings.out })));
+    const timer = setTimeout(onTorn, tear + close);
+    return () => clearTimeout(timer);
     // `onTorn` is the caller's latest; re-running for a new function identity would tear twice.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tearing, reduced, torn]);
+  }, [tearing, reduced]);
 
   const leaving = useAnimatedStyle(() => {
     const t = torn.get();
     return reduced ? { opacity: 1 - t } : { opacity: 1 - t, transform: [{ translateX: -t * 36 }, { rotate: `${-t * 1.5}deg` }] };
   });
-  const edge = useAnimatedStyle(() => ({ opacity: torn.get() > 0 && torn.get() < 1 ? 1 : 0 }));
+  // The height is only pinned once the row starts to close, so until then the row sizes itself.
+  const closing = useAnimatedStyle(() => (closed.get() > 0 && size.height > 0 ? { height: size.height * (1 - closed.get()), overflow: 'hidden' } : {}));
+  const edge = useAnimatedStyle(() => ({ opacity: torn.get() > 0 && closed.get() < 1 ? 1 : 0 }));
 
   return (
-    <Animated.View layout={reduced ? undefined : LinearTransition.duration(Duration.standard)} style={style} onLayout={(event) => setWidth(event.nativeEvent.layout.width)}>
+    <Animated.View style={[style, closing]} onLayout={(event) => !tearing && setSize({ width: event.nativeEvent.layout.width, height: event.nativeEvent.layout.height })}>
       <Animated.View style={leaving}>{children}</Animated.View>
-      {width > 0 && !reduced ? (
+      {size.width > 0 && !reduced ? (
         <Animated.View pointerEvents="none" style={[styles.edge, edge]}>
           <View>
-            <Svg width={width} height={4}>
-              <Path d={zigzag(width)} stroke={colors.inkFaint} strokeWidth={1} fill="none" />
+            <Svg width={size.width} height={4}>
+              <Path d={zigzag(size.width)} stroke={colors.inkFaint} strokeWidth={1} fill="none" />
             </Svg>
           </View>
         </Animated.View>

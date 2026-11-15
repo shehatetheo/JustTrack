@@ -1,4 +1,5 @@
 export { CountUp, useCountUp } from './CountUp';
+export { Deal } from './Deal';
 export { DrawStroke, useDraw } from './DrawStroke';
 export { InkReveal } from './InkReveal';
 export { PressScale } from './PressScale';

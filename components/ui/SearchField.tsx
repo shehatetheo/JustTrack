@@ -58,5 +58,5 @@ export function SearchField({ value, onChangeText, loading = false, placeholder 
 const styles = StyleSheet.create({
   field: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, borderRadius: Radii.lg, borderWidth: HAIRLINE, paddingHorizontal: Spacing.md, minHeight: MIN_TAP + 4, overflow: 'hidden' },
   // No browser focus ring: the line at the foot is the focus mark.
-  input: { flex: 1, paddingVertical: Spacing.sm, outlineWidth: 0 },
+  input: { flex: 1, paddingVertical: Spacing.sm, outlineStyle: 'solid', outlineWidth: 0 },
 });

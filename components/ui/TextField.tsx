@@ -69,5 +69,5 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   // minWidth 0 lets the input shrink on web, where it otherwise keeps a default width and pushes the suffix out.
-  input: { flex: 1, minWidth: 0, paddingVertical: Spacing.md, outlineWidth: 0 },
+  input: { flex: 1, minWidth: 0, paddingVertical: Spacing.md, outlineStyle: 'solid', outlineWidth: 0 },
 });

@@ -1,7 +1,6 @@
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo, useState, useSyncExternalStore } from 'react';
-import { Pressable, SectionList, StyleSheet, View } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import { SectionList, StyleSheet, View } from 'react-native';
 
 import { ChainLogo } from '@/components/food/ChainLogo';
 import { FoodDataAttribution } from '@/components/food/FoodDataAttribution';
@@ -9,23 +8,32 @@ import { FoodSearchRow } from '@/components/food/FoodSearchRow';
 import { RestaurantGrid } from '@/components/food/RestaurantGrid';
 import { FilterChips, TermChips } from '@/components/food/SearchChips';
 import { SkeletonRows } from '@/components/food/SkeletonRows';
+import { SheetHeader } from '@/components/layout/SheetHeader';
+import { PressScale, Stagger } from '@/components/motion';
 import { AppIcon } from '@/components/ui/AppIcon';
-import { CloseButton } from '@/components/ui/CloseButton';
+import { Chip } from '@/components/ui/Chip';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Glass } from '@/components/ui/Glass';
 import { SearchField } from '@/components/ui/SearchField';
 import { ThemedText } from '@/components/ui/ThemedText';
+import { Haptic } from '@/constants/motion';
 import { MEAL_TYPE_META } from '@/constants/nutrition';
-import { Radii, Spacing } from '@/constants/theme';
+import { MIN_TAP, Radii, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { useCurrentTime } from '@/hooks/useCurrentTime';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useFoodSearch } from '@/hooks/useFoodSearch';
 import { builderForChain } from '@/lib/food/builders';
 import { clearRecentSearches, recentSearchesStore, rememberSearch, SUGGESTED_SEARCHES } from '@/lib/food/recentSearches';
+import { createEntry } from '@/lib/log/entries';
+import { frequentEntries } from '@/lib/log/frequent';
+import { addEntries, logStore, removeEntry } from '@/lib/log/logStore';
 import { matchRowToFood } from '@/lib/scan/reviewStore';
-import type { FoodDetail } from '@/types';
+import type { FoodDetail, LogEntry } from '@/types';
+import { formatNumber } from '@/utils/format';
 import { defaultMealType } from '@/utils/mealTime';
 import { mealTypeParam, singleParam } from '@/utils/routeParams';
+import { showToast } from '@/utils/toast';
 
 type SectionKey = 'restaurants' | 'everyday' | 'packaged';
 type Filter = 'all' | SectionKey;
@@ -37,9 +45,10 @@ interface ResultSection {
 }
 
 /**
- * Add Food. Before typing: the restaurant grid plus recent searches. While
- * typing: results grouped into cards (restaurants, everyday, packaged) with
- * a filter row to focus on one kind.
+ * Add food. Before typing: what you log often (one tap logs it again),
+ * recent searches and the restaurant grid. While typing: results grouped
+ * into panels (restaurants, everyday, packaged) with a filter row to focus
+ * on one kind.
  */
 export default function FoodSearchScreen() {
   const router = useRouter();
@@ -57,6 +66,18 @@ export default function FoodSearchScreen() {
   const search = useFoodSearch(debouncedQuery);
   const builder = pickRowId ? null : builderForChain(search.chainNamed);
   const recents = useSyncExternalStore(recentSearchesStore.subscribe, recentSearchesStore.getSnapshot, recentSearchesStore.getSnapshot);
+  const log = useSyncExternalStore(logStore.subscribe, logStore.getSnapshot, logStore.getSnapshot);
+  const often = useMemo(() => (pickRowId ? [] : frequentEntries(log, now)), [log, now, pickRowId]);
+
+  /** One tap on something logged often: the latest amount goes into this meal, and the sheet closes on it. */
+  const logAgain = (entry: LogEntry) => {
+    const { id: _id, loggedAt: _loggedAt, ...rest } = entry;
+    const again = createEntry({ ...rest, mealType }, new Date());
+    addEntries([again]);
+    Haptic.log();
+    showToast({ message: `${entry.foodName} logged to ${MEAL_TYPE_META[mealType].label.toLowerCase()}`, actionLabel: 'Undo', onAction: () => removeEntry(again.id) });
+    router.back();
+  };
 
   const choose = (food: FoodDetail) => {
     rememberSearch(debouncedQuery);
@@ -98,20 +119,15 @@ export default function FoodSearchScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <Stack.Screen
-        options={{
-          title: pickRowId ? 'Choose a match' : 'Add Food',
-          headerLeft: pickRowId ? () => <CloseButton back onPress={() => router.back()} /> : () => null,
-          headerRight: pickRowId ? undefined : () => <CloseButton onPress={() => router.back()} />,
-          headerTitleAlign: 'center',
-        }}
+      <SheetHeader
+        title={pickRowId ? 'Choose a match' : 'Add food'}
+        tagline={pickRowId ? 'the scanned amount is kept' : `adding to ${MEAL_TYPE_META[mealType].label.toLowerCase()}`}
+        onBack={pickRowId ? () => router.back() : undefined}
+        onClose={pickRowId ? undefined : () => router.back()}
       />
 
       <View style={styles.searchBar}>
         <SearchField value={query} onChangeText={setQuery} placeholder="Search foods, brands, or restaurants" autoFocus={!pickRowId} loading={search.active && search.packagedStatus === 'loading'} />
-        <ThemedText variant="footnote" color="secondary" style={styles.destination}>
-          {pickRowId ? 'Pick the closest match; the scanned amount is kept.' : `Adding to ${MEAL_TYPE_META[mealType].label}`}
-        </ThemedText>
       </View>
 
       {search.active ? (
@@ -131,45 +147,40 @@ export default function FoodSearchScreen() {
         sections={sections}
         keyExtractor={(food) => food.id}
         renderItem={({ item, index, section }) => (
-          <View style={styles.rowWrap}>
+          <Stagger index={index} style={styles.rowWrap}>
             <FoodSearchRow food={item} onPress={() => choose(item)} disambiguate={search.isAmbiguous(item)} hideBrand={section.key === 'restaurants' && item.brand === search.chainNamed} position={position(index, section.data.length)} />
-          </View>
+          </Stagger>
         )}
         renderSectionHeader={({ section }) => (
-          <Animated.View entering={FadeIn.duration(220)} style={[styles.sectionHeader, { backgroundColor: colors.background }]}>
+          <View style={[styles.sectionHeader, { backgroundColor: colors.background }]}>
             <View style={styles.sectionTitleRow}>
-              {section.key === 'restaurants' && search.chainNamed ? <ChainLogo chain={search.chainNamed} size={22} radius={6} /> : null}
-              <ThemedText variant="footnote" color="secondary" style={styles.sectionTitle}>
+              {section.key === 'restaurants' && search.chainNamed ? <ChainLogo chain={search.chainNamed} size={22} radius={Radii.sm} /> : null}
+              <ThemedText variant="overline" color="tertiary" style={styles.sectionTitle}>
                 {section.title.toUpperCase()}
               </ThemedText>
               {section.key === 'restaurants' && search.chainNamed ? (
-                <Pressable onPress={() => openChain(search.chainNamed as string)} accessibilityRole="button" accessibilityLabel={`Browse the ${search.chainNamed} menu`} hitSlop={8} style={styles.browse}>
-                  <ThemedText variant="footnote" style={{ color: colors.accent, fontWeight: '600' }}>
-                    Full menu
+                <PressScale onPress={() => openChain(search.chainNamed as string)} haptic="select" accessibilityRole="button" accessibilityLabel={`Browse the ${search.chainNamed} menu`} hitSlop={12} style={styles.browse}>
+                  <ThemedText variant="footnote" style={[styles.strong, { color: colors.accentText }]}>
+                    full menu
                   </ThemedText>
-                  <AppIcon name="chevronRight" size={11} color={colors.accent} weight="semibold" />
-                </Pressable>
+                  <AppIcon name="chevronRight" size={11} color={colors.accentText} weight="semibold" />
+                </PressScale>
               ) : null}
             </View>
             {section.key === 'restaurants' && builder ? (
-              <Pressable
-                onPress={() => router.push({ pathname: '/food/build', params: { builder: builder.key, mealType } })}
-                accessibilityRole="button"
-                accessibilityLabel={`Build your ${builder.chain} order`}
-                style={({ pressed }) => [styles.builder, { backgroundColor: colors.accent, opacity: pressed ? 0.85 : 1 }]}
-              >
-                <View style={styles.builderText}>
-                  <ThemedText variant="headline" style={{ color: colors.onAccent }}>
-                    Build your order
-                  </ThemedText>
-                  <ThemedText variant="footnote" style={{ color: colors.onAccent, opacity: 0.75 }}>
-                    Pick it like you’d order it; the total is the menu’s own numbers.
-                  </ThemedText>
-                </View>
-                <AppIcon name="chevronRight" size={14} color={colors.onAccent} weight="semibold" />
-              </Pressable>
+              <PressScale onPress={() => router.push({ pathname: '/food/build', params: { builder: builder.key, mealType } })} pressScale={0.985} accessibilityRole="button" accessibilityLabel={`Build your ${builder.chain} order`}>
+                <Glass radius={Radii.xl} lit style={styles.callout}>
+                  <View style={styles.calloutText}>
+                    <ThemedText variant="headline">build your order</ThemedText>
+                    <ThemedText variant="footnote" color="secondary">
+                      Pick it like you’d order it; the total is the menu’s own numbers.
+                    </ThemedText>
+                  </View>
+                  <AppIcon name="chevronRight" size={14} color={colors.accentText} weight="semibold" />
+                </Glass>
+              </PressScale>
             ) : null}
-          </Animated.View>
+          </View>
         )}
         renderSectionFooter={({ section }) => sectionFooter(section.key)}
         stickySectionHeadersEnabled={false}
@@ -185,24 +196,35 @@ export default function FoodSearchScreen() {
             </View>
           ) : (
             <View style={styles.landing}>
-              {!pickRowId ? (
-                <Pressable
-                  onPress={() => router.push('/scan/describe')}
-                  accessibilityRole="button"
-                  accessibilityLabel="Describe what you ate"
-                  style={({ pressed }) => [styles.describe, { backgroundColor: colors.surface, borderColor: colors.border, opacity: pressed ? 0.85 : 1 }]}
-                >
-                  <View style={styles.describeText}>
-                    <ThemedText variant="headline">Describe what you ate</ThemedText>
-                    <ThemedText variant="footnote" color="secondary" numberOfLines={2}>
-                      Type “2 eggs and toast, iced latte”. It gets sized, and you pick the numbers.
-                    </ThemedText>
+              {often.length > 0 ? (
+                <View style={styles.often}>
+                  <ThemedText variant="overline" color="tertiary">
+                    LOGGED OFTEN
+                  </ThemedText>
+                  <View style={styles.oftenWrap}>
+                    {often.map((entry, index) => (
+                      <Stagger key={entry.id} index={index}>
+                        <Chip label={entry.foodName} detail={`${formatNumber(entry.calories)} cal`} haptic={null} onPress={() => logAgain(entry)} accessibilityLabel={`Log ${entry.foodName} again, ${formatNumber(entry.calories)} calories`} style={styles.oftenChip} />
+                      </Stagger>
+                    ))}
                   </View>
-                  <AppIcon name="chevronRight" size={14} color={colors.textTertiary} weight="semibold" />
-                </Pressable>
+                </View>
+              ) : null}
+              {!pickRowId ? (
+                <PressScale onPress={() => router.push('/scan/describe')} pressScale={0.985} accessibilityRole="button" accessibilityLabel="Describe what you ate" style={styles.describe}>
+                  <Glass radius={Radii.xl} style={styles.callout}>
+                    <View style={styles.calloutText}>
+                      <ThemedText variant="headline">describe what you ate</ThemedText>
+                      <ThemedText variant="footnote" color="secondary" numberOfLines={2}>
+                        Type “2 eggs and toast, iced latte”. It gets sized, and you pick the numbers.
+                      </ThemedText>
+                    </View>
+                    <AppIcon name="chevronRight" size={14} color={colors.textTertiary} weight="semibold" />
+                  </Glass>
+                </PressScale>
               ) : null}
               <TermChips title={recents.length > 0 ? 'Recent' : 'Try'} terms={recents.length > 0 ? recents : SUGGESTED_SEARCHES} onPick={setQuery} onClear={recents.length > 0 ? clearRecentSearches : undefined} />
-              <ThemedText variant="footnote" color="secondary" style={styles.browseTitle}>
+              <ThemedText variant="overline" color="tertiary" style={styles.browseTitle}>
                 RESTAURANTS
               </ThemedText>
               <RestaurantGrid onSelect={openChain} />
@@ -225,11 +247,11 @@ function Note({ text, actionLabel, onAction }: { text: string; actionLabel?: str
         {text}
       </ThemedText>
       {actionLabel && onAction ? (
-        <Pressable onPress={onAction} accessibilityRole="button" hitSlop={8}>
-          <ThemedText variant="footnote" style={{ color: colors.accent, fontWeight: '600' }}>
-            {actionLabel}
+        <PressScale onPress={onAction} haptic="select" accessibilityRole="button" hitSlop={12} style={styles.noteAction}>
+          <ThemedText variant="footnote" style={[styles.strong, { color: colors.accentText }]}>
+            {actionLabel.toLowerCase()}
           </ThemedText>
-        </Pressable>
+        </PressScale>
       ) : null}
     </View>
   );
@@ -237,23 +259,25 @@ function Note({ text, actionLabel, onAction }: { text: string; actionLabel?: str
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  searchBar: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.sm, paddingBottom: Spacing.xs, gap: Spacing.sm },
-  destination: { marginLeft: Spacing.xs },
+  searchBar: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.md, paddingBottom: Spacing.xs },
   list: { flexGrow: 1, paddingBottom: Spacing['3xl'] },
   rowWrap: { paddingHorizontal: Spacing.lg },
   sectionHeader: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.lg, paddingBottom: Spacing.sm, gap: Spacing.sm },
-  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  sectionTitle: { letterSpacing: 0.5, flex: 1 },
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, minHeight: MIN_TAP / 2 },
+  sectionTitle: { flex: 1 },
   browse: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  landing: { paddingTop: Spacing.sm },
-  describe: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: Spacing.lg, borderRadius: Radii.lg, borderWidth: StyleSheet.hairlineWidth * 2, marginBottom: Spacing.lg },
-  describeIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  describeText: { flex: 1, gap: 2 },
-  browseTitle: { letterSpacing: 0.5, paddingHorizontal: Spacing.lg, paddingTop: Spacing.xl },
-  builder: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: Spacing.lg, borderRadius: Radii.xl },
-  builderText: { flex: 1, gap: 2 },
+  strong: { fontWeight: '600' },
+  landing: { paddingTop: Spacing.md, gap: Spacing.lg },
+  often: { paddingHorizontal: Spacing.lg, gap: Spacing.sm },
+  oftenWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+  oftenChip: { maxWidth: 260 },
+  describe: { marginHorizontal: Spacing.lg },
+  callout: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: Spacing.lg },
+  calloutText: { flex: 1, gap: 2 },
+  browseTitle: { paddingHorizontal: Spacing.lg },
   gap: { height: Spacing.xs },
   note: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md },
   noteText: { flex: 1 },
+  noteAction: { justifyContent: 'center' },
   attribution: { marginTop: Spacing.lg },
 });

@@ -1,8 +1,8 @@
-import * as Haptics from 'expo-haptics';
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { ChainLogo } from '@/components/food/ChainLogo';
+import { PressScale, Stagger } from '@/components/motion';
 import { ThemedText } from '@/components/ui/ThemedText';
 import { Radii, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
@@ -17,25 +17,18 @@ export function RestaurantGrid({ onSelect }: RestaurantGridProps) {
   const { colors } = useAppTheme();
   return (
     <View style={styles.grid} accessibilityRole="list">
-      {FEATURED_CHAINS.map((chain) => (
-        <Pressable
-          key={chain}
-          onPress={() => {
-            Haptics.selectionAsync();
-            onSelect(chain);
-          }}
-          accessibilityRole="button"
-          accessibilityLabel={`${chain} menu`}
-          style={({ pressed }) => [styles.cell, { opacity: pressed ? 0.6 : 1, transform: [{ scale: pressed ? 0.96 : 1 }] }]}
-        >
-          <ChainLogo chain={chain} size={64} radius={Radii.lg} />
-          <ThemedText variant="caption1" color="secondary" numberOfLines={1} style={styles.label}>
-            {shortChainName(chain)}
-          </ThemedText>
-        </Pressable>
+      {FEATURED_CHAINS.map((chain, index) => (
+        <Stagger key={chain} index={index} style={styles.cell}>
+          <PressScale onPress={() => onSelect(chain)} haptic="select" accessibilityRole="button" accessibilityLabel={`${chain} menu`} style={styles.press}>
+            <ChainLogo chain={chain} size={64} radius={Radii.lg} />
+            <ThemedText variant="caption1" color="secondary" numberOfLines={1} style={styles.label}>
+              {shortChainName(chain).toLowerCase()}
+            </ThemedText>
+          </PressScale>
+        </Stagger>
       ))}
       <ThemedText variant="caption1" color="tertiary" style={[styles.foot, { color: colors.textTertiary }]}>
-        Or search anything above: everyday foods, brands, barcodes.
+        or search anything above: everyday foods, brands, barcodes.
       </ThemedText>
     </View>
   );
@@ -43,7 +36,8 @@ export function RestaurantGrid({ onSelect }: RestaurantGridProps) {
 
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: Spacing.md, paddingTop: Spacing.sm, rowGap: Spacing.lg },
-  cell: { width: '25%', alignItems: 'center', gap: Spacing.xs },
+  cell: { width: '25%' },
+  press: { alignItems: 'center', gap: Spacing.xs },
   label: { textAlign: 'center', paddingHorizontal: 2 },
   foot: { width: '100%', textAlign: 'center', paddingHorizontal: Spacing.lg, marginTop: Spacing.sm },
 });

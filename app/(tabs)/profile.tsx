@@ -149,7 +149,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   content: { paddingBottom: Spacing['5xl'] },
   hero: { alignItems: 'center', gap: Spacing.sm, paddingTop: Spacing.xl, paddingBottom: Spacing.sm },
-  nameInput: { textAlign: 'center', minWidth: 200, paddingVertical: Spacing.xs, outlineWidth: 0 },
+  nameInput: { textAlign: 'center', minWidth: 200, paddingVertical: Spacing.xs, outlineStyle: 'solid', outlineWidth: 0 },
   hometown: { textAlign: 'center' },
   body: { paddingHorizontal: Spacing.lg },
 });

@@ -1,20 +1,46 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { EntryRow } from '@/components/food/EntryRow';
-import { PressScale } from '@/components/motion';
+import { PressScale, TearAway, useMotion } from '@/components/motion';
 import { AppIcon } from '@/components/ui/AppIcon';
 import { Glass } from '@/components/ui/Glass';
 import { Stamp } from '@/components/ui/Stamp';
 import { ThemedText } from '@/components/ui/ThemedText';
+import { Duration, Easings } from '@/constants/motion';
 import { MEAL_TYPE_META } from '@/constants/nutrition';
 import { HAIRLINE, MIN_TAP, Radii, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { useEntryActions } from '@/hooks/useEntryActions';
 import { macroShares, type MealSection } from '@/lib/log/entries';
 import { formatNumber } from '@/utils/format';
+
+/**
+ * A row that has just been logged drops into the card under a wash of
+ * lavender that fades as it settles. Rows that were already there when the
+ * card appeared simply sit.
+ */
+function Arrive({ fresh, children }: { fresh: boolean; children: React.ReactNode }) {
+  const { colors } = useAppTheme();
+  const { reduced } = useMotion();
+  const landed = useSharedValue(fresh ? 0 : 1);
+  useEffect(() => {
+    if (fresh) landed.set(withTiming(1, { duration: reduced ? Duration.micro : Duration.hero, easing: Easings.out }));
+    // Lands once, when it mounts.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const row = useAnimatedStyle(() => ({ opacity: Math.min(landed.get() * 2, 1), transform: [{ translateY: reduced ? 0 : (1 - landed.get()) * -14 }] }));
+  const wash = useAnimatedStyle(() => ({ opacity: (1 - landed.get()) * 0.3 }));
+  return (
+    <Animated.View style={row}>
+      {children}
+      {fresh ? <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: colors.accent }, wash]} /> : null}
+    </Animated.View>
+  );
+}
 
 interface MealCardProps {
   section: MealSection;
@@ -46,6 +72,9 @@ export function MealCard({ section, onAdd }: MealCardProps) {
 
   // The stamp lands again each time the meal gains an entry, but not when the card first appears.
   const [stamp, setStamp] = useState({ count, strikes: 0 });
+  // Anything logged after the card appeared is new and gets to arrive.
+  const [mountedAt] = useState(() => Date.now());
+  const [tearing, setTearing] = useState<string | null>(null);
   if (count !== stamp.count) setStamp({ count, strikes: count > stamp.count ? stamp.strikes + 1 : stamp.strikes });
 
   return (
@@ -85,7 +114,14 @@ export function MealCard({ section, onAdd }: MealCardProps) {
       {hasEntries ? (
         <View style={{ borderTopWidth: HAIRLINE, borderTopColor: colors.border }}>
           {section.entries.map((entry, index) => (
-            <EntryRow key={entry.id} entry={entry} isLast={index === count - 1} onOpen={() => actions.open(entry)} onDuplicate={() => actions.duplicate(entry)} onDelete={() => actions.remove(entry)} onMore={() => actions.more(entry)} />
+            <TearAway key={entry.id} tearing={tearing === entry.id} onTorn={() => {
+              setTearing(null);
+              actions.remove(entry);
+            }}>
+              <Arrive fresh={Date.parse(entry.loggedAt) > mountedAt}>
+                <EntryRow entry={entry} isLast={index === count - 1} onOpen={() => actions.open(entry)} onDuplicate={() => actions.duplicate(entry)} onDelete={() => setTearing(entry.id)} onMore={() => actions.more(entry, () => setTearing(entry.id))} />
+              </Arrive>
+            </TearAway>
           ))}
         </View>
       ) : null}
