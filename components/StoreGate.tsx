@@ -1,73 +1,59 @@
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
-import React, { useEffect, useRef, useState } from 'react';
-import { AppState, StyleSheet } from 'react-native';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
-import { LoadingScreen } from '@/components/LoadingScreen';
+import { LAUNCH_EXIT_MS, LAUNCH_MS, LoadingScreen } from '@/components/LoadingScreen';
 import { FONT_FILES } from '@/constants/fonts';
-
 import { logStore } from '@/lib/log/logStore';
 import { settingsStore } from '@/lib/settings/settingsStore';
 import { weightStore } from '@/lib/weight/weightStore';
 
-/** Long enough on a cold start for a few meteors to cross. */
-const LAUNCH_MS = 1900;
-/** Coming back after this long in the background plays the shower again, briefly. */
-const AWAY_MS = 10 * 60 * 1000;
-const RETURN_MS = 1300;
-
 /**
- * Shows the loading screen until the on-device log, weigh-ins and settings
- * have been read. The app mounts underneath as soon as the data is in, so by
- * the time the loading screen fades away the first screen is already drawn.
+ * Holds the launch screen until the on-device log, weigh-ins, settings and
+ * fonts are ready and the monogram has finished drawing. The app mounts
+ * underneath as soon as the data is in, so when the launch screen is cut
+ * away the first screen is already there. Touches pass through to the app
+ * from the moment it is ready; the animation never blocks input.
  */
 export function StoreGate({ children }: { children: React.ReactNode }) {
   // If a font fails to load the app still opens, in the system face.
   const [fontsLoaded, fontError] = useFonts(FONT_FILES);
   const [stored, setStored] = useState(() => logStore.isHydrated() && settingsStore.isHydrated() && weightStore.isHydrated());
   const ready = stored && (fontsLoaded || fontError !== null);
-  const [showing, setShowing] = useState(true);
-  const leftAt = useRef<number | null>(null);
+  const [drawn, setDrawn] = useState(false);
+  const [gone, setGone] = useState(false);
+  const leaving = ready && drawn;
 
   useEffect(() => {
-    // The static launch image hands over to the animated loading screen as soon as it's on screen.
+    // The static launch image hands over to the drawn one as soon as it's on screen.
     SplashScreen.hideAsync();
     let cancelled = false;
     Promise.all([logStore.hydrate(), settingsStore.hydrate(), weightStore.hydrate()]).then(() => {
       if (!cancelled) setStored(true);
     });
-    let timer = setTimeout(() => setShowing(false), LAUNCH_MS);
-
-    const subscription = AppState.addEventListener('change', (state) => {
-      if (state === 'background') {
-        leftAt.current = Date.now();
-        return;
-      }
-      if (state !== 'active' || leftAt.current === null) return;
-      const away = Date.now() - leftAt.current;
-      leftAt.current = null;
-      if (away < AWAY_MS) return;
-      clearTimeout(timer);
-      setShowing(true);
-      timer = setTimeout(() => setShowing(false), RETURN_MS);
-    });
-
+    const timer = setTimeout(() => setDrawn(true), LAUNCH_MS);
     return () => {
       cancelled = true;
       clearTimeout(timer);
-      subscription.remove();
     };
   }, []);
+
+  useEffect(() => {
+    if (!leaving) return;
+    const timer = setTimeout(() => setGone(true), LAUNCH_EXIT_MS + 40);
+    return () => clearTimeout(timer);
+  }, [leaving]);
 
   return (
     <>
       {ready ? children : null}
-      {!ready || showing ? (
-        <Animated.View entering={ready ? FadeIn.duration(180) : undefined} exiting={FadeOut.duration(380)} style={StyleSheet.absoluteFill} pointerEvents={ready ? 'none' : 'auto'}>
-          <LoadingScreen />
-        </Animated.View>
-      ) : null}
+      {gone ? null : (
+        <View style={StyleSheet.absoluteFill} pointerEvents={ready ? 'none' : 'auto'}>
+          {/* The wordmark waits for its fonts like everything else; the mark itself is pure vector. */}
+          <LoadingScreen leaving={leaving} />
+        </View>
+      )}
     </>
   );
 }

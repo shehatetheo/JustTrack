@@ -45,7 +45,7 @@ export function OrnateFrame({ variant = 'corners', corner = 44, color, draw = tr
   const { colors } = useAppTheme();
   const ink = color ?? colors.borderAccent;
   const [size, setSize] = useState({ width: 0, height: 0 });
-  const progress = useDraw({ duration: 620, replay, paused: !draw && false });
+  const progress = useDraw({ duration: draw ? 620 : 0, replay });
   const arch = variant === 'arch' && size.width > 0 ? archPaths(size.width, size.height) : null;
 
   return (

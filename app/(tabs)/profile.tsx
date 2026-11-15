@@ -4,11 +4,13 @@ import * as WebBrowser from 'expo-web-browser';
 import React, { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
-import { GradientHeader } from '@/components/layout/GradientHeader';
+import { Hero } from '@/components/layout/Hero';
+import { Heading } from '@/components/ui/Heading';
 import { ListRow, ListSection } from '@/components/ui/ListRow';
+import { Logo } from '@/components/ui/Logo';
 import { ThemedText } from '@/components/ui/ThemedText';
 import { APP_NAME, HOMETOWN_LINE, PRIVACY_LINE, REPOSITORY_URL, TAGLINE } from '@/constants/brand';
-import { Radii, Spacing, Typography } from '@/constants/theme';
+import { Spacing, Typography } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { useSettings } from '@/hooks/useSettings';
 import { clearRecentSearches } from '@/lib/food/recentSearches';
@@ -22,7 +24,7 @@ import { HEIGHT_UNIT_LABELS, WEIGHT_UNIT_LABELS } from '@/utils/units';
 
 const APPEARANCE_OPTIONS: readonly { value: ThemePreference; label: string }[] = [
   { value: 'dark', label: 'Dark' },
-  { value: 'light', label: 'Light' },
+  { value: 'light', label: 'Parchment' },
   { value: 'system', label: 'Match phone' },
 ];
 const WEIGHT_OPTIONS: readonly { value: WeightUnit; label: string }[] = [
@@ -36,11 +38,10 @@ const HEIGHT_OPTIONS: readonly { value: HeightUnit; label: string }[] = [
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { colors, shadows, preference, setPreference } = useAppTheme();
+  const { colors, preference, setPreference } = useAppTheme();
   const settings = useSettings();
   const [name, setName] = useState(settings.displayName ?? '');
   const version = Constants.expoConfig?.version ?? '1.0.0';
-  const initial = (settings.displayName ?? '').trim().charAt(0).toUpperCase() || 'JT';
 
   const { reminders } = settings;
   const reminderSummary = !reminders.enabled ? 'Off' : reminders.mode === 'interval' ? 'Every 1.5 hours' : 'Mealtimes';
@@ -69,33 +70,28 @@ export default function ProfileScreen() {
 
   return (
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content}>
-      <GradientHeader fadeEnd={0.9} seed={41}>
-        <ThemedText variant="headline" style={[styles.title, { color: colors.onHero }]} accessibilityRole="header">
-          Profile
-        </ThemedText>
-        <View style={[styles.hero, shadows.sm, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <View style={[styles.avatar, { backgroundColor: colors.accent }]}>
-            <ThemedText variant="title1" style={{ color: '#FFFFFF' }}>
-              {initial}
-            </ThemedText>
-          </View>
+      <Hero page="profile" artOpacity={0.4} veil={0.2}>
+        <Heading title="profile" tagline="yours, and only on this phone" level="title" align="center" onHero />
+        <View style={styles.hero}>
+          <Logo width={84} color={colors.onHero} />
           <TextInput
             value={name}
             onChangeText={setName}
             onBlur={saveName}
             onSubmitEditing={saveName}
-            placeholder="Your name"
-            placeholderTextColor={colors.textTertiary}
+            placeholder="your name"
+            placeholderTextColor={colors.onHeroMuted}
+            selectionColor={colors.accent}
             returnKeyType="done"
             maxLength={40}
             accessibilityLabel="Your name"
-            style={[Typography.title2, styles.nameInput, { color: colors.text }]}
+            style={[Typography.title2, styles.nameInput, { color: colors.onHero }]}
           />
-          <ThemedText variant="footnote" color="secondary" style={styles.hometown}>
+          <ThemedText variant="footnote" style={[styles.hometown, { color: colors.onHeroMuted }]}>
             {HOMETOWN_LINE}
           </ThemedText>
         </View>
-      </GradientHeader>
+      </Hero>
 
       <View style={styles.body}>
         <ListSection title="Goals">
@@ -152,10 +148,8 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   content: { paddingBottom: Spacing['5xl'] },
-  title: { textAlign: 'center' },
-  hero: { alignItems: 'center', gap: Spacing.sm, padding: Spacing.xl, marginTop: Spacing.lg, borderRadius: Radii.xl, borderWidth: StyleSheet.hairlineWidth },
-  avatar: { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center' },
-  nameInput: { textAlign: 'center', minWidth: 200, paddingVertical: Spacing.xs, borderRadius: Radii.md },
+  hero: { alignItems: 'center', gap: Spacing.sm, paddingTop: Spacing.xl, paddingBottom: Spacing.sm },
+  nameInput: { textAlign: 'center', minWidth: 200, paddingVertical: Spacing.xs, outlineWidth: 0 },
   hometown: { textAlign: 'center' },
   body: { paddingHorizontal: Spacing.lg },
 });

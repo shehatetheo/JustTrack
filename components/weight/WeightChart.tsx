@@ -39,7 +39,7 @@ export function WeightChart({ points, unit, goalKg = null, height = 220, compact
   const toUnit = (kg: number) => (unit === 'kg' ? kg : kgToLb(kg));
   const box = compact ? { width, height, top: 6, right: 6, bottom: 6, left: 6 } : { width, height, top: 16, right: 44, bottom: 28, left: 10 };
   const layout = width > 0 ? layoutChart(points, box, toUnit, compact ? null : goalKg) : null;
-  const line = isDark ? '#FFFFFF' : colors.text;
+  const line = colors.text;
 
   // Long enough to cover any line this chart can draw; the dash slides off to reveal it.
   const reach = Math.max(width * 3, 600);

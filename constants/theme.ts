@@ -41,6 +41,8 @@ export interface ThemeColors {
   accentText: string;
   /** Text and icons on a lavender fill. */
   onAccent: string;
+  /** The ground behind the hero artwork: black in both themes, since the art is drawn on black. */
+  hero: string;
   /** Text and icons over the hero artwork, which is dark in both themes. */
   onHero: string;
   onHeroMuted: string;
@@ -90,6 +92,7 @@ export const Colors: Record<ColorScheme, ThemeColors> = {
     accentDeep: LAVENDER_DEEP,
     accentText: LAVENDER,
     onAccent: INK,
+    hero: INK,
     onHero: '#FFFFFF',
     onHeroMuted: '#B8B5BF',
     track: '#2A2630',
@@ -122,6 +125,7 @@ export const Colors: Record<ColorScheme, ThemeColors> = {
     accentDeep: '#6A50D6',
     accentText: '#6A50D6',
     onAccent: INK,
+    hero: INK,
     onHero: '#FFFFFF',
     onHeroMuted: '#B8B5BF',
     track: '#D5CFC1',
@@ -179,6 +183,9 @@ type TypographyToken = Pick<TextStyle, 'fontSize' | 'lineHeight' | 'fontFamily' 
 export const Typography = {
   /** The giant "kcal left" number. */
   display: { fontSize: 84, lineHeight: 88, fontFamily: Fonts.bodyHeavy, letterSpacing: -3 },
+  /** Figures that head a card: a score, a streak, a weight. Always the sans, always tabular. */
+  figure: { fontSize: 36, lineHeight: 42, fontFamily: Fonts.bodyHeavy, letterSpacing: -1.2 },
+  figureSmall: { fontSize: 22, lineHeight: 28, fontFamily: Fonts.bodyBold, letterSpacing: -0.5 },
   /** Screen titles and big words: spaced serif capitals. */
   largeTitle: { fontSize: 28, lineHeight: 36, fontFamily: Fonts.displayBold, letterSpacing: 3 },
   title1: { fontSize: 24, lineHeight: 31, fontFamily: Fonts.displayBold, letterSpacing: 2 },

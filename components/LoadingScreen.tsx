@@ -1,61 +1,82 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
-import Animated, { Easing, FadeIn, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 
-import { SpaceBackdrop } from '@/components/space/SpaceBackdrop';
-import { Logo } from '@/components/ui/Logo';
-import { ThemedText } from '@/components/ui/ThemedText';
+import { MONOGRAM_DRAW_MS, MonogramDraw } from '@/components/brand/MonogramDraw';
+import { useMotion } from '@/components/motion';
+import { Wordmark } from '@/components/ui/Wordmark';
 import { APP_NAME } from '@/constants/brand';
+import { Duration, Easings } from '@/constants/motion';
+import { Spacing } from '@/constants/theme';
+import { useAppTheme } from '@/contexts/ThemeContext';
+
+/** From black to the first screen: the mark is written, a glint crosses it, and the whole plate is cut away on the diagonal. */
+export const LAUNCH_MS = MONOGRAM_DRAW_MS + 240;
+/** The cut itself. */
+export const LAUNCH_EXIT_MS = Duration.standard + 60;
+
+const MARK = 168;
 
 /**
- * What the app opens on: deep space with a meteor shower crossing it, and
- * the mark holding steady in the middle. Shown on every launch, and again
- * when the app comes back after a long spell in the background.
+ * What the app opens on. Black, always, in both themes: it continues the
+ * splash. The monogram draws on like a pen stroke, a lavender glint sweeps
+ * across it, and when `leaving` turns true the screen slashes away to
+ * reveal the app underneath.
  */
-export function LoadingScreen() {
-  const pulse = useSharedValue(0);
+export function LoadingScreen({ leaving = false }: { leaving?: boolean }) {
+  const { colors } = useAppTheme();
+  const { reduced } = useMotion();
+  const glint = useSharedValue(0);
+  const cut = useSharedValue(0);
 
   useEffect(() => {
-    pulse.set(withRepeat(withSequence(withTiming(1, { duration: 1100, easing: Easing.inOut(Easing.quad) }), withTiming(0, { duration: 1100, easing: Easing.inOut(Easing.quad) })), -1, false));
-  }, [pulse]);
+    if (reduced) return;
+    glint.set(withDelay(MONOGRAM_DRAW_MS - 80, withTiming(1, { duration: 320, easing: Easings.slash })));
+  }, [glint, reduced]);
 
-  const halo = useAnimatedStyle(() => ({ transform: [{ scale: 0.9 + pulse.get() * 0.22 }], opacity: 0.55 + pulse.get() * 0.45 }));
+  useEffect(() => {
+    if (leaving) cut.set(withTiming(1, { duration: reduced ? Duration.micro : LAUNCH_EXIT_MS, easing: Easings.slash }));
+  }, [cut, leaving, reduced]);
+
+  const glintStyle = useAnimatedStyle(() => ({ opacity: Math.sin(Math.PI * glint.get()), transform: [{ translateX: (glint.get() - 0.5) * MARK * 1.8 }, { rotate: '-24deg' }] }));
+  // Two halves of the black plate part along the diagonal; with motion reduced the plate simply fades.
+  const upper = useAnimatedStyle(() => (reduced ? { opacity: 1 - cut.get() } : { transform: [{ rotate: '-24deg' }, { translateY: -cut.get() * 1400 }] }));
+  const lower = useAnimatedStyle(() => (reduced ? { opacity: 1 - cut.get() } : { transform: [{ rotate: '-24deg' }, { translateY: cut.get() * 1400 }] }));
+  const content = useAnimatedStyle(() => ({ opacity: 1 - Math.min(cut.get() * 3, 1) }));
+  const edge = useAnimatedStyle(() => ({ opacity: reduced ? 0 : Math.sin(Math.PI * Math.min(cut.get() * 1.6, 1)) }));
 
   return (
     <View style={styles.root} accessibilityRole="progressbar" accessibilityLabel={`${APP_NAME} is loading`}>
-      <SpaceBackdrop meteors={7} calm={0.75} stars={130} />
-      <Animated.View entering={FadeIn.duration(350)} style={styles.center}>
-        <View style={styles.markWrap}>
-          <Animated.View style={[styles.halo, halo]}>
-            <Svg width={HALO} height={HALO}>
-              <Defs>
-                <RadialGradient id="mark-halo" cx="50%" cy="50%" fx="50%" fy="50%" rx="50%" ry="50%" gradientUnits="objectBoundingBox">
-                  <Stop offset="0" stopColor="#8468FF" stopOpacity={0.75} />
-                  <Stop offset="0.55" stopColor="#8468FF" stopOpacity={0.2} />
-                  <Stop offset="1" stopColor="#8468FF" stopOpacity={0} />
-                </RadialGradient>
-              </Defs>
-              <Circle cx={HALO / 2} cy={HALO / 2} r={HALO / 2} fill="url(#mark-halo)" />
-            </Svg>
-          </Animated.View>
-          <Logo width={84} color="#FFFFFF" />
+      <Animated.View style={[styles.half, styles.upper, { backgroundColor: colors.hero }, upper]} />
+      <Animated.View style={[styles.half, styles.lower, { backgroundColor: colors.hero }, lower]} />
+      <Animated.View pointerEvents="none" style={[styles.edge, edge]}>
+        <LinearGradient colors={['transparent', colors.accent, colors.onHero, colors.accent, 'transparent']} locations={[0, 0.3, 0.5, 0.7, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} />
+      </Animated.View>
+      <Animated.View style={[styles.center, content]}>
+        <View style={styles.mark}>
+          <MonogramDraw size={MARK} ground={colors.hero} color={colors.onHero} />
+          <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.clip]}>
+            <Animated.View style={[styles.glint, glintStyle]}>
+              <LinearGradient colors={['transparent', colors.accent, 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} />
+            </Animated.View>
+          </View>
         </View>
-        <ThemedText variant="overline" style={styles.name}>
-          {APP_NAME.toUpperCase()}
-        </ThemedText>
+        <Wordmark size={22} color={colors.onHero} />
       </Animated.View>
     </View>
   );
 }
 
-const MARK = 150;
-const HALO = 260;
-
 const styles = StyleSheet.create({
-  root: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#000000' },
-  center: { alignItems: 'center', gap: 6 },
-  markWrap: { width: MARK, height: MARK, alignItems: 'center', justifyContent: 'center' },
-  halo: { position: 'absolute', width: HALO, height: HALO },
-  name: { color: '#FFFFFF', letterSpacing: 6, fontSize: 12, opacity: 0.85 },
+  root: { flex: 1, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  // Each half is far larger than the screen so that, tilted, the pair still covers every corner.
+  half: { position: 'absolute', left: '-100%', right: '-100%', height: 1400 },
+  upper: { bottom: '50%' },
+  lower: { top: '50%' },
+  edge: { position: 'absolute', left: '-50%', right: '-50%', top: '50%', height: 3, marginTop: -1.5, transform: [{ rotate: '-24deg' }] },
+  center: { alignItems: 'center', gap: Spacing.lg },
+  mark: { width: MARK, height: MARK },
+  clip: { borderRadius: MARK / 2, overflow: 'hidden' },
+  glint: { position: 'absolute', top: -20, bottom: -20, left: '50%', width: 36, marginLeft: -18, opacity: 0 },
 });

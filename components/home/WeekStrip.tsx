@@ -1,13 +1,14 @@
-import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { PressScale } from '@/components/motion';
 import { ThemedText } from '@/components/ui/ThemedText';
-import { Radii, Spacing } from '@/constants/theme';
+import { Gloss, HAIRLINE, MIN_TAP, Radii, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { addDays, isSameDay, startOfWeek } from '@/utils/date';
 
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
 interface WeekStripProps {
   today: Date;
@@ -15,44 +16,44 @@ interface WeekStripProps {
   onSelect: (day: Date) => void;
 }
 
-/** This week as a row of white chips, Monday to Sunday. Tap a day to look at it; days still to come are quiet. */
+/** This week as a row of dark pills, Monday to Sunday. The picked day is a capsule of lavender glass; days still to come are quiet. */
 export function WeekStrip({ today, selected, onSelect }: WeekStripProps) {
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
   const monday = startOfWeek(selected);
-  const days = DAYS.map((name, index) => ({ name, date: addDays(monday, index) }));
-  const chip = isDark ? colors.surface : 'rgba(255,255,255,0.8)';
-  const edge = isDark ? colors.border : 'transparent';
 
   return (
     <View style={styles.row}>
-      {days.map(({ name, date }) => {
+      {DAYS.map((name, index) => {
+        const date = addDays(monday, index);
         const isSelected = isSameDay(date, selected);
         const isToday = isSameDay(date, today);
         const future = date > today;
-        // The picked day is a solid plate: white on black in dark mode, violet in light.
-        const plate = isDark ? '#FFFFFF' : colors.accent;
-        const ink = isSelected ? (isDark ? '#000000' : '#FFFFFF') : isDark ? colors.onHero : colors.text;
+        const ink = isSelected ? colors.onAccent : colors.onHero;
         return (
-          <Pressable
+          <PressScale
             key={date.toISOString()}
             disabled={future}
-            onPress={() => {
-              Haptics.selectionAsync();
-              onSelect(date);
-            }}
+            haptic={isSelected ? null : 'select'}
+            onPress={() => onSelect(date)}
             accessibilityRole="button"
             accessibilityLabel={date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             accessibilityState={{ selected: isSelected, disabled: future }}
-            style={({ pressed }) => [styles.day, { backgroundColor: isSelected ? plate : chip, borderColor: isSelected ? plate : edge, opacity: future ? 0.4 : pressed ? 0.75 : 1 }]}
+            style={[styles.day, { backgroundColor: colors.photoPlate, borderColor: isSelected ? colors.accent : colors.border, opacity: future ? 0.4 : 1 }]}
           >
-            <ThemedText variant="caption2" style={{ color: ink, opacity: isSelected ? 0.7 : 0.6, fontWeight: '700', letterSpacing: 0.6 }}>
-              {name.toUpperCase()}
+            {isSelected ? (
+              <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.clip]}>
+                <LinearGradient colors={Gloss.capsule} locations={[0, 0.5, 1]} style={StyleSheet.absoluteFill} />
+                <LinearGradient colors={Gloss.highlight} style={styles.gloss} />
+              </View>
+            ) : null}
+            <ThemedText variant="caption2" style={{ color: ink, opacity: isSelected ? 0.75 : 0.6 }}>
+              {name}
             </ThemedText>
             <ThemedText variant="subheadEmphasized" style={[styles.number, { color: ink }]}>
               {date.getDate()}
             </ThemedText>
             <View style={[styles.dot, { backgroundColor: isToday ? ink : 'transparent' }]} />
-          </Pressable>
+          </PressScale>
         );
       })}
     </View>
@@ -60,8 +61,10 @@ export function WeekStrip({ today, selected, onSelect }: WeekStripProps) {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', justifyContent: 'space-between', gap: 6, marginTop: Spacing.lg },
-  day: { flex: 1, paddingVertical: Spacing.sm, borderRadius: Radii.md, borderWidth: StyleSheet.hairlineWidth * 2, alignItems: 'center', gap: 2 },
-  number: { fontVariant: ['tabular-nums'], fontWeight: '700' },
+  row: { flexDirection: 'row', justifyContent: 'space-between', gap: Spacing.xs + 2, marginTop: Spacing.lg },
+  day: { flex: 1, minHeight: MIN_TAP + 12, paddingVertical: Spacing.sm, borderRadius: Radii.full, borderWidth: HAIRLINE, alignItems: 'center', justifyContent: 'center', gap: 1 },
+  clip: { borderRadius: Radii.full, overflow: 'hidden' },
+  gloss: { position: 'absolute', top: 1, left: 3, right: 3, height: '42%', borderRadius: Radii.full },
+  number: { fontVariant: ['tabular-nums'] },
   dot: { width: 4, height: 4, borderRadius: 2, marginTop: 1 },
 });

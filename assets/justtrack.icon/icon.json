@@ -1,36 +1,36 @@
 {
-  "fill" : {
-    "automatic-gradient" : "extended-srgb:0.35294,0.23137,0.95686,1.00000"
+  "fill": {
+    "automatic-gradient": "extended-srgb:0.03922,0.03922,0.04314,1.00000"
   },
-  "groups" : [
+  "groups": [
     {
-      "layers" : [
+      "layers": [
         {
-          "image-name" : "jt-mark.svg",
-          "name" : "jt-mark",
-          "position" : {
-            "scale" : 1,
-            "translation-in-points" : [
+          "image-name": "jt-mark.svg",
+          "name": "jt-mark",
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
               0,
               0
             ]
           }
         }
       ],
-      "shadow" : {
-        "kind" : "neutral",
-        "opacity" : 0.5
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.5
       },
-      "translucency" : {
-        "enabled" : false,
-        "value" : 0.5
+      "translucency": {
+        "enabled": false,
+        "value": 0.5
       }
     }
   ],
-  "supported-platforms" : {
-    "circles" : [
+  "supported-platforms": {
+    "circles": [
       "watchOS"
     ],
-    "squares" : "shared"
+    "squares": "shared"
   }
 }

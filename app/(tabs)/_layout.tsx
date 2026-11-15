@@ -1,32 +1,42 @@
+import { usePathname } from 'expo-router';
 import { TabList, TabSlot, TabTrigger, Tabs } from 'expo-router/ui';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { AddButton, TabBarButton, TabBarContainer } from '@/components/navigation/TabBar';
+import { SlashWipe } from '@/components/motion';
+import { ScanTabButton, SearchButton, TabBarButton, TabBarContainer } from '@/components/navigation/TabBar';
 import { useWelcomeBack, WelcomeBack } from '@/components/onboarding/WelcomeBack';
 import { ReminderPrompt } from '@/components/reminders/ReminderPrompt';
 
+const TAB_PATHS = ['/', '/stats', '/scan', '/profile'];
+
 export default function TabsLayout() {
   const welcomeBack = useWelcomeBack();
+  const pathname = usePathname();
+  // Only a change of tab cuts across the screen; opening a sheet doesn't.
+  const tab = TAB_PATHS.includes(pathname) ? pathname : null;
 
   return (
     <View style={styles.root}>
       <Tabs>
-        <TabSlot style={styles.slot} />
+        <View style={styles.slot}>
+          <TabSlot style={styles.slot} />
+          {tab ? <SlashWipe trigger={tab} /> : null}
+        </View>
         <TabList asChild>
           <TabBarContainer>
             <TabTrigger name="index" href="/" asChild>
-              <TabBarButton icon="home" activeIcon="homeFilled" label="Home" />
+              <TabBarButton icon="home" activeIcon="homeFilled" label="home" />
             </TabTrigger>
             <TabTrigger name="stats" href="/stats" asChild>
-              <TabBarButton icon="stats" activeIcon="statsFilled" label="Progress" />
+              <TabBarButton icon="stats" activeIcon="statsFilled" label="today" />
             </TabTrigger>
-            <AddButton />
             <TabTrigger name="scan" href="/scan" asChild>
-              <TabBarButton icon="scan" activeIcon="scanFilled" label="Scan" />
+              <ScanTabButton />
             </TabTrigger>
+            <SearchButton />
             <TabTrigger name="profile" href="/profile" asChild>
-              <TabBarButton icon="profile" activeIcon="profileFilled" label="Profile" />
+              <TabBarButton icon="profile" activeIcon="profileFilled" label="profile" />
             </TabTrigger>
           </TabBarContainer>
         </TabList>

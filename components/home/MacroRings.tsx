@@ -15,20 +15,26 @@ interface MacroRingsProps {
   goals?: MacroGoals | null;
 }
 
+/**
+ * The three macros are told apart by how they are drawn, not by hue: protein
+ * is solid lavender, carbs solid white, fat hatched. Each is labelled.
+ */
 const MACROS = [
-  { key: 'protein', label: 'Protein' },
-  { key: 'carbs', label: 'Carbs' },
-  { key: 'fat', label: 'Fat' },
+  { key: 'protein', label: 'protein', hatched: false },
+  { key: 'carbs', label: 'carbs', hatched: false },
+  { key: 'fat', label: 'fat', hatched: true },
 ] as const;
 
-/** Three rings in a row, the number inside each: protein, carbs, fat. No boxes, nothing to read twice. */
+/** Three thin rings in a row, the number inside each, the name beneath. They sit on the hero, so their text is the hero's ink. */
 export function MacroRings({ totals, goals }: MacroRingsProps) {
   const { colors } = useAppTheme();
   const shares = macroShares(totals);
+  // On the hero the page is black in both themes, so "white" is the hero ink, not the theme's text.
+  const inks = { protein: colors.accent, carbs: colors.onHero, fat: colors.accent };
 
   return (
     <View style={styles.row}>
-      {MACROS.map(({ key, label }) => {
+      {MACROS.map(({ key, label, hatched }) => {
         const eaten = totals[key];
         const goal = goals?.[key] ?? 0;
         const left = goal - eaten;
@@ -40,14 +46,14 @@ export function MacroRings({ totals, goals }: MacroRingsProps) {
             key={key}
             style={styles.item}
             accessible
-            accessibilityLabel={goals ? `${label}: ${formatNumber(eaten)} of ${formatNumber(goal)} grams, ${headline} ${left < 0 ? 'over' : 'left'}` : `${label} ${headline} of today's calories`}
+            accessibilityLabel={goals ? `${label}: ${formatNumber(eaten)} of ${formatNumber(goal)} grams, ${headline} ${left < 0 ? 'over' : 'left'}` : `${label}: ${headline} of today's calories`}
           >
-            <Ring progress={progress} size={76} stroke={7} color={colors[key]} trackColor={colors.surfaceRaised}>
-              <ThemedText variant="subheadEmphasized" style={styles.tabular}>
+            <Ring progress={progress} size={72} stroke={4} color={inks[key]} hatched={hatched} trackColor={colors.track}>
+              <ThemedText variant="subheadEmphasized" style={[styles.tabular, { color: colors.onHero }]}>
                 {headline}
               </ThemedText>
             </Ring>
-            <ThemedText variant="caption1" color="secondary">
+            <ThemedText variant="caption1" style={{ color: colors.onHeroMuted }}>
               {caption}
             </ThemedText>
           </View>
@@ -58,7 +64,7 @@ export function MacroRings({ totals, goals }: MacroRingsProps) {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', justifyContent: 'space-evenly', paddingTop: Spacing.sm },
-  item: { alignItems: 'center', gap: Spacing.xs },
+  row: { flexDirection: 'row', justifyContent: 'space-around', paddingTop: Spacing.lg },
+  item: { alignItems: 'center', gap: Spacing.sm, flex: 1 },
   tabular: { fontVariant: ['tabular-nums'] },
 });

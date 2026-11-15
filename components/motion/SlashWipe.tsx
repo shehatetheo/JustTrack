@@ -42,21 +42,24 @@ export function SlashWipe({ trigger, onMount = false, strength = 1, style }: Sla
   const reach = Math.hypot(size.width, size.height);
   const streak = useAnimatedStyle(() => {
     const t = sweep.get();
-    return { opacity: t >= 1 ? 0 : Math.sin(Math.PI * t) * strength, transform: [{ rotate: '-28deg' }, { translateX: (t - 0.5) * (reach + 240) }] };
+    return { opacity: t >= 1 ? 0 : Math.sin(Math.PI * t) * strength, transform: [{ rotate: '-28deg' }, { translateX: (t - 0.5) * (reach + STREAK * 4) }] };
   });
 
   return (
     <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.clip, style]} onLayout={(event) => setSize({ width: event.nativeEvent.layout.width, height: event.nativeEvent.layout.height })} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       {size.width > 0 && !reduced ? (
-        <Animated.View style={[styles.streak, { height: reach * 1.6, top: size.height / 2 - reach * 0.8, left: size.width / 2 - 60 }, streak]}>
-          <LinearGradient colors={['transparent', colors.accentDeep, colors.ink, colors.accent, 'transparent']} locations={[0, 0.3, 0.5, 0.7, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} />
+        <Animated.View style={[styles.streak, { height: reach * 1.6, top: size.height / 2 - reach * 0.8, left: size.width / 2 - STREAK / 2 }, streak]}>
+          <LinearGradient colors={['transparent', colors.accentDeep, colors.onHero, colors.accent, 'transparent']} locations={[0, 0.38, 0.5, 0.62, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} />
         </Animated.View>
       ) : null}
     </View>
   );
 }
 
+/** The streak is a narrow blade of light, not a band. */
+const STREAK = 46;
+
 const styles = StyleSheet.create({
   clip: { overflow: 'hidden' },
-  streak: { position: 'absolute', width: 120 },
+  streak: { position: 'absolute', width: STREAK },
 });

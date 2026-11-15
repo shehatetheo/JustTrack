@@ -1,69 +1,81 @@
-import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
-import React, { useCallback, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AnimatedBackground } from '@/components/background/AnimatedBackground';
+import { Splatter } from '@/components/decor';
+import { PressScale, useMotion } from '@/components/motion';
 import { LiveCamera } from '@/components/scanner/LiveCamera';
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
+import { Button } from '@/components/ui/Button';
+import { Glass } from '@/components/ui/Glass';
+import { Heading } from '@/components/ui/Heading';
+import { OrnateFrame } from '@/components/ui/OrnateFrame';
 import { ThemedText } from '@/components/ui/ThemedText';
-import { Radii, Spacing } from '@/constants/theme';
+import { Duration, Haptic } from '@/constants/motion';
+import { Gloss, HAIRLINE, MIN_TAP, Radii, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { useMealScan } from '@/hooks/useMealScan';
 import { useLightStatusBar } from '@/lib/statusBar';
 
-const VIOLET = '#8B6CFF';
+type Unavailable = 'denied' | 'no_camera' | 'unsupported';
 
-/** The four corners of the framing guide. */
-function Brackets() {
+const NOTES: Record<Unavailable, string> = {
+  denied: 'camera access is off. turn it on in settings to use the live scanner, or choose a photo instead.',
+  no_camera: 'no camera here. choose a photo of your plate instead.',
+  unsupported: 'works best with the whole plate in frame and decent light.',
+};
+
+/** A round control that sits on the artwork or the camera: a dark disc with a white glyph. */
+function RoundButton({ icon, label, onPress, disabled }: { icon: AppIconName; label: string; onPress: () => void; disabled?: boolean }) {
+  const { colors } = useAppTheme();
   return (
-    <View pointerEvents="none" style={styles.brackets}>
-      {(['tl', 'tr', 'bl', 'br'] as const).map((corner) => (
-        <View
-          key={corner}
-          style={[
-            styles.corner,
-            corner.startsWith('t') ? { top: 0, borderTopWidth: 3 } : { bottom: 0, borderBottomWidth: 3 },
-            corner.endsWith('l') ? { left: 0, borderLeftWidth: 3, borderTopLeftRadius: corner === 'tl' ? 10 : 0, borderBottomLeftRadius: corner === 'bl' ? 10 : 0 } : { right: 0, borderRightWidth: 3, borderTopRightRadius: corner === 'tr' ? 10 : 0, borderBottomRightRadius: corner === 'br' ? 10 : 0 },
-          ]}
-        />
-      ))}
+    <PressScale onPress={onPress} disabled={disabled} accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ disabled: Boolean(disabled) }} style={[styles.round, { backgroundColor: colors.photoPlate, borderColor: colors.onHeroMuted, opacity: disabled ? 0.5 : 1 }]}>
+      <AppIcon name={icon} size={20} color={colors.onHero} weight="semibold" />
+    </PressScale>
+  );
+}
+
+/** The viewfinder's wrought-iron corners. They breathe, very slightly, so the frame feels alive without pulling the eye from the plate. */
+function BreathingFrame({ children }: { children: React.ReactNode }) {
+  const { colors } = useAppTheme();
+  const { reduced } = useMotion();
+  const breath = useSharedValue(0);
+  useEffect(() => {
+    if (reduced) return;
+    breath.set(withRepeat(withSequence(withTiming(1, { duration: Duration.ambient, easing: Easing.inOut(Easing.quad) }), withTiming(0, { duration: Duration.ambient, easing: Easing.inOut(Easing.quad) })), -1, false));
+  }, [breath, reduced]);
+  const style = useAnimatedStyle(() => ({ opacity: 0.75 + breath.get() * 0.25, transform: [{ scale: 1 + breath.get() * 0.012 }] }));
+
+  return (
+    <View style={styles.viewfinder}>
+      <View style={[styles.feed, { borderColor: colors.border, backgroundColor: colors.hero }]}>{children}</View>
+      <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, style]}>
+        <OrnateFrame variant="corners" corner={58} color={colors.onHero} style={StyleSheet.absoluteFill} />
+      </Animated.View>
     </View>
   );
 }
 
-function RoundButton({ icon, label, onPress, disabled }: { icon: AppIconName; label: string; onPress: () => void; disabled?: boolean }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ disabled: Boolean(disabled) }}
-      hitSlop={8}
-      style={({ pressed }) => [styles.roundButton, { opacity: disabled ? 0.5 : pressed ? 0.7 : 1 }]}
-    >
-      <AppIcon name={icon} size={22} color="#FFFFFF" weight="semibold" />
-    </Pressable>
-  );
-}
-
 /**
- * The hero feature. On the web this is a live viewfinder: frame the plate,
- * tap the shutter, and the review screen names what's on it. Where the
- * camera can't be used (no camera, access declined, native until the iOS
- * build), the same screen offers the photo picker instead.
+ * Scan: frame the plate inside the filigree, press the lavender shutter,
+ * and the review screen names what's on it. Where the camera can't be used
+ * the same screen offers the photo picker instead.
  */
 export default function ScanScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors } = useAppTheme();
   const { scan, analyze, busy } = useMealScan();
   const [focused, setFocused] = useState(false);
-  const [fallback, setFallback] = useState<'denied' | 'no_camera' | 'unsupported' | null>(null);
+  const [fallback, setFallback] = useState<Unavailable | null>(null);
   const [ready, setReady] = useState(false);
   const capture = useRef<(() => void) | null>(null);
-  useLightStatusBar(!fallback);
+  const flash = useSharedValue(0);
+  useLightStatusBar();
 
   useFocusEffect(
     useCallback(() => {
@@ -74,204 +86,117 @@ export default function ScanScreen() {
 
   const onCapture = useCallback(
     (uri: string) => {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      Haptic.log();
       void analyze({ uri });
     },
     [analyze]
   );
-  const onUnavailable = useCallback((reason: 'denied' | 'no_camera' | 'unsupported') => setFallback(reason), []);
+  const onUnavailable = useCallback((reason: Unavailable) => setFallback(reason), []);
   const bindCapture = useCallback((fn: (() => void) | null) => {
     capture.current = fn;
     setReady(fn !== null);
   }, []);
 
-  if (fallback) return <ScanFallback reason={fallback} scan={scan} busy={busy} />;
+  const shoot = () => {
+    // The frame goes black for an instant and ink bursts from the shutter, like a plate exposed.
+    flash.set(withSequence(withTiming(1, { duration: 60 }), withTiming(0, { duration: Duration.standard })));
+    capture.current?.();
+  };
+  const blackout = useAnimatedStyle(() => ({ opacity: flash.get() }));
+  const burst = useAnimatedStyle(() => ({ opacity: flash.get(), transform: [{ scale: 1.2 + (1 - flash.get()) * 1.6 }] }));
 
   return (
-    <View style={styles.viewfinder}>
-      <LiveCamera active={focused && !busy} onCapture={onCapture} onUnavailable={onUnavailable} bindCapture={bindCapture} />
-      <LinearGradient colors={['rgba(10,6,24,0.55)', 'rgba(10,6,24,0)']} style={[styles.topShade, { height: insets.top + 72 }]} pointerEvents="none" />
+    <View style={[styles.root, { backgroundColor: colors.hero }]}>
+      <AnimatedBackground page="scan" fit="cover" />
+      <LinearGradient pointerEvents="none" colors={[colors.hero, 'transparent']} style={[styles.topShade, { height: insets.top + 110 }]} />
+      <LinearGradient pointerEvents="none" colors={['transparent', colors.photoPlate, colors.hero]} locations={[0, 0.35, 0.9]} style={styles.bottomShade} />
+
       <View style={[styles.topBar, { paddingTop: insets.top + Spacing.sm }]}>
         <RoundButton icon="pencil" label="Describe what you ate" onPress={() => router.push('/scan/describe')} />
-        <ThemedText variant="headline" style={styles.onCamera} accessibilityRole="header">
-          Scanner
-        </ThemedText>
+        <Heading title="scan" tagline="show me the plate" level="title" align="center" onHero style={styles.heading} />
         <RoundButton icon="barcode" label="Scan a barcode" onPress={() => router.push('/scan/barcode')} />
       </View>
 
-      <Brackets />
+      {fallback ? (
+        <View style={styles.viewfinder}>
+          <OrnateFrame variant="corners" corner={58} color={colors.onHero} style={styles.fallbackFrame}>
+            <Glass radius={Radii['2xl']} lit style={styles.fallbackPanel}>
+              <ThemedText variant="blackletter" style={styles.center}>
+                no lens
+              </ThemedText>
+              <ThemedText variant="subhead" color="secondary" style={styles.center}>
+                {NOTES[fallback]}
+              </ThemedText>
+              <View style={styles.fallbackActions}>
+                {fallback === 'unsupported' ? <Button label="Take photo" onPress={() => void scan('camera')} disabled={busy} /> : null}
+                <Button label="Choose photo" variant={fallback === 'unsupported' ? 'secondary' : 'primary'} onPress={() => void scan('library')} disabled={busy} />
+              </View>
+            </Glass>
+          </OrnateFrame>
+        </View>
+      ) : (
+        <BreathingFrame>
+          <LiveCamera active={focused && !busy} onCapture={onCapture} onUnavailable={onUnavailable} bindCapture={bindCapture} />
+          <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: colors.hero }, blackout]} />
+        </BreathingFrame>
+      )}
 
-      <LinearGradient colors={['rgba(10,6,24,0)', 'rgba(10,6,24,0.7)']} style={styles.bottomShade} pointerEvents="none" />
       <View style={styles.bottomBar}>
-        <ThemedText variant="footnote" style={styles.hint}>
-          {ready ? 'Frame the whole plate, then tap the shutter.' : 'Starting the camera…'}
+        <ThemedText variant="tagline" style={[styles.center, { color: colors.onHeroMuted }]}>
+          {fallback ? 'or type it, scan a barcode, or search' : ready ? 'frame the whole plate, then press' : 'waking the camera…'}
         </ThemedText>
         <View style={styles.controls}>
           <RoundButton icon="photo" label="Choose a photo" onPress={() => void scan('library')} disabled={busy} />
-          <Pressable
-            onPress={() => capture.current?.()}
-            disabled={!ready || busy}
-            accessibilityRole="button"
-            accessibilityLabel="Take photo"
-            accessibilityState={{ disabled: !ready || busy }}
-            style={({ pressed }) => [styles.shutter, { opacity: !ready || busy ? 0.5 : 1, transform: [{ scale: pressed ? 0.92 : 1 }] }]}
-          >
-            <View style={styles.shutterInner} />
-          </Pressable>
+          <View style={styles.shutterWrap}>
+            <Animated.View pointerEvents="none" style={[styles.burst, burst]}>
+              <Splatter size={SHUTTER} color={colors.accent} seed={5} count={16} />
+            </Animated.View>
+            <PressScale
+              onPress={shoot}
+              pressScale={0.9}
+              haptic={null}
+              disabled={!ready || busy || fallback !== null}
+              accessibilityRole="button"
+              accessibilityLabel="Take photo"
+              accessibilityState={{ disabled: !ready || busy || fallback !== null }}
+              style={[styles.shutter, { borderColor: colors.onHero, opacity: !ready || busy || fallback !== null ? 0.4 : 1 }]}
+            >
+              <View style={styles.shutterFace}>
+                <LinearGradient colors={Gloss.capsule} locations={[0, 0.5, 1]} style={StyleSheet.absoluteFill} />
+                <LinearGradient colors={Gloss.highlight} style={styles.shutterGloss} />
+              </View>
+            </PressScale>
+          </View>
           <RoundButton icon="search" label="Search by name" onPress={() => router.push('/food/search')} />
         </View>
-        <ThemedText variant="caption2" style={styles.caption}>
-          Estimated nutrition · photos are analyzed, not kept
+        <ThemedText variant="caption2" style={[styles.center, { color: colors.onHeroMuted }]}>
+          estimated nutrition · photos are analyzed, not kept
         </ThemedText>
       </View>
     </View>
   );
 }
 
-function ScanFallback({ reason, scan, busy }: { reason: 'denied' | 'no_camera' | 'unsupported'; scan: (from: 'camera' | 'library') => Promise<void>; busy: boolean }) {
-  const router = useRouter();
-  const { colors, shadows } = useAppTheme();
-  const insets = useSafeAreaInsets();
-  const note =
-    reason === 'denied'
-      ? 'Camera access is off for this site. Turn it on in your browser to use the live scanner, or choose a photo instead.'
-      : reason === 'no_camera'
-        ? 'No camera here — choose a photo of your plate instead.'
-        : 'Works best with the whole plate in frame and decent light.';
-
-  return (
-    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={[styles.content, { paddingTop: insets.top + Spacing.lg }]}>
-      <ThemedText variant="largeTitle" accessibilityRole="header">
-        Scan
-      </ThemedText>
-      <ThemedText variant="body" color="secondary" style={styles.lede}>
-        Photograph the plate. JustTrack names what’s on it and estimates the calories — you check it, then log it.
-      </ThemedText>
-
-      <LinearGradient colors={[colors.surfaceRaised, colors.surface]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.heroCard, { borderColor: colors.border }]}>
-        <View style={styles.heroBadge}>
-          <ThemedText variant="caption2" style={styles.heroBadgeText}>
-            ESTIMATE
-          </ThemedText>
-        </View>
-        <ThemedText variant="title1" style={styles.heroTitle} accessibilityRole="header">
-          Snap your meal
-        </ThemedText>
-        <ThemedText variant="subhead" style={styles.heroText}>
-          {note}
-        </ThemedText>
-        <View style={styles.actions}>
-          {reason === 'unsupported' ? <Action label="Take photo" onPress={() => void scan('camera')} disabled={busy} /> : null}
-          <Action label="Choose photo" onPress={() => void scan('library')} disabled={busy} />
-        </View>
-      </LinearGradient>
-
-      <Pressable
-        onPress={() => router.push('/scan/describe')}
-        accessibilityRole="button"
-        style={({ pressed }) => [styles.card, shadows.sm, { backgroundColor: colors.surface, borderColor: colors.border, opacity: pressed ? 0.85 : 1 }]}
-      >
-        <View style={[styles.iconTile, { backgroundColor: colors.surface }]}>
-          <AppIcon name="pencil" size={22} color={colors.text} />
-        </View>
-        <View style={styles.cardText}>
-          <ThemedText variant="headline">Describe what you ate</ThemedText>
-          <ThemedText variant="footnote" color="secondary">
-            Type it in a sentence; AI sizes it and finds database matches.
-          </ThemedText>
-        </View>
-        <AppIcon name="chevronRight" size={14} color={colors.textTertiary} weight="semibold" />
-      </Pressable>
-
-      <Pressable
-        onPress={() => router.push('/scan/barcode')}
-        accessibilityRole="button"
-        style={({ pressed }) => [styles.card, shadows.sm, { backgroundColor: colors.surface, borderColor: colors.border, opacity: pressed ? 0.85 : 1 }]}
-      >
-        <View style={[styles.iconTile, { backgroundColor: colors.surface }]}>
-          <AppIcon name="barcode" size={24} color={colors.text} />
-        </View>
-        <View style={styles.cardText}>
-          <ThemedText variant="headline">Scan a barcode</ThemedText>
-          <ThemedText variant="footnote" color="secondary">
-            Packaged foods, straight from the label.
-          </ThemedText>
-        </View>
-        <AppIcon name="chevronRight" size={14} color={colors.textTertiary} weight="semibold" />
-      </Pressable>
-
-      <Pressable
-        onPress={() => router.push('/food/search')}
-        accessibilityRole="button"
-        style={({ pressed }) => [styles.card, shadows.sm, { backgroundColor: colors.surface, borderColor: colors.border, opacity: pressed ? 0.85 : 1 }]}
-      >
-        <View style={[styles.iconTile, { backgroundColor: colors.surface }]}>
-          <AppIcon name="search" size={22} color={colors.text} />
-        </View>
-        <View style={styles.cardText}>
-          <ThemedText variant="headline">Search by name</ThemedText>
-          <ThemedText variant="footnote" color="secondary">
-            5,000+ everyday foods, plus packaged brands.
-          </ThemedText>
-        </View>
-        <AppIcon name="chevronRight" size={14} color={colors.textTertiary} weight="semibold" />
-      </Pressable>
-
-      <ThemedText variant="caption1" color="tertiary" style={styles.footnote}>
-        Photo estimates are a starting point, not a measurement. Photos are analyzed and not kept.
-      </ThemedText>
-    </ScrollView>
-  );
-}
-
-function Action({ label, onPress, disabled }: { label: string; onPress: () => void; disabled?: boolean }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ disabled: Boolean(disabled) }}
-      style={({ pressed }) => [styles.action, { opacity: disabled ? 0.5 : pressed ? 0.8 : 1 }]}
-    >
-      <ThemedText variant="subheadEmphasized" style={styles.actionLabel}>
-        {label}
-      </ThemedText>
-    </Pressable>
-  );
-}
-
-const BRACKET = 220;
-const SHUTTER = 74;
+const SHUTTER = 76;
 
 const styles = StyleSheet.create({
-  viewfinder: { flex: 1, backgroundColor: '#0A0618' },
+  root: { flex: 1 },
   topShade: { position: 'absolute', top: 0, left: 0, right: 0 },
-  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.lg },
-  onCamera: { color: '#FFFFFF' },
-  roundButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' },
-  brackets: { position: 'absolute', top: '50%', left: '50%', width: BRACKET, height: BRACKET, marginLeft: -BRACKET / 2, marginTop: -BRACKET / 2 - 40 },
-  corner: { position: 'absolute', width: 34, height: 34, borderColor: VIOLET },
-  bottomShade: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 220 },
-  bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'center', gap: Spacing.lg, paddingBottom: Spacing.lg, paddingHorizontal: Spacing.lg },
-  hint: { color: 'rgba(255,255,255,0.85)', textAlign: 'center' },
-  controls: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing['2xl'] },
-  shutter: { width: SHUTTER, height: SHUTTER, borderRadius: SHUTTER / 2, borderWidth: 4, borderColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
-  shutterInner: { width: SHUTTER - 16, height: SHUTTER - 16, borderRadius: (SHUTTER - 16) / 2, backgroundColor: '#FFFFFF' },
-  caption: { color: 'rgba(255,255,255,0.6)', textAlign: 'center' },
-  // Fallback
-  content: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing['5xl'], gap: Spacing.md },
-  lede: { marginBottom: Spacing.sm },
-  heroCard: { borderRadius: Radii.xl, borderWidth: StyleSheet.hairlineWidth * 2, padding: Spacing['2xl'], gap: Spacing.sm },
-  heroBadge: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.22)', paddingHorizontal: Spacing.sm, paddingVertical: 4, borderRadius: 6 },
-  heroBadgeText: { color: '#FFFFFF', letterSpacing: 0.9, fontWeight: '700' },
-  heroTitle: { color: '#FFFFFF', marginTop: Spacing.sm },
-  heroText: { color: 'rgba(255,255,255,0.8)' },
-  actions: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.lg },
-  action: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, backgroundColor: '#FFFFFF', borderRadius: Radii.lg, paddingVertical: Spacing.md, minHeight: 48 },
-  actionLabel: { color: '#0A0A0B' },
-  card: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: Spacing.lg, borderRadius: Radii.xl, borderWidth: StyleSheet.hairlineWidth },
-  iconTile: { width: 48, height: 48, borderRadius: Radii.md, alignItems: 'center', justifyContent: 'center' },
-  cardText: { flex: 1, gap: 2 },
-  footnote: { textAlign: 'center', marginTop: Spacing.md, paddingHorizontal: Spacing.lg },
+  bottomShade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 320 },
+  topBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.lg, gap: Spacing.md },
+  heading: { flex: 1 },
+  round: { width: MIN_TAP, height: MIN_TAP, borderRadius: Radii.full, borderWidth: HAIRLINE, alignItems: 'center', justifyContent: 'center' },
+  viewfinder: { flex: 1, marginHorizontal: Spacing.xl, marginTop: Spacing.lg, marginBottom: Spacing.md, justifyContent: 'center' },
+  feed: { position: 'absolute', top: Spacing.sm, left: Spacing.sm, right: Spacing.sm, bottom: Spacing.sm, borderRadius: Radii['2xl'], borderWidth: HAIRLINE, overflow: 'hidden' },
+  fallbackFrame: { padding: Spacing.sm },
+  fallbackPanel: { padding: Spacing['2xl'], gap: Spacing.md },
+  fallbackActions: { gap: Spacing.sm, marginTop: Spacing.sm },
+  center: { textAlign: 'center' },
+  bottomBar: { paddingHorizontal: Spacing.xl, paddingBottom: Spacing.xl, gap: Spacing.md },
+  controls: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.xl },
+  shutterWrap: { width: SHUTTER, height: SHUTTER, alignItems: 'center', justifyContent: 'center' },
+  burst: { position: 'absolute' },
+  shutter: { width: SHUTTER, height: SHUTTER, borderRadius: Radii.full, borderWidth: 2, padding: 5 },
+  shutterFace: { flex: 1, borderRadius: Radii.full, overflow: 'hidden' },
+  shutterGloss: { position: 'absolute', top: 2, left: 8, right: 8, height: '44%', borderRadius: Radii.full },
 });

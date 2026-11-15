@@ -1,30 +1,31 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 import { CaloriesLeft } from '@/components/home/CaloriesLeft';
 import { MacroRings } from '@/components/home/MacroRings';
 import { MealCard } from '@/components/home/MealCard';
 import { WeekStrip } from '@/components/home/WeekStrip';
-import { GradientHeader } from '@/components/layout/GradientHeader';
+import { Hero } from '@/components/layout/Hero';
+import { InkReveal, PressScale, Stagger } from '@/components/motion';
 import { AppIcon } from '@/components/ui/AppIcon';
-import { PressScale } from '@/components/motion';
+import { Button } from '@/components/ui/Button';
+import { Heading } from '@/components/ui/Heading';
 import { ThemedText } from '@/components/ui/ThemedText';
 import { PRIVACY_LINE } from '@/constants/brand';
-import { Spacing } from '@/constants/theme';
+import { HAIRLINE, MIN_TAP, Radii, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { useCurrentTime } from '@/hooks/useCurrentTime';
 import { useLog } from '@/hooks/useLog';
-import { streakSummary } from '@/lib/log/streak';
 import { useSettings } from '@/hooks/useSettings';
+import { streakSummary } from '@/lib/log/streak';
 import { formatRelativeDay, getGreeting, isSameDay } from '@/utils/date';
 
-/** The entrance plays once per launch, not every time Home comes back into view. */
+/** The cards rise in once per launch, not every time Home comes back into view. */
 let homeShown = false;
 
 function initialFor(name: string | null): string {
-  return name?.trim().charAt(0).toUpperCase() || 'JT';
+  return name?.trim().charAt(0).toUpperCase() || 'J';
 }
 
 export default function HomeScreen() {
@@ -42,68 +43,58 @@ export default function HomeScreen() {
   const { sections, totals, all } = useLog(day);
   const streak = streakSummary(all, today);
   const settings = useSettings();
+  const firstName = settings.displayName?.split(' ')[0];
+  const plate = { backgroundColor: colors.photoPlate, borderColor: colors.border };
 
   return (
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content} contentInsetAdjustmentBehavior="never">
-      <GradientHeader fadeEnd={0.92}>
+      <Hero page="home">
         <View style={styles.topRow}>
           <View style={styles.greeting}>
             <ThemedText variant="overline" style={{ color: colors.onHeroMuted }}>
-              {(isToday ? `${getGreeting(now)}${settings.displayName ? `, ${settings.displayName.split(' ')[0]}` : ''}` : formatRelativeDay(day, today)).toUpperCase()}
+              {(isToday ? `${getGreeting(now)}${firstName ? `, ${firstName}` : ''}` : formatRelativeDay(day, today)).toUpperCase()}
             </ThemedText>
             <ThemedText variant="title2" style={{ color: colors.onHero }} accessibilityRole="header">
-              {isToday ? 'Stay on track today' : day.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              {isToday ? 'today' : day.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).toLowerCase()}
             </ThemedText>
           </View>
           {streak.current > 0 ? (
-            <PressScale
-              onPress={() => router.push('/stats')}
-              pressScale={0.94}
-              accessibilityRole="button"
-              accessibilityLabel={`${streak.current} day streak${streak.waiting ? ', log today to keep it' : ''}`}
-              style={[styles.streak, { backgroundColor: 'rgba(255,255,255,0.14)', borderColor: 'rgba(255,255,255,0.22)', opacity: streak.waiting ? 0.7 : 1 }]}
-            >
-              <AppIcon name="flame" size={14} color={streak.waiting ? colors.onHeroMuted : colors.carbs} />
-              <ThemedText variant="subheadEmphasized" style={[styles.streakCount, { color: colors.onHero }]}>
+            <PressScale onPress={() => router.push('/stats')} haptic="select" accessibilityRole="button" accessibilityLabel={`${streak.current} day streak${streak.waiting ? ', log today to keep it' : ''}`} style={[styles.streak, plate, { opacity: streak.waiting ? 0.7 : 1 }]}>
+              <AppIcon name="flame" size={14} color={colors.accent} />
+              <ThemedText variant="subheadEmphasized" style={[styles.tabular, { color: colors.onHero }]}>
                 {streak.current}
               </ThemedText>
             </PressScale>
           ) : null}
-          <PressScale onPress={() => router.push('/profile')} pressScale={0.9} accessibilityRole="button" accessibilityLabel={settings.displayName ? `${settings.displayName}, profile` : 'Profile'} style={[styles.avatar, { backgroundColor: 'rgba(255,255,255,0.14)', borderColor: 'rgba(255,255,255,0.22)', borderWidth: StyleSheet.hairlineWidth * 2 }]}>
+          <PressScale onPress={() => router.push('/profile')} haptic="select" accessibilityRole="button" accessibilityLabel={settings.displayName ? `${settings.displayName}, profile` : 'Profile'} style={[styles.avatar, plate]}>
             <ThemedText variant="subheadEmphasized" style={{ color: colors.onHero }}>
               {initialFor(settings.displayName)}
             </ThemedText>
           </PressScale>
         </View>
         <WeekStrip today={today} selected={day} onSelect={setPicked} />
-        <Animated.View key={day.toDateString()} entering={firstShow ? FadeIn.duration(350) : undefined}>
+        <InkReveal key={day.toDateString()}>
           <CaloriesLeft eaten={totals.calories} goal={settings.calorieGoal} />
-          <View style={styles.rings}>
-            <MacroRings totals={totals} goals={settings.macroGoals} />
-          </View>
-        </Animated.View>
-      </GradientHeader>
+          <MacroRings totals={totals} goals={settings.macroGoals} />
+        </InkReveal>
+      </Hero>
 
       <View style={styles.body}>
-        <View style={styles.sectionHeader}>
-          <ThemedText variant="title3" accessibilityRole="header">
-            Daily meals
-          </ThemedText>
-          {!isToday ? (
-            <PressScale onPress={() => setPicked(null)} accessibilityRole="button" hitSlop={8} style={[styles.todayChip, { backgroundColor: colors.surface }]}>
-              <ThemedText variant="footnote" style={{ color: colors.accent, fontWeight: '600' }}>
-                Back to today
-              </ThemedText>
-            </PressScale>
-          ) : null}
-        </View>
-
+        <Heading
+          title="daily meals"
+          tagline="what was eaten, written down"
+          accessory={!isToday ? <Button label="back to today" variant="secondary" size="md" fullWidth={false} onPress={() => setPicked(null)} /> : undefined}
+        />
         <View style={styles.cards}>
-          {sections.map((section, index) => (
-            <Animated.View key={`${section.mealType}-${day.toDateString()}`} entering={firstShow ? FadeInDown.delay(80 + index * 70).duration(420) : undefined}>
-              <MealCard section={section} onAdd={() => router.push({ pathname: '/food/search', params: { mealType: section.mealType } })} />
-            </Animated.View>
-          ))}
+          {sections.map((section, index) =>
+            firstShow ? (
+              <Stagger key={`${section.mealType}-${day.toDateString()}`} index={index} delay={120}>
+                <MealCard section={section} onAdd={() => router.push({ pathname: '/food/search', params: { mealType: section.mealType } })} />
+              </Stagger>
+            ) : (
+              <MealCard key={`${section.mealType}-${day.toDateString()}`} section={section} onAdd={() => router.push({ pathname: '/food/search', params: { mealType: section.mealType } })} />
+            )
+          )}
         </View>
 
         <ThemedText variant="caption1" color="tertiary" style={styles.footnote}>
@@ -116,15 +107,12 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   content: { paddingBottom: Spacing['5xl'] },
-  topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md },
-  greeting: { flex: 1, gap: 2 },
-  avatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  streak: { flexDirection: 'row', alignItems: 'center', gap: 5, height: 36, paddingHorizontal: Spacing.md, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth * 2 },
-  streakCount: { fontVariant: ['tabular-nums'], fontWeight: '700' },
-  rings: { paddingBottom: Spacing.lg },
-  body: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.sm },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.md },
+  topRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  greeting: { flex: 1, gap: Spacing.xxs },
+  avatar: { width: MIN_TAP, height: MIN_TAP, borderRadius: Radii.full, borderWidth: HAIRLINE, alignItems: 'center', justifyContent: 'center' },
+  streak: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, height: 36, paddingHorizontal: Spacing.md, borderRadius: Radii.full, borderWidth: HAIRLINE },
+  tabular: { fontVariant: ['tabular-nums'] },
+  body: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.xl, gap: Spacing.lg },
   cards: { gap: Spacing.md },
-  todayChip: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs, borderRadius: 999 },
-  footnote: { textAlign: 'center', marginTop: Spacing['2xl'], paddingHorizontal: Spacing.lg },
+  footnote: { textAlign: 'center', marginTop: Spacing.lg, paddingHorizontal: Spacing.lg },
 });

@@ -62,7 +62,7 @@ export function Stamp({ label, caption, size = 76, accent = false, thump = false
             <Path key={index} d={arc(gap.angle, gap.sweep, r)} stroke={colors.surface} strokeWidth={3.4} fill="none" />
           ))}
         </Svg>
-        <ThemedText allowFontScaling={false} numberOfLines={1} adjustsFontSizeToFit style={[styles.word, { color: ink, fontSize: size * 0.17, lineHeight: size * 0.22, maxWidth: size * 0.74 }]}>
+        <ThemedText allowFontScaling={false} numberOfLines={1} adjustsFontSizeToFit style={[styles.word, { color: ink, fontSize: size * 0.15, lineHeight: size * 0.2, maxWidth: size * 0.82 }]}>
           {label.toUpperCase()}
         </ThemedText>
         {caption ? (
@@ -77,6 +77,6 @@ export function Stamp({ label, caption, size = 76, accent = false, thump = false
 
 const styles = StyleSheet.create({
   fill: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  word: { fontFamily: Fonts.displayBold, letterSpacing: 1.2, textAlign: 'center' },
+  word: { fontFamily: Fonts.displayBold, letterSpacing: 0.4, textAlign: 'center' },
   caption: { position: 'absolute', fontFamily: Fonts.bodyBold, letterSpacing: 0.8 },
 });

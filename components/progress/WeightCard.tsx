@@ -26,9 +26,11 @@ export function WeightCard({ today }: { today: Date }) {
   if (!latest) {
     return (
       <Card style={styles.card}>
-        <ThemedText variant="headline">Weight</ThemedText>
+        <ThemedText variant="overline" color="tertiary">
+          WEIGHT
+        </ThemedText>
         <ThemedText variant="footnote" color="secondary">
-          Weigh in a few times a week and watch the trend, not the day-to-day noise.
+          weigh in a few times a week and watch the trend, not the day-to-day noise.
         </ThemedText>
         <Button label="Log weight" variant="secondary" size="md" onPress={() => router.push('/weight/log')} />
       </Card>
@@ -39,13 +41,15 @@ export function WeightCard({ today }: { today: Date }) {
     <Pressable onPress={() => router.push('/weight')} accessibilityRole="button" accessibilityLabel={`Weight ${weightValue(latest.kg, weightUnit)} ${weightUnit}. Open the chart.`} style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
       <Card style={styles.card}>
         <View style={styles.header}>
-          <ThemedText variant="headline">Weight</ThemedText>
+          <ThemedText variant="overline" color="tertiary">
+            WEIGHT
+          </ThemedText>
           <AppIcon name="chevronRight" size={14} color={colors.textTertiary} weight="semibold" />
         </View>
         <View style={styles.row}>
           <View style={styles.figure}>
             <View style={styles.value}>
-              <ThemedText variant="largeTitle" style={styles.tabular}>
+              <ThemedText variant="figure" style={styles.tabular}>
                 {weightValue(latest.kg, weightUnit)}
               </ThemedText>
               <ThemedText variant="subhead" color="secondary">
@@ -53,7 +57,7 @@ export function WeightCard({ today }: { today: Date }) {
               </ThemedText>
             </View>
             <ThemedText variant="footnote" color="secondary" style={styles.tabular}>
-              {summary.change !== null ? `${weightDelta(summary.change, weightUnit)} in 30 days` : 'Log again to see the trend'}
+              {summary.change !== null ? `${weightDelta(summary.change, weightUnit)} in 30 days` : 'log again to see the trend'}
             </ThemedText>
           </View>
           <View style={styles.spark}>{summary.points.length > 0 ? <WeightChart points={summary.points} unit={weightUnit} height={64} compact /> : null}</View>

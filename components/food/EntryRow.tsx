@@ -5,7 +5,7 @@ import ReanimatedSwipeable, { type SwipeableMethods } from 'react-native-gesture
 import { FoodThumb } from '@/components/food/FoodThumb';
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
 import { ThemedText } from '@/components/ui/ThemedText';
-import { Radii, Spacing } from '@/constants/theme';
+import { HAIRLINE, Radii, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { amountLabel } from '@/lib/log/entries';
 import type { LogEntry } from '@/types';
@@ -31,11 +31,14 @@ export function describeEntry(entry: LogEntry): string {
   return `${entry.foodName}, ${amountLabel(entry)}. ${estimate}${formatCalories(entry.calories)}, ${formatNumber(entry.protein)} grams protein.`;
 }
 
-function SwipeAction({ icon, label, color, onPress }: { icon: AppIconName; label: string; color: string; onPress: () => void }) {
+/** A swipe action: lavender for "again", an outlined gray for "delete". The words and icons carry the meaning, not a warning colour. */
+function SwipeAction({ icon, label, quiet = false, onPress }: { icon: AppIconName; label: string; quiet?: boolean; onPress: () => void }) {
+  const { colors } = useAppTheme();
+  const ink = quiet ? colors.text : colors.onAccent;
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={[styles.action, { backgroundColor: color }]}>
-      <AppIcon name={icon} size={18} color="#FFFFFF" weight="semibold" />
-      <ThemedText variant="caption2" style={styles.actionLabel}>
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={[styles.action, { backgroundColor: quiet ? colors.surfaceRaised : colors.accent }]}>
+      <AppIcon name={icon} size={18} color={ink} weight="semibold" />
+      <ThemedText variant="caption2" style={{ color: ink }}>
         {label}
       </ThemedText>
     </Pressable>
@@ -60,8 +63,8 @@ export function EntryRow({ entry, isLast, onOpen, onDuplicate, onDelete, onMore 
       overshootRight={false}
       renderRightActions={() => (
         <View style={styles.actions}>
-          <SwipeAction icon="duplicate" label="Again" color={colors.textSecondary} onPress={run(onDuplicate)} />
-          <SwipeAction icon="trash" label="Delete" color={colors.text} onPress={run(onDelete)} />
+          <SwipeAction icon="duplicate" label="again" onPress={run(onDuplicate)} />
+          <SwipeAction icon="trash" label="delete" quiet onPress={run(onDelete)} />
         </View>
       )}
     >
@@ -79,7 +82,7 @@ export function EntryRow({ entry, isLast, onOpen, onDuplicate, onDelete, onMore 
         style={({ pressed }) => [
           styles.row,
           { backgroundColor: pressed ? colors.surfaceRaised : colors.surface },
-          !isLast && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+          !isLast && { borderBottomWidth: HAIRLINE, borderBottomColor: colors.border },
         ]}
       >
         <FoodThumb name={entry.foodName} hints={[entry.brand]} imageUri={entry.imageUri} size={44} />
@@ -89,8 +92,8 @@ export function EntryRow({ entry, isLast, onOpen, onDuplicate, onDelete, onMore 
           </ThemedText>
           <View style={styles.detailRow}>
             {entry.isEstimate ? (
-              <View style={[styles.badge, { backgroundColor: colors.track }]}>
-                <ThemedText variant="caption2" style={{ color: colors.accent }}>
+              <View style={[styles.badge, { borderColor: colors.borderAccent }]}>
+                <ThemedText variant="caption2" style={{ color: colors.accentText }}>
                   ESTIMATED
                 </ThemedText>
               </View>
@@ -113,9 +116,8 @@ const styles = StyleSheet.create({
   details: { flex: 1, gap: 2 },
   detailRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
   detailText: { flexShrink: 1 },
-  badge: { paddingHorizontal: Spacing.xs + 2, paddingVertical: 1, borderRadius: Radii.full },
+  badge: { paddingHorizontal: Spacing.xs + 2, paddingVertical: 1, borderRadius: Radii.sm, borderWidth: HAIRLINE },
   tabular: { fontVariant: ['tabular-nums'] },
   actions: { flexDirection: 'row' },
   action: { width: 76, alignItems: 'center', justifyContent: 'center', gap: Spacing.xs },
-  actionLabel: { color: '#FFFFFF' },
 });
