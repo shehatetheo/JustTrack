@@ -9,6 +9,7 @@ import { MealTypePicker } from '@/components/food/MealTypePicker';
 import { SheetHeader } from '@/components/layout/SheetHeader';
 import { CountUp, Stagger } from '@/components/motion';
 import { Chip } from '@/components/ui/Chip';
+import { Banner } from '@/components/ui/Banner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Glass } from '@/components/ui/Glass';
 import { ThemedText } from '@/components/ui/ThemedText';
@@ -17,6 +18,7 @@ import { MEAL_TYPE_META } from '@/constants/nutrition';
 import { HAIRLINE, Radii, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { useCurrentTime } from '@/hooks/useCurrentTime';
+import { useFastConflict } from '@/hooks/useFast';
 import { builderByKey, entryOf, nutritionOf, setCount, toggle, type Selection } from '@/lib/food/builders';
 import { ingredientsOf, lengthOf, shapeOf } from '@/lib/food/builders/visual';
 import { createEntry } from '@/lib/log/entries';
@@ -37,6 +39,7 @@ export default function OrderBuilderScreen() {
   const { now } = useCurrentTime();
   const [mealType, setMealType] = useState<MealType>(() => mealTypeParam(params.mealType) ?? defaultMealType(now));
   const [selection, setSelection] = useState<Selection>(() => config?.defaultSelection ?? {});
+  const fastConflict = useFastConflict();
 
   // Close the whole add-food sheet, not just this screen.
   const closeFlow = () => {
@@ -58,6 +61,7 @@ export default function OrderBuilderScreen() {
   const totals = nutritionOf(config, selection);
   const extras = config.describe(selection);
   const ingredients = ingredientsOf(config, selection);
+  const offFast = fastConflict(`${config.nameOf(selection)} ${extras} ${ingredients.map((item) => item.label).join(' ')}`);
 
   const add = () => addEntries([createEntry(entryOf(config, selection, mealType), new Date())]);
 
@@ -97,6 +101,8 @@ export default function OrderBuilderScreen() {
             </View>
           </View>
         </Glass>
+
+        {offFast ? <Banner tone="info" icon="calendar" message={`This order has ${offFast} in it, which you’re setting aside for your fast.`} /> : null}
 
         {config.steps.map((step, stepIndex) => (
           <Stagger key={step.id} index={stepIndex} style={styles.step}>

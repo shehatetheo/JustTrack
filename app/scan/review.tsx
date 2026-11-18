@@ -5,6 +5,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, w
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FoodHero } from '@/components/food/FoodHero';
+import { FastTag } from '@/components/fast/FastTag';
 import { LogButton } from '@/components/food/LogButton';
 import { MealTypePicker } from '@/components/food/MealTypePicker';
 import { NutritionColumns } from '@/components/food/NutritionColumns';
@@ -24,6 +25,7 @@ import { MEAL_TYPE_META } from '@/constants/nutrition';
 import { HAIRLINE, MIN_TAP, Radii, Spacing, Typography } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { useCurrentTime } from '@/hooks/useCurrentTime';
+import { useFastConflict } from '@/hooks/useFast';
 import { createEntry, entryFromEstimate } from '@/lib/log/entries';
 import { addEntries } from '@/lib/log/logStore';
 import { sumNutrition } from '@/lib/nutrition/calculateNutrition';
@@ -121,6 +123,7 @@ function RowCard({ row, onRemove, onPickMatch }: { row: ReviewRow; onRemove: () 
   const nutrition = rowNutrition(row);
   const unsure = row.confidence < LOW_CONFIDENCE && !row.matchedFood;
   const fromMenu = row.matchedFood?.source === 'chain';
+  const offFast = useFastConflict()(row.name, row.matchedFood?.brand ?? row.chain);
   const context = row.matchedFood ? (fromMenu ? `${row.matchedFood.brand} menu · ${row.portionDescription}` : `Matched to ${row.matchedFood.source === 'usda' ? 'USDA' : 'Open Food Facts'}`) : row.portionDescription;
 
   return (
@@ -137,6 +140,7 @@ function RowCard({ row, onRemove, onPickMatch }: { row: ReviewRow; onRemove: () 
                 {fromMenu ? 'MENU' : 'ESTIMATED'}
               </ThemedText>
             </View>
+            {offFast ? <FastTag word={offFast} /> : null}
             <ThemedText variant="footnote" color="secondary" numberOfLines={1} style={styles.context}>
               {context}
             </ThemedText>

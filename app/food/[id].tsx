@@ -12,6 +12,7 @@ import { PortionEditor } from '@/components/food/PortionEditor';
 import { SkeletonRows } from '@/components/food/SkeletonRows';
 import { SheetHeader } from '@/components/layout/SheetHeader';
 import { CountUp, InkReveal, Stagger } from '@/components/motion';
+import { Banner } from '@/components/ui/Banner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ThemedText } from '@/components/ui/ThemedText';
 import { Duration } from '@/constants/motion';
@@ -19,6 +20,7 @@ import { MEAL_TYPE_META } from '@/constants/nutrition';
 import { HAIRLINE, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { useCurrentTime } from '@/hooks/useCurrentTime';
+import { useFastConflict } from '@/hooks/useFast';
 import { useFood } from '@/hooks/useFood';
 import { usePortion } from '@/hooks/usePortion';
 import { createEntry, entryFromFood } from '@/lib/log/entries';
@@ -43,6 +45,7 @@ export default function AddFoodScreen() {
   const [mealType, setMealType] = useState<MealType>(() => mealTypeParam(params.mealType) ?? defaultMealType(now));
   const { food, error: loadError, retry } = useFood(foodId);
   const portion = usePortion(food);
+  const fastConflict = useFastConflict();
 
   const closeFlow = () => {
     // Close the whole Add Food modal, not just this screen.
@@ -67,6 +70,7 @@ export default function AddFoodScreen() {
   }
 
   const nutrition = portion.nutrition ?? NO_NUTRITION;
+  const offFast = fastConflict(food.name, food.brand);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -85,6 +89,7 @@ export default function AddFoodScreen() {
         />
 
         <View style={styles.body}>
+          {offFast ? <Banner tone="info" icon="calendar" message={`This looks like ${offFast}, which you’re setting aside for your fast. Log it if you had it; the fast just keeps count.`} /> : null}
           <InkReveal>
             <View style={styles.caloriesRow}>
               <CountUp value={nutrition.calories} durationMs={Duration.standard} format={(value) => formatNumber(value)} variant="figure" />

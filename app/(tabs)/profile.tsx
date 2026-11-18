@@ -13,6 +13,7 @@ import { ThemedText } from '@/components/ui/ThemedText';
 import { APP_NAME, HOMETOWN_LINE, PRIVACY_LINE, REPOSITORY_URL, TAGLINE } from '@/constants/brand';
 import { Spacing, Typography } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
+import { useFast } from '@/hooks/useFast';
 import { EASTER_EGGS_ENABLED, EGGS, foundEggs } from '@/lib/easterEggs/eggs';
 import { useSettings } from '@/hooks/useSettings';
 import { clearRecentSearches } from '@/lib/food/recentSearches';
@@ -49,6 +50,9 @@ export default function ProfileScreen() {
 
   const { reminders } = settings;
   const reminderSummary = !reminders.enabled ? 'Off' : reminders.mode === 'interval' ? 'Every 1.5 hours' : 'Mealtimes';
+
+  const fast = useFast();
+  const fastSummary = !fast.plan || !fast.progress ? 'Off' : fast.progress.phase === 'active' ? `Day ${fast.progress.dayNumber} of ${fast.plan.days}` : fast.progress.phase === 'upcoming' ? 'Starts soon' : 'Complete';
 
   const saveName = () => updateSettings({ displayName: name.trim() || null });
 
@@ -98,9 +102,10 @@ export default function ProfileScreen() {
       </Hero>
 
       <View style={styles.body}>
-        <ListSection title="Goals">
+        <ListSection title="Goals" footer="A fast sets foods aside for a number of days, such as no meat for twenty. It never changes your calorie goal.">
           <ListRow icon="target" title="Daily calorie goal" value={`${formatNumber(settings.calorieGoal)} kcal`} onPress={() => router.push('/settings/goal')} />
-          <ListRow icon="flame" title="Macro targets" value={settings.macroGoals ? 'Set' : 'Off'} onPress={() => router.push('/settings/goal')} isLast />
+          <ListRow icon="flame" title="Macro targets" value={settings.macroGoals ? 'Set' : 'Off'} onPress={() => router.push('/settings/goal')} />
+          <ListRow icon="calendar" title="Fast" value={fastSummary} onPress={() => router.push('/settings/fast')} isLast />
         </ListSection>
 
         <ListSection title="Reminders" footer="A nudge to log your food, with a different joke each time.">

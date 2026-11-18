@@ -68,6 +68,7 @@ function RootNavigator() {
           <Stack.Screen name="scan/describe" options={TRACKING_MODAL} />
           <Stack.Screen name="settings/goal" options={{ presentation: 'modal' }} />
           <Stack.Screen name="settings/reminders" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="settings/fast" options={{ presentation: 'modal' }} />
           <Stack.Screen name="weight/index" />
           <Stack.Screen name="weight/log" options={{ presentation: 'modal' }} />
         </Stack.Protected>

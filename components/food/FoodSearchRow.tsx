@@ -1,11 +1,13 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { FastTag } from '@/components/fast/FastTag';
 import { FoodThumb } from '@/components/food/FoodThumb';
 import { PressScale } from '@/components/motion';
 import { ThemedText } from '@/components/ui/ThemedText';
 import { HAIRLINE, Radii, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
+import { useFastConflict } from '@/hooks/useFast';
 import { displayItemName, informativeServing } from '@/lib/food/itemName';
 import { defaultServing } from '@/lib/nutrition/portion';
 import type { FoodDetail } from '@/types';
@@ -32,6 +34,8 @@ export function FoodSearchRow({ food, onPress, disambiguate = false, hideBrand =
   const macros = `P ${formatNumber(serving.protein)} · C ${formatNumber(serving.carbs)} · F ${formatNumber(serving.fat)} g`;
   const detail = [hideBrand ? null : food.brand, food.detail, informativeServing(serving.description), disambiguate ? macros : null].filter(Boolean).join(' · ');
   const calories = formatNumber(serving.calories);
+  // During a fast, a result that looks like something set aside says so before it is opened.
+  const offFast = useFastConflict()(food.name, food.brand);
   const top = position === 'first' || position === 'only';
   const bottom = position === 'last' || position === 'only';
 
@@ -55,10 +59,15 @@ export function FoodSearchRow({ food, onPress, disambiguate = false, hideBrand =
         <ThemedText variant="body" numberOfLines={2}>
           {name}
         </ThemedText>
-        {detail ? (
-          <ThemedText variant="footnote" color="secondary" numberOfLines={1}>
-            {detail}
-          </ThemedText>
+        {detail || offFast ? (
+          <View style={styles.detailRow}>
+            {offFast ? <FastTag word={offFast} /> : null}
+            {detail ? (
+              <ThemedText variant="footnote" color="secondary" numberOfLines={1} style={styles.detail}>
+                {detail}
+              </ThemedText>
+            ) : null}
+          </View>
         ) : null}
       </View>
       <View style={styles.calories}>
@@ -78,6 +87,8 @@ const styles = StyleSheet.create({
   top: { borderTopLeftRadius: Radii.xl, borderTopRightRadius: Radii.xl },
   bottom: { borderBottomLeftRadius: Radii.xl, borderBottomRightRadius: Radii.xl },
   text: { flex: 1, gap: 2 },
+  detailRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
+  detail: { flexShrink: 1 },
   calories: { flexDirection: 'row', alignItems: 'baseline', gap: 3 },
   tabular: { fontVariant: ['tabular-nums'] },
 });

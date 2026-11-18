@@ -11,6 +11,7 @@ import { discover } from '@/components/easterEggs/found';
 import { InkPull } from '@/components/easterEggs/InkPull';
 import { NightOwl, OwlFlight } from '@/components/easterEggs/NightOwl';
 import { Seasonal } from '@/components/easterEggs/Seasonal';
+import { FastCard } from '@/components/fast/FastCard';
 import { Hero } from '@/components/layout/Hero';
 import { InkReveal, PressScale, Stagger } from '@/components/motion';
 import { AppIcon } from '@/components/ui/AppIcon';
@@ -118,6 +119,7 @@ export default function HomeScreen() {
       </Hero>
 
       <View style={styles.body}>
+        <FastCard />
         <Heading
           title="daily meals"
           tagline="what was eaten, written down"

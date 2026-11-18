@@ -2,11 +2,13 @@ import React, { useRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import ReanimatedSwipeable, { type SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
 
+import { FastTag } from '@/components/fast/FastTag';
 import { FoodThumb } from '@/components/food/FoodThumb';
 import { AppIcon, type AppIconName } from '@/components/ui/AppIcon';
 import { ThemedText } from '@/components/ui/ThemedText';
 import { HAIRLINE, Radii, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
+import { useFastConflict } from '@/hooks/useFast';
 import { amountLabel } from '@/lib/log/entries';
 import type { LogEntry } from '@/types';
 import { formatCalories, formatNumber } from '@/utils/format';
@@ -54,6 +56,7 @@ export function EntryRow({ entry, isLast, onOpen, onDuplicate, onDelete, onMore 
     action();
   };
   const detail = [entry.brand, amountLabel(entry)].filter(Boolean).join(' · ');
+  const offFast = useFastConflict()(entry.foodName, entry.brand);
 
   return (
     <ReanimatedSwipeable
@@ -98,6 +101,7 @@ export function EntryRow({ entry, isLast, onOpen, onDuplicate, onDelete, onMore 
                 </ThemedText>
               </View>
             ) : null}
+            {offFast ? <FastTag word={offFast} /> : null}
             <ThemedText variant="footnote" color="secondary" numberOfLines={1} style={styles.detailText}>
               {detail}
             </ThemedText>

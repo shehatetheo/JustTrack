@@ -41,6 +41,7 @@ export function FoodHero({ title, subtitle, amount, amountCaption, imageUri, tin
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   useLightStatusBar();
+  const stacked = Boolean(amount && amount.length > 14);
 
   return (
     <View style={[styles.hero, { backgroundColor: colors.hero }]}>
@@ -76,8 +77,9 @@ export function FoodHero({ title, subtitle, amount, amountCaption, imageUri, tin
         {onClose ? <CloseButton onPress={onClose} onPhoto /> : <View style={styles.spacer} />}
       </View>
 
-      <View style={styles.titles}>
-        <View style={styles.titleBlock}>
+      {/* A long amount ("1 cup, cooked, diced (135 g)") goes under the name; a short one sits beside it. */}
+      <View style={[styles.titles, stacked && styles.titlesStacked]}>
+        <View style={stacked ? styles.titleBlockStacked : styles.titleBlock}>
           <ThemedText variant="title2" style={{ color: colors.onHero }} numberOfLines={3} accessibilityRole="header">
             {title}
           </ThemedText>
@@ -88,8 +90,8 @@ export function FoodHero({ title, subtitle, amount, amountCaption, imageUri, tin
           ) : null}
         </View>
         {amount ? (
-          <View style={styles.amountBlock}>
-            <ThemedText variant="figureSmall" style={[styles.tabular, { color: colors.onHero }]}>
+          <View style={stacked ? styles.amountStacked : styles.amountBlock}>
+            <ThemedText variant="figureSmall" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={[styles.tabular, { color: colors.onHero }]}>
               {amount}
             </ThemedText>
             {amountCaption ? (
@@ -116,8 +118,11 @@ const styles = StyleSheet.create({
   badge: { paddingHorizontal: Spacing.sm, paddingVertical: 3, borderRadius: Radii.sm, borderWidth: HAIRLINE },
   badgeText: { letterSpacing: 1.2, fontWeight: '700' },
   titles: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: Spacing.lg, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.xl },
+  titlesStacked: { flexDirection: 'column', alignItems: 'stretch', gap: Spacing.sm },
   titleBlock: { flex: 1, gap: Spacing.xxs },
+  titleBlockStacked: { gap: Spacing.xxs },
   amountBlock: { alignItems: 'flex-end', gap: Spacing.xxs },
+  amountStacked: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.sm },
   tabular: { fontVariant: ['tabular-nums'] },
   rule: { position: 'absolute', left: Spacing.xl, right: Spacing.xl, bottom: 0, height: HAIRLINE },
 });

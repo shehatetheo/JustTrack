@@ -20,6 +20,7 @@ describe('parseSettings', () => {
       welcomedAt: null,
       welcomeBackAt: null,
       secretsFound: [],
+      fast: null,
     });
     expect(parseSettings({ calorieGoal: 500 })?.calorieGoal).toBe(1200);
   });

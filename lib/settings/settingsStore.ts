@@ -1,5 +1,6 @@
 import { MAX_CALORIE_TARGET } from '@/constants/onboarding';
 import { MIN_CALORIE_TARGET } from '@/lib/nutrition/calorieTarget';
+import { parseFastPlan } from '@/lib/fast/plan';
 import { createPersistedStore } from '@/lib/storage/persistedStore';
 import { MAX_WEIGHT_KG, MIN_WEIGHT_KG } from '@/lib/weight/limits';
 import type { MacroGoals, ReminderSettings, Settings } from '@/types';
@@ -27,6 +28,7 @@ export const DEFAULT_SETTINGS: Settings = {
   welcomedAt: null,
   welcomeBackAt: null,
   secretsFound: [],
+  fast: null,
 };
 
 function clampGoal(value: unknown): number {
@@ -81,6 +83,7 @@ export function parseSettings(raw: unknown): Settings | null {
     welcomedAt: parseTimestamp(item.welcomedAt),
     welcomeBackAt: parseTimestamp(item.welcomeBackAt),
     secretsFound: parseSecrets(item.secretsFound),
+    fast: parseFastPlan(item.fast),
   };
 }
 

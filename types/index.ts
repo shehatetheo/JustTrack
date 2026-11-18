@@ -151,6 +151,19 @@ export interface Settings {
   welcomeBackAt: ISODateString | null;
   /** Ids of the hidden details the user has come across (see lib/easterEggs). Nothing else is recorded about them. */
   secretsFound: string[];
+  /** A fast in progress or planned, if there is one (see lib/fast). */
+  fast: FastPlan | null;
+}
+
+/** A stretch of days with some foods set aside. It says what to leave out, never how much to eat. */
+export interface FastPlan {
+  /** Local calendar day the fast starts, YYYY-MM-DD. */
+  startedOn: string;
+  days: number;
+  /** Food groups being given up, by id (see lib/fast/groups). */
+  avoid: ('meat' | 'fish' | 'dairy' | 'eggs' | 'sweets' | 'alcohol')[];
+  /** The user's own words for anything else: "soda", "fried". */
+  customWords: string[];
 }
 
 /** One weigh-in. There is at most one per calendar day; weighing again replaces it. */

@@ -2,7 +2,7 @@
 
 Paste the block under **Notes** into App Store Connect → your app → the 1.0 version page → **App Review Information → Notes**, attach the screen recording link, then click **Resubmit for Review** (or reply in Resolution Center and resubmit).
 
-Make sure the attached build on the version page is the latest one in TestFlight, **1.0.0 (19)**.
+Make sure the attached build on the version page is the latest one in TestFlight, **1.0.0 (20)**.
 
 ---
 
@@ -22,6 +22,7 @@ There is no account, login, registration or subscription. No credentials or samp
 - Search (the magnifier in the tab bar, or "+ add" on any meal): type any food ("chobani", "banana", "big mac") or pick a restaurant from the grid to browse its full menu. Chipotle, Subway, Jersey Mike's and Panda Express also have a "Build your order" flow where you pick base, protein and toppings and the menu's nutrition is added up.
 - Scan (the raised round button in the middle of the tab bar): photograph a plate; the app returns an estimate of each food, grams and macros. Results are labelled "Estimated" and can be edited or swapped for a database entry before logging. The scan tab also has a barcode scanner for packaged foods, and a "Describe what you ate" option (pencil button) that does the same from a typed sentence.
 - Today tab: today's calories, logging streak, weight with a trend chart (tap the Weight card, then Log weight), balance score, calories by meal, last 7 days. Weight is typed in by the user and stored only on the device; the app does not read from or write to Apple Health.
+- Fast (Profile → Fast, optional and off by default): the user picks a number of days and foods to set aside, for example no meat for 20 days for a personal or religious fast. While it runs, foods whose names match carry a small label and Home counts the days. It does not change the calorie goal, restrict eating, block any food from being logged, or give medical advice.
 - A short, skippable set of "welcome back" slides appears if nothing has been logged for three days.
 - Profile: goals, units, appearance, meal reminders, privacy policy, support, and "Erase all data", which wipes the on-device log and settings.
 - Reminders: optional local notifications that nudge the user to log food, every 1.5 hours or at mealtimes. They are off by default. The app asks once it is open, the user can decline, and they can be switched off in Profile → Meal reminders. They are scheduled on the device; the app does not use push notifications or any notification server.
@@ -53,7 +54,7 @@ There is no account creation, so no login or account-deletion flow applies. Ther
 
 Apple requires it to be captured **on a physical iPhone running the latest iOS**, starting from the app launch.
 
-1. On your iPhone, install **1.0.0 (19)** from TestFlight and make sure iOS is up to date (Settings → General → Software Update).
+1. On your iPhone, install **1.0.0 (20)** from TestFlight and make sure iOS is up to date (Settings → General → Software Update).
 2. If the app was already opened on this phone, go to Profile → **Erase all data** first, so the recording starts at the welcome screen.
 3. Swipe down from the top-right corner → tap the **Screen Record** button in Control Center (add it under Settings → Control Center if it's missing). The 3-second countdown starts; now open JustTrack from the home screen.
 4. Record this flow, about 90 seconds, no narration needed:
