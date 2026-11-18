@@ -13,13 +13,14 @@ import { Glass } from '@/components/ui/Glass';
 import { StepperButton, StepperTick } from '@/components/ui/Stepper';
 import { TextField } from '@/components/ui/TextField';
 import { ThemedText } from '@/components/ui/ThemedText';
+import { Toggle } from '@/components/ui/Toggle';
 import { Haptic } from '@/constants/motion';
 import { HAIRLINE, Radii, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/contexts/ThemeContext';
 import { useCurrentTime } from '@/hooks/useCurrentTime';
 import { useSettings } from '@/hooks/useSettings';
 import { FAST_GROUPS, type FastGroup } from '@/lib/fast/groups';
-import { clampFastDays, DEFAULT_FAST_DAYS, fastDates, fastRuleText, MAX_FAST_DAYS, MIN_FAST_DAYS, newFastPlan, wordsFromText } from '@/lib/fast/plan';
+import { clampFastDays, DEFAULT_FAST_AVOID, DEFAULT_FAST_DAYS, DEFAULT_NO_SNACK_MEAL, fastDates, fastIsEmpty, fastRuleText, MAX_FAST_DAYS, MIN_FAST_DAYS, newFastPlan, wordsFromText } from '@/lib/fast/plan';
 import { updateSettings } from '@/lib/settings/settingsStore';
 import { confirmAsync } from '@/utils/actionSheet';
 import { addDays, parseDateKey } from '@/utils/date';
@@ -50,15 +51,16 @@ function Fast() {
   const { today } = useCurrentTime();
 
   const [days, setDays] = useState(saved?.days ?? DEFAULT_FAST_DAYS);
-  const [avoid, setAvoid] = useState<FastGroup[]>(saved?.avoid ?? ['meat']);
+  const [avoid, setAvoid] = useState<FastGroup[]>(saved?.avoid ?? [...DEFAULT_FAST_AVOID]);
+  const [noSnackMeal, setNoSnackMeal] = useState(saved?.noSnackMeal ?? DEFAULT_NO_SNACK_MEAL);
   const [extra, setExtra] = useState(saved?.customWords.join(', ') ?? '');
   const [startChoice, setStartChoice] = useState<StartChoice>(saved ? 'keep' : 'today');
 
   const customWords = wordsFromText(extra);
   const start = startChoice === 'keep' && saved ? (parseDateKey(saved.startedOn) ?? today) : startChoice === 'tomorrow' ? addDays(today, 1) : today;
-  const draft = newFastPlan(start, days, avoid, customWords);
+  const draft = newFastPlan(start, days, avoid, customWords, noSnackMeal);
   const { end } = fastDates(draft);
-  const nothing = draft.avoid.length === 0 && draft.customWords.length === 0;
+  const nothing = fastIsEmpty(draft);
 
   const toggle = (group: FastGroup) => setAvoid((current) => (current.includes(group) ? current.filter((item) => item !== group) : [...current, group]));
   const step = (delta: number) => setDays((current) => clampFastDays(current + delta));
@@ -126,7 +128,17 @@ function Fast() {
               ))}
             </View>
             <View style={[styles.divider, { backgroundColor: colors.border }]} />
-            <TextField label="Anything else" value={extra} onChangeText={setExtra} placeholder="soda, fried food" placeholderTextColor={colors.textTertiary} autoCapitalize="none" autoCorrect={false} returnKeyType="done" maxLength={160} />
+            <View style={styles.toggleRow}>
+              <View style={styles.toggleText}>
+                <ThemedText variant="bodyEmphasized">nothing between meals</ThemedText>
+                <ThemedText variant="footnote" color="secondary">
+                  Anything logged under Snacks counts as off the fast, whatever it is. Breakfast, lunch and dinner are untouched.
+                </ThemedText>
+              </View>
+              <Toggle value={noSnackMeal} onValueChange={setNoSnackMeal} accessibilityLabel="Nothing between meals" />
+            </View>
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+            <TextField label="Anything else" value={extra} onChangeText={setExtra} placeholder="fast food, fried food" placeholderTextColor={colors.textTertiary} autoCapitalize="none" autoCorrect={false} returnKeyType="done" maxLength={160} />
             <ThemedText variant="footnote" color="secondary">
               Your own words, with commas between them. A food is pointed out when its name has one of them in it.
             </ThemedText>
@@ -164,6 +176,8 @@ const styles = StyleSheet.create({
   length: { alignItems: 'center', minWidth: 96 },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   divider: { height: HAIRLINE },
+  toggleRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  toggleText: { flex: 1, gap: 2 },
   note: { padding: Spacing.lg, gap: Spacing.sm },
   footer: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.md, gap: Spacing.sm, borderTopWidth: HAIRLINE },
   center: { textAlign: 'center' },

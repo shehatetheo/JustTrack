@@ -81,7 +81,7 @@ export function FastCard() {
             <ThemedText variant="overline" color="tertiary">
               {heading}
             </ThemedText>
-            <ThemedText variant="title3" numberOfLines={2}>
+            <ThemedText variant="title3" numberOfLines={3}>
               {rule}
             </ThemedText>
           </View>

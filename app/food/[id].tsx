@@ -23,6 +23,7 @@ import { useCurrentTime } from '@/hooks/useCurrentTime';
 import { useFastConflict } from '@/hooks/useFast';
 import { useFood } from '@/hooks/useFood';
 import { usePortion } from '@/hooks/usePortion';
+import { SNACKING } from '@/lib/fast/plan';
 import { createEntry, entryFromFood } from '@/lib/log/entries';
 import { addEntries } from '@/lib/log/logStore';
 import type { MealType } from '@/types';
@@ -70,7 +71,7 @@ export default function AddFoodScreen() {
   }
 
   const nutrition = portion.nutrition ?? NO_NUTRITION;
-  const offFast = fastConflict(food.name, food.brand);
+  const offFast = fastConflict(food.name, food.brand, mealType);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -89,7 +90,7 @@ export default function AddFoodScreen() {
         />
 
         <View style={styles.body}>
-          {offFast ? <Banner tone="info" icon="calendar" message={`This looks like ${offFast}, which you’re setting aside for your fast. Log it if you had it; the fast just keeps count.`} /> : null}
+          {offFast ? <Banner tone="info" icon="calendar" message={offFast === SNACKING ? 'This is going under Snacks, and your fast has nothing between meals. If it was part of a meal, pick that meal below.' : `This looks like ${offFast}, which you’re setting aside for your fast. Log it if you had it; the fast just keeps count.`} /> : null}
           <InkReveal>
             <View style={styles.caloriesRow}>
               <CountUp value={nutrition.calories} durationMs={Duration.standard} format={(value) => formatNumber(value)} variant="figure" />

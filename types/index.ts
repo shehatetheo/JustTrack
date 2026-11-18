@@ -161,7 +161,9 @@ export interface FastPlan {
   startedOn: string;
   days: number;
   /** Food groups being given up, by id (see lib/fast/groups). */
-  avoid: ('meat' | 'fish' | 'dairy' | 'eggs' | 'sweets' | 'alcohol')[];
+  avoid: ('soda' | 'candy' | 'chips' | 'snacks' | 'sweets' | 'meat' | 'fish' | 'dairy' | 'eggs' | 'alcohol')[];
+  /** Nothing between meals: anything logged under the Snacks meal counts as off the fast, whatever it is. */
+  noSnackMeal: boolean;
   /** The user's own words for anything else: "soda", "fried". */
   customWords: string[];
 }

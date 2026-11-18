@@ -56,7 +56,7 @@ export function EntryRow({ entry, isLast, onOpen, onDuplicate, onDelete, onMore 
     action();
   };
   const detail = [entry.brand, amountLabel(entry)].filter(Boolean).join(' · ');
-  const offFast = useFastConflict()(entry.foodName, entry.brand);
+  const offFast = useFastConflict()(entry.foodName, entry.brand, entry.mealType);
 
   return (
     <ReanimatedSwipeable

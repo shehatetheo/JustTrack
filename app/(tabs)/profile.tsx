@@ -102,7 +102,7 @@ export default function ProfileScreen() {
       </Hero>
 
       <View style={styles.body}>
-        <ListSection title="Goals" footer="A fast sets foods aside for a number of days, such as no meat for twenty. It never changes your calorie goal.">
+        <ListSection title="Goals" footer="A fast sets foods aside for a number of days, such as no soda, candy, chips or snacks for twenty. It never changes your calorie goal.">
           <ListRow icon="target" title="Daily calorie goal" value={`${formatNumber(settings.calorieGoal)} kcal`} onPress={() => router.push('/settings/goal')} />
           <ListRow icon="flame" title="Macro targets" value={settings.macroGoals ? 'Set' : 'Off'} onPress={() => router.push('/settings/goal')} />
           <ListRow icon="calendar" title="Fast" value={fastSummary} onPress={() => router.push('/settings/fast')} isLast />
