@@ -15,6 +15,7 @@ const ALLOWED = {
   // "relative/path.tsx": "why this file may hold a colour literal".
   'components/food/BuildPreview.tsx': 'The order drawing was made in full colour. Every literal is passed through mono(), which keeps its lightness and maps it onto ink, lavender and white; none reaches the screen as written.',
   'components/layout/PhoneFrame.web.tsx': 'Draws an iPhone around the app on a desktop browser (bezel, island, status bar). It is the picture frame, not the app, and never ships in the iOS build.',
+  'components/layout/StorybookStage.tsx': 'The desktop website\'s stage around that phone: scrims and glows mixed from ink and lavender at set strengths, painted over the engraving. Web only.',
 };
 
 const COLOUR = /#[0-9a-fA-F]{3,8}\b|rgba?\(/g;
