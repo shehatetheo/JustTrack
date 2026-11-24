@@ -17,7 +17,7 @@ Before the first push, replace the two placeholders in `store.config.json` under
 | File | Use in App Store Connect |
 | --- | --- |
 | `icon-1024.png` | Not uploaded separately: the icon comes from the build (`assets/justtrack.icon` + `assets/images/icon.png`). Keep it here for the listing preview and press use. |
-| `screenshots/iphone-6.9/01…06.png` | App Store → iOS App → Screenshots → **iPhone 6.9" Display** (1320 × 2868). Upload in numbered order. Apple scales this one set for every other iPhone size. |
+| `screenshots/iphone-6.9/01…05.png` | App Store → iOS App → Screenshots → **iPhone 6.9" Display** (1320 × 2868). Upload in numbered order. Apple scales this one set for every other iPhone size. |
 
 ## App Information
 
@@ -40,19 +40,19 @@ Before the first push, replace the two placeholders in `store.config.json` under
 **Promotional text (170)**
 
 ```
-Open source. No account, no ads. Snap a photo, pick from 30 restaurant menus, or build your Chipotle bowl. Your data stays on your phone.
+Open source. No account, no ads. Snap a photo, search restaurant menus, or build your order. Your data stays on your phone.
 ```
 
 **Description (4000)**
 
 ```
-JustTrack is the free, open-source calorie tracker. No account, no ads, no subscription, no paywall. The code is public, so anyone can see exactly what the app does with their data: nothing.
+JustTrack is the open-source calorie tracker. No account and no ads. The code is public, so anyone can see exactly what the app does with their data: nothing.
 
 SNAP YOUR FOOD
 Take a photo of your plate and JustTrack estimates each food on it: what it is, how much, and the calories, protein, carbs, and fat. Adjust the grams, swap anything for an exact database entry, and log it in one tap. Estimates are labelled so you always know what's measured and what's approximate.
 
-30 RESTAURANT MENUS BUILT IN
-McDonald's, Chick-fil-A, Chipotle, Starbucks, Taco Bell, Dunkin', Wendy's, Burger King, Subway, Panda Express, Domino's, Panera, Popeyes, Raising Cane's, KFC, Jersey Mike's, Sonic, Pizza Hut, Dairy Queen, Wingstop, Arby's, Little Caesars, Papa John's, Jamba, Insomnia Cookies, Freshens, Wawa, 7-Eleven, Applebee's, Auntie Anne's, 7 Brew, and Hangry Joe's. Over 8,500 items with the chains' own nutrition numbers, and they work offline. Tap a logo to browse a menu like the menu board, or search across all of them.
+RESTAURANT MENUS BUILT IN
+McDonald's, Chick-fil-A, Chipotle, Starbucks, Taco Bell, Dunkin', Wendy's, Burger King, Subway, Panda Express, Domino's, Panera, Popeyes, Raising Cane's, KFC, Jersey Mike's, Sonic, Pizza Hut, Dairy Queen, Wingstop, Arby's, Little Caesars, Papa John's, Jamba, Insomnia Cookies, Freshens, Wawa, 7-Eleven, Applebee's, Auntie Anne's, 7 Brew, and Hangry Joe's. Over 8,500 items with the chains' own nutrition numbers, and they work offline. Tap a restaurant to browse its menu, or search across all of them. JustTrack is not affiliated with or endorsed by any of these restaurants; their names are used only to identify the published nutrition data.
 
 BUILD IT LIKE YOU ORDER IT
 Searching Chipotle, Subway, Panda Express, or Jersey Mike's opens an order builder. Pick the protein, rice, beans, toppings, size, and sides exactly as you'd order at the counter. The total comes from the menu.
@@ -66,22 +66,22 @@ See calories left, protein, carbs, and fat at a glance. Browse any day of the we
 PRIVATE BY DESIGN
 There is no sign-up. Your log, goals, and name are stored only on your device. Meal photos are analysed and not kept. No analytics, no tracking, no ads.
 
-FREE AND OPEN SOURCE
-Other trackers charge a subscription for photo logging and hide your data behind an account. JustTrack is free, every feature is included, and the source code is public on GitHub (github.com/theokkk4/JustTrack). Read it, improve it, or build it yourself.
+OPEN SOURCE
+Every feature is included from the first launch, and the source code is public on GitHub (github.com/theokkk4/JustTrack). Read it, improve it, or build it yourself.
 
-Made in Philadelphia for college students, and free for everyone.
+Made in Philadelphia for college students, and open to everyone.
 ```
 
 **Keywords (100, comma-separated, no spaces after commas)**
 
 ```
-calorie counter,calories,open source,food tracker,macro,diet,chipotle,fast food,nutrition,photo,meal log
+calorie counter,calories,open source,food tracker,macro,diet,macros,fast food,nutrition,photo,meal log
 ```
 
 **What's New (first release)**
 
 ```
-First release. Open source. Snap a photo to log a meal, search 30 restaurant menus, build your Chipotle, Subway, Panda Express, or Jersey Mike's order, and track calories and macros without an account.
+First release. Open source. Snap a photo to log a meal, search restaurant menus, build your order, and track calories and macros without an account.
 ```
 
 | Field | Value |

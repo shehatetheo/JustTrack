@@ -46,6 +46,9 @@ Third-party material in the app:
 
 6. ACCOUNTS AND USER CONTENT
 There is no account creation, so no login or account-deletion flow applies. There is no user-generated content shared with anyone: the food log is private, stored only on the device, and can be erased from Profile → Erase all data. No in-app purchases.
+
+7. DECORATIVE EXTRAS (NOTHING HIDDEN)
+The app has ten small decorative animations that appear on ordinary actions, such as a wax seal after seven days of logging, an owl when the moon on Home is tapped, or ink that moves when the phone is shaken on the Today tab. They are visual only: they unlock no content, features, payments or settings, and change no data. Profile lists the ones the user has found. There are no hidden, dormant or undocumented features in the app.
 ```
 
 ---
