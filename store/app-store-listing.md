@@ -17,7 +17,7 @@ Before the first push, replace the two placeholders in `store.config.json` under
 | File | Use in App Store Connect |
 | --- | --- |
 | `icon-1024.png` | Not uploaded separately: the icon comes from the build (`assets/justtrack.icon` + `assets/images/icon.png`). Keep it here for the listing preview and press use. |
-| `screenshots/iphone-6.9/01…07.png` | App Store → iOS App → Screenshots → **iPhone 6.9" Display** (1320 × 2868). Upload in numbered order (the first one makes the free, open-source pitch). Apple scales this one set for every other iPhone size. |
+| `screenshots/iphone-6.9/01…06.png` | App Store → iOS App → Screenshots → **iPhone 6.9" Display** (1320 × 2868). Upload in numbered order. Apple scales this one set for every other iPhone size. |
 
 ## App Information
 
