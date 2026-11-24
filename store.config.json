@@ -38,12 +38,12 @@
     "info": {
       "en-US": {
         "title": "JustTrack: Calorie Counter",
-        "subtitle": "Free, open source, no ads",
-        "promoText": "Free and open source. No account, no ads, no subscription. Snap a photo, pick from 30 restaurant menus, or build your Chipotle bowl. Your data stays on your phone.",
+        "subtitle": "Open source, no ads, no login",
+        "promoText": "Open source. No account, no ads. Snap a photo, pick from 30 restaurant menus, or build your Chipotle bowl. Your data stays on your phone.",
         "description": "JustTrack is the free, open-source calorie tracker. No account, no ads, no subscription, no paywall. The code is public, so anyone can see exactly what the app does with their data: nothing.\n\nSNAP YOUR FOOD\nTake a photo of your plate and JustTrack estimates each food on it: what it is, how much, and the calories, protein, carbs, and fat. Adjust the grams, swap anything for an exact database entry, and log it in one tap. Estimates are labelled so you always know what's measured and what's approximate.\n\n30 RESTAURANT MENUS BUILT IN\nMcDonald's, Chick-fil-A, Chipotle, Starbucks, Taco Bell, Dunkin', Wendy's, Burger King, Subway, Panda Express, Domino's, Panera, Popeyes, Raising Cane's, KFC, Jersey Mike's, Sonic, Pizza Hut, Dairy Queen, Wingstop, Arby's, Little Caesars, Papa John's, Jamba, Insomnia Cookies, Freshens, Wawa, 7-Eleven, Applebee's, Auntie Anne's, 7 Brew, and Hangry Joe's. Over 8,500 items with the chains' own nutrition numbers, and they work offline. Tap a logo to browse a menu like the menu board, or search across all of them.\n\nBUILD IT LIKE YOU ORDER IT\nSearching Chipotle, Subway, Panda Express, or Jersey Mike's opens an order builder. Pick the protein, rice, beans, toppings, size, and sides exactly as you'd order at the counter. The total comes from the menu.\n\nEVERYDAY FOODS AND BARCODES\nSearch thousands of everyday foods from the USDA database, scan a barcode for packaged products, or add your own. Smart search groups duplicates so you find the right entry fast.\n\nYOUR DAY, YOUR WEEK\nSee calories left, protein, carbs, and fat at a glance. Browse any day of the week, check calories by meal, and watch a seven-day trend. Set a daily calorie goal and optional macro targets.\n\nPRIVATE BY DESIGN\nThere is no sign-up. Your log, goals, and name are stored only on your device. Meal photos are analysed and not kept. No analytics, no tracking, no ads.\n\nFREE AND OPEN SOURCE\nOther trackers charge a subscription for photo logging and hide your data behind an account. JustTrack is free, every feature is included, and the source code is public on GitHub (github.com/theokkk4/JustTrack). Read it, improve it, or build it yourself.\n\nMade in Philadelphia for college students, and free for everyone.",
         "keywords": [
           "calorie counter",
-          "free",
+          "calories",
           "open source",
           "food tracker",
           "macro",
@@ -54,7 +54,7 @@
           "photo",
           "meal log"
         ],
-        "releaseNotes": "First release. Free and open source. Snap a photo to log a meal, search 30 restaurant menus, build your Chipotle, Subway, Panda Express, or Jersey Mike's order, and track calories and macros without an account.",
+        "releaseNotes": "First release. Open source. Snap a photo to log a meal, search 30 restaurant menus, build your Chipotle, Subway, Panda Express, or Jersey Mike's order, and track calories and macros without an account.",
         "marketingUrl": "https://justtrack-snowy.vercel.app",
         "supportUrl": "https://justtrack-snowy.vercel.app/support",
         "privacyPolicyUrl": "https://justtrack-snowy.vercel.app/privacy"

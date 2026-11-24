@@ -24,7 +24,7 @@ Before the first push, replace the two placeholders in `store.config.json` under
 | Field | Value |
 | --- | --- |
 | Name (30) | `JustTrack: Calorie Counter` (plain "JustTrack" is taken by another developer on the App Store) |
-| Subtitle (30) | `Free, open source, no ads` |
+| Subtitle (30) | `Open source, no ads, no login` |
 | Bundle ID | `com.theokkk4.justtrack` |
 | SKU | `justtrack-ios` |
 | Primary language | English (U.S.) |
@@ -40,7 +40,7 @@ Before the first push, replace the two placeholders in `store.config.json` under
 **Promotional text (170)**
 
 ```
-Free and open source. No account, no ads, no subscription. Snap a photo, pick from 30 restaurant menus, or build your Chipotle bowl. Your data stays on your phone.
+Open source. No account, no ads. Snap a photo, pick from 30 restaurant menus, or build your Chipotle bowl. Your data stays on your phone.
 ```
 
 **Description (4000)**
@@ -75,13 +75,13 @@ Made in Philadelphia for college students, and free for everyone.
 **Keywords (100, comma-separated, no spaces after commas)**
 
 ```
-calorie counter,free,open source,food tracker,macro,diet,chipotle,fast food,nutrition,photo,meal log
+calorie counter,calories,open source,food tracker,macro,diet,chipotle,fast food,nutrition,photo,meal log
 ```
 
 **What's New (first release)**
 
 ```
-First release. Free and open source. Snap a photo to log a meal, search 30 restaurant menus, build your Chipotle, Subway, Panda Express, or Jersey Mike's order, and track calories and macros without an account.
+First release. Open source. Snap a photo to log a meal, search 30 restaurant menus, build your Chipotle, Subway, Panda Express, or Jersey Mike's order, and track calories and macros without an account.
 ```
 
 | Field | Value |
