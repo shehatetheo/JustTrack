@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 
 import { CaloriesLeft } from '@/components/home/CaloriesLeft';
+import { FillCard } from '@/components/home/FillCard';
 import { MacroRings } from '@/components/home/MacroRings';
 import { MealCard } from '@/components/home/MealCard';
 import { WeekStrip } from '@/components/home/WeekStrip';
@@ -120,6 +121,7 @@ export default function HomeScreen() {
 
       <View style={styles.body}>
         <FastCard />
+        {isToday ? <FillCard eaten={totals} calorieGoal={settings.calorieGoal} macroGoals={settings.macroGoals} now={now} /> : null}
         <Heading
           title="daily meals"
           tagline="what was eaten, written down"

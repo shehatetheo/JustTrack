@@ -25,6 +25,7 @@ import { useFood } from '@/hooks/useFood';
 import { usePortion } from '@/hooks/usePortion';
 import { SNACKING } from '@/lib/fast/plan';
 import { createEntry, entryFromFood } from '@/lib/log/entries';
+import { MAX_SERVINGS, type StoredPortion } from '@/lib/nutrition/portion';
 import { addEntries } from '@/lib/log/logStore';
 import type { MealType } from '@/types';
 import { formatNumber } from '@/utils/format';
@@ -33,19 +34,26 @@ import { mealTypeParam, singleParam } from '@/utils/routeParams';
 
 const NO_NUTRITION = { calories: 0, protein: 0, carbs: 0, fat: 0 };
 
+function suggestedPortion(servingId: string | undefined, servings: string | undefined): StoredPortion | null {
+  const count = Number(servings);
+  return servingId && Number.isFinite(count) && count > 0 && count <= MAX_SERVINGS ? { servingId, servings: count, amountUnit: 'serving' } : null;
+}
+
 /** One food: a photo or an ink drawing at the top, the calories and macros counting along with the portion, and one button to log it. */
 export default function AddFoodScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ id: string; mealType?: string }>();
+  const params = useLocalSearchParams<{ id: string; mealType?: string; servingId?: string; servings?: string }>();
   const { now } = useCurrentTime();
 
   const foodId = singleParam(params.id);
   const [mealType, setMealType] = useState<MealType>(() => mealTypeParam(params.mealType) ?? defaultMealType(now));
   const { food, error: loadError, retry } = useFood(foodId);
-  const portion = usePortion(food);
+  // A suggestion opens the food at the amount it suggested.
+  const suggested = suggestedPortion(singleParam(params.servingId), singleParam(params.servings));
+  const portion = usePortion(food, suggested);
   const fastConflict = useFastConflict();
 
   const closeFlow = () => {
